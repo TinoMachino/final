@@ -1,0 +1,265 @@
+// @ts-nocheck
+import { Selectable, sql } from 'kysely'
+import { CID } from 'multiformats/cid'
+import { AtUri, normalizeDatetimeAlways } from '@atproto/syntax'
+import { BackgroundQueue } from '../../background'
+import { Database } from '../../db'
+import { DatabaseSchema, DatabaseSchemaType } from '../../db/database-schema'
+import { RecordProcessor } from '../processor'
+import { recomputeCabildeoAggregates } from './recompute-cabildeo-aggregates'
+
+interface VoteRecord {
+  subject?: string
+  subjectType?: string
+  cabildeo?: string
+  selectedOption?: number
+  signal?: number
+  reason?: string
+  isDirect: boolean
+  delegatedFrom?: string[]
+  createdAt: string
+}
+
+type CabildeoVote = Selectable<DatabaseSchemaType['cabildeo_vote']>
+type ParaPolicyVote = Selectable<DatabaseSchemaType['para_policy_vote']>
+type IndexedVote = {
+  cabildeoRecord?: CabildeoVote
+  policyRecord?: ParaPolicyVote
+}
+
+const lexId = 'com.para.civic.vote'
+
+const insertFn = async (
+  db: DatabaseSchema,
+  uri: AtUri,
+  cid: CID,
+  obj: VoteRecord,
+  timestamp: string,
+): Promise<IndexedVote | null> => {
+  if (obj.subjectType === 'policy' && obj.subject && typeof obj.signal === 'number') {
+    const inserted = await db
+      .insertInto('para_policy_vote')
+      .values({
+        uri: uri.toString(),
+        cid: cid.toString(),
+        creator: uri.host,
+        subject: obj.subject,
+        subjectType: obj.subjectType,
+        signal: obj.signal,
+        isDirect: obj.isDirect ? (1 as const) : (0 as const),
+        delegatedFrom: obj.delegatedFrom?.length
+          ? sql<string[]>`${JSON.stringify(obj.delegatedFrom)}`
+          : null,
+        reason: obj.reason ?? null,
+        createdAt: normalizeDatetimeAlways(obj.createdAt),
+        indexedAt: timestamp,
+      })
+      .onConflict((oc) =>
+        oc.columns(['creator', 'subjectType', 'subject']).doUpdateSet({
+          uri: uri.toString(),
+          cid: cid.toString(),
+          signal: obj.signal,
+          isDirect: obj.isDirect ? (1 as const) : (0 as const),
+          delegatedFrom: obj.delegatedFrom?.length
+            ? sql<string[]>`${JSON.stringify(obj.delegatedFrom)}`
+            : null,
+          reason: obj.reason ?? null,
+          createdAt: normalizeDatetimeAlways(obj.createdAt),
+          indexedAt: timestamp,
+        }),
+      )
+      .returningAll()
+      .executeTakeFirst()
+
+    return inserted ? { policyRecord: inserted } : null
+  }
+
+  if (!obj.cabildeo) {
+    return null
+  }
+  if (typeof obj.selectedOption !== 'number' || !Number.isInteger(obj.selectedOption)) {
+    return null
+  }
+
+  const eligibility = await getCabildeoVoteEligibility(db, {
+    actorDid: uri.host,
+    cabildeoUri: obj.cabildeo,
+    selectedOption: obj.selectedOption,
+    indexedAt: timestamp,
+  })
+  if (!eligibility) {
+    return null
+  }
+
+  const record = {
+    uri: uri.toString(),
+    cid: cid.toString(),
+    creator: uri.host,
+    cabildeo: obj.cabildeo,
+    selectedOption: obj.selectedOption ?? null,
+    isDirect: obj.isDirect ? (1 as const) : (0 as const),
+    delegatedFrom: obj.delegatedFrom?.length
+      ? sql<string[]>`${JSON.stringify(obj.delegatedFrom)}`
+      : null,
+    createdAt: normalizeDatetimeAlways(obj.createdAt),
+    indexedAt: timestamp,
+  }
+
+  const inserted = await db
+    .insertInto('cabildeo_vote')
+    .values(record)
+    .onConflict((oc) =>
+      oc.columns(['creator', 'cabildeo']).doUpdateSet({
+        uri: record.uri,
+        cid: record.cid,
+        selectedOption: record.selectedOption,
+        isDirect: record.isDirect,
+        delegatedFrom: record.delegatedFrom,
+        createdAt: record.createdAt,
+        indexedAt: record.indexedAt,
+      }),
+    )
+    .returningAll()
+    .executeTakeFirst()
+
+  if (!inserted) {
+    return null
+  }
+
+  return { cabildeoRecord: inserted }
+}
+
+const findDuplicate = async (): Promise<AtUri | null> => {
+  return null
+}
+
+const getCabildeoVoteEligibility = async (
+  db: DatabaseSchema,
+  opts: {
+    actorDid: string
+    cabildeoUri: string
+    selectedOption: number
+    indexedAt: string
+  },
+) => {
+  const cabildeo = await db
+    .selectFrom('cabildeo_cabildeo')
+    .where('uri', '=', opts.cabildeoUri)
+    .select(['uri', 'community', 'options', 'phase', 'phaseDeadline'])
+    .executeTakeFirst()
+
+  if (!cabildeo || cabildeo.phase !== 'voting') {
+    return null
+  }
+  if (
+    cabildeo.phaseDeadline &&
+    new Date(cabildeo.phaseDeadline) <= new Date(opts.indexedAt)
+  ) {
+    return null
+  }
+
+  const options = Array.isArray(cabildeo.options) ? cabildeo.options : []
+  if (opts.selectedOption < 0 || opts.selectedOption >= options.length) {
+    return null
+  }
+
+  const community = normalizeCommunitySlug(cabildeo.community)
+  const board = await db
+    .selectFrom('para_community_board')
+    .where((qb) =>
+      qb.or([
+        qb('uri', '=', cabildeo.community),
+        qb('slug', '=', community),
+        qb(
+          sql`regexp_replace(lower(coalesce("name", '')), '[^a-z0-9]+', '-', 'g')`,
+          '=',
+          community,
+        ),
+      ]),
+    )
+    .select(['uri'])
+    .executeTakeFirst()
+
+  if (!board) {
+    return null
+  }
+
+  const membership = await db
+    .selectFrom('para_community_membership')
+    .where('creator', '=', opts.actorDid)
+    .where('communityUri', '=', board.uri)
+    .where('membershipState', '=', 'active')
+    .select(['uri'])
+    .executeTakeFirst()
+
+  return membership ? { cabildeo } : null
+}
+
+const normalizeCommunitySlug = (value: string) =>
+  value
+    .replace(/^p\//, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+const notifsForInsert = () => {
+  return []
+}
+
+const deleteFn = async (
+  db: DatabaseSchema,
+  uri: AtUri,
+): Promise<IndexedVote | null> => {
+  const deletedPolicy = await db
+    .deleteFrom('para_policy_vote')
+    .where('uri', '=', uri.toString())
+    .returningAll()
+    .executeTakeFirst()
+  if (deletedPolicy) {
+    return { policyRecord: deletedPolicy }
+  }
+
+  const deletedCabildeo = await db
+    .deleteFrom('cabildeo_vote')
+    .where('uri', '=', uri.toString())
+    .returningAll()
+    .executeTakeFirst()
+
+  return deletedCabildeo ? { cabildeoRecord: deletedCabildeo } : null
+}
+
+const notifsForDelete = (
+  deleted: IndexedVote,
+  _replacedBy: IndexedVote | null,
+) => {
+  const uri = deleted.policyRecord?.uri || deleted.cabildeoRecord?.uri
+  return { notifs: [], toDelete: uri ? [uri] : [] }
+}
+
+const updateAggregates = async (
+  db: DatabaseSchema,
+  indexed: IndexedVote,
+) => {
+  if (indexed.cabildeoRecord) {
+    await recomputeCabildeoAggregates(db, indexed.cabildeoRecord.cabildeo)
+  }
+}
+
+export type PluginType = RecordProcessor<VoteRecord, IndexedVote>
+
+export const makePlugin = (
+  db: Database,
+  background: BackgroundQueue,
+): PluginType => {
+  return new RecordProcessor(db, background, {
+    lexId,
+    insertFn,
+    findDuplicate,
+    deleteFn,
+    notifsForInsert,
+    notifsForDelete,
+    updateAggregates,
+  })
+}
+
+export default makePlugin

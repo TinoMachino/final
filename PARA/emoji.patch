@@ -1,0 +1,1356 @@
+commit a97b15b204d8df1f9276794c209b401c32a4b881
+Author: Samuel Newman <mozzius@protonmail.com>
+Date:   Fri Apr 17 02:42:10 2026 -0700
+
+    ✨ `EmojiPicker` component (#10249)
+
+diff --git a/src/components/EmojiPicker/index.tsx b/src/components/EmojiPicker/index.tsx
+new file mode 100644
+index 0000000000..facc131275
+--- /dev/null
++++ b/src/components/EmojiPicker/index.tsx
+@@ -0,0 +1,40 @@
++import {type PickerProps, type RootProps, type TriggerProps} from './types'
++
++export * from './types'
++
++/**
++ * Provides emoji picker context and wraps children in a {@link Menu.Root}.
++ *
++ * On emoji select, fires a `textInputWebEmitter` event (for web text inputs
++ * that listen for emoji insertions) and forwards to the optional
++ * `onEmojiSelect` callback.
++ *
++ * @platform web
++ */
++export function Root(_props: RootProps): React.ReactNode {
++  throw new Error('EmojiPopup is not implemented on native')
++}
++
++/**
++ * Passthrough to {@link Menu.Trigger}. Accepts the same render-prop children
++ * pattern.
++ *
++ * @platform web
++ */
++export function Trigger(_props: TriggerProps): React.ReactNode {
++  throw new Error('EmojiPopup is not implemented on native')
++}
++
++/**
++ * Renders the emoji picker inside a Radix `DropdownMenu.Portal`.
++ *
++ * Holding Shift while selecting an emoji keeps the picker open for
++ * multi-select. Otherwise the menu closes after each selection.
++ *
++ * Must be rendered inside a {@link Root}.
++ *
++ * @platform web
++ */
++export function Picker(_props: PickerProps): React.ReactNode {
++  throw new Error('EmojiPopup is not implemented on native')
++}
+diff --git a/src/components/EmojiPicker/index.web.tsx b/src/components/EmojiPicker/index.web.tsx
+new file mode 100644
+index 0000000000..8d5e7788ec
+--- /dev/null
++++ b/src/components/EmojiPicker/index.web.tsx
+@@ -0,0 +1,150 @@
++import {createContext, useContext, useEffect, useMemo, useRef} from 'react'
++import EmojiPicker from '@emoji-mart/react'
++import {DropdownMenu} from 'radix-ui'
++
++import {useA11y} from '#/state/a11y'
++import {textInputWebEmitter} from '#/view/com/composer/text-input/textInputWebEmitter'
++import {atoms as a, flatten} from '#/alf'
++import * as Menu from '../Menu'
++import {useWebPreloadEmoji} from './preload'
++import {
++  type Emoji,
++  type PickerProps,
++  type RootProps,
++  type TriggerProps,
++} from './types'
++
++export * from './types'
++
++const EmojiPickerContext = createContext<{
++  onEmojiSelect: (emoji: Emoji) => void
++  nextFocusRef: RootProps['nextFocusRef']
++} | null>(null)
++
++/**
++ * Provides emoji picker context and wraps children in a {@link Menu.Root}.
++ *
++ * On emoji select, fires a `textInputWebEmitter` event (for web text inputs
++ * that listen for emoji insertions) and forwards to the optional
++ * `onEmojiSelect` callback.
++ *
++ * @platform web
++ */
++export function Root({
++  children,
++  control,
++  onEmojiSelect,
++  preloadOnMount = true,
++  nextFocusRef,
++}: RootProps) {
++  useWebPreloadEmoji({immediate: preloadOnMount})
++
++  const value = useMemo(
++    () => ({
++      onEmojiSelect: (emoji: Emoji) => {
++        textInputWebEmitter.emit('emoji-inserted', emoji)
++
++        if (onEmojiSelect) onEmojiSelect(emoji)
++      },
++      nextFocusRef,
++    }),
++    [onEmojiSelect, nextFocusRef],
++  )
++
++  return (
++    <EmojiPickerContext value={value}>
++      <Menu.Root control={control}>{children}</Menu.Root>
++    </EmojiPickerContext>
++  )
++}
++
++/**
++ * Passthrough to {@link Menu.Trigger}. Accepts the same render-prop children
++ * pattern.
++ *
++ * @platform web
++ */
++export function Trigger(props: TriggerProps) {
++  return <Menu.Trigger {...props} />
++}
++
++/**
++ * Renders the emoji picker inside a Radix `DropdownMenu.Portal`.
++ *
++ * Holding Shift while selecting an emoji keeps the picker open for
++ * multi-select. Otherwise the menu closes after each selection.
++ *
++ * Must be rendered inside a {@link Root}.
++ *
++ * @platform web
++ */
++export function Picker({keepOpenWhenShiftHeld = true}: PickerProps) {
++  const {onEmojiSelect, nextFocusRef} = useEmojiPickerContext()
++  const {control} = Menu.useMenuContext()
++  const {reduceMotionEnabled} = useA11y()
++  const isShiftDown = useRef(false)
++
++  useEffect(() => {
++    const onKeyDown = (e: KeyboardEvent) => {
++      if (e.key === 'Shift') {
++        isShiftDown.current = true
++      }
++    }
++    const onKeyUp = (e: KeyboardEvent) => {
++      if (e.key === 'Shift') {
++        isShiftDown.current = false
++      }
++    }
++    window.addEventListener('keydown', onKeyDown, true)
++    window.addEventListener('keyup', onKeyUp, true)
++
++    return () => {
++      window.removeEventListener('keydown', onKeyDown, true)
++      window.removeEventListener('keyup', onKeyUp, true)
++    }
++  }, [])
++
++  return (
++    <DropdownMenu.Portal>
++      <DropdownMenu.Content
++        sideOffset={5}
++        collisionPadding={{left: 5, right: 5, bottom: 5}}
++        className="dropdown-menu-transform-origin dropdown-menu-constrain-size"
++        onCloseAutoFocus={evt => {
++          if (!nextFocusRef) return
++          let element =
++            nextFocusRef instanceof Function
++              ? nextFocusRef()
++              : nextFocusRef.current
++          if (element) {
++            evt.preventDefault()
++            element.focus()
++          }
++        }}>
++        <div
++          onWheel={evt => evt.stopPropagation()}
++          style={flatten([!reduceMotionEnabled && a.zoom_fade_in])}>
++          <EmojiPicker
++            autoFocus
++            onEmojiSelect={(emoji: Emoji) => {
++              onEmojiSelect(emoji)
++
++              if (!keepOpenWhenShiftHeld || !isShiftDown.current) {
++                control.close()
++              }
++            }}
++          />
++        </div>
++      </DropdownMenu.Content>
++    </DropdownMenu.Portal>
++  )
++}
++
++function useEmojiPickerContext() {
++  const ctx = useContext(EmojiPickerContext)
++  if (!ctx)
++    throw new Error(
++      'EmojiPicker.Picker must be used within an EmojiPicker.Root component',
++    )
++  return ctx
++}
+diff --git a/src/components/EmojiPicker/preload.ts b/src/components/EmojiPicker/preload.ts
+new file mode 100644
+index 0000000000..d37216b168
+--- /dev/null
++++ b/src/components/EmojiPicker/preload.ts
+@@ -0,0 +1,7 @@
++/**
++ * Native no-op. Emoji data preloading is only needed on web where the picker
++ * uses `emoji-mart`.
++ */
++export function useWebPreloadEmoji({}: {immediate?: boolean} = {}) {
++  return () => Promise.resolve()
++}
+diff --git a/src/view/com/composer/text-input/web/useWebPreloadEmoji.ts b/src/components/EmojiPicker/preload.web.ts
+similarity index 52%
+rename from src/view/com/composer/text-input/web/useWebPreloadEmoji.ts
+rename to src/components/EmojiPicker/preload.web.ts
+index 27636a14b4..4456153b71 100644
+--- a/src/view/com/composer/text-input/web/useWebPreloadEmoji.ts
++++ b/src/components/EmojiPicker/preload.web.ts
+@@ -7,8 +7,14 @@ import {init} from 'emoji-mart'
+ let loadRequested = false
+ 
+ /**
+- * Preload the emoji picker data to prevent flash.
+- * {@link https://github.com/missive/emoji-mart/blob/16978d04a766eec6455e2e8bb21cd8dc0b3c7436/README.md?plain=1#L194}
++ * Preloads emoji-mart data so the picker renders instantly when opened.
++ *
++ * Returns a function that can be called manually to trigger preloading (e.g.
++ * on hover). When `immediate` is `true`, preloading starts on mount.
++ *
++ * Data is only fetched once per page load — subsequent calls are no-ops.
++ *
++ * @see {@link https://github.com/missive/emoji-mart/blob/16978d04a766eec6455e2e8bb21cd8dc0b3c7436/README.md?plain=1#L194 | emoji-mart preloading docs}
+  */
+ export function useWebPreloadEmoji({immediate}: {immediate?: boolean} = {}) {
+   const preload = useCallback(async () => {
+diff --git a/src/components/EmojiPicker/types.ts b/src/components/EmojiPicker/types.ts
+new file mode 100644
+index 0000000000..4b6300ffda
+--- /dev/null
++++ b/src/components/EmojiPicker/types.ts
+@@ -0,0 +1,65 @@
++import {type DialogControlProps} from '../Dialog'
++import {type TriggerProps as MenuTriggerProps} from '../Menu/types'
++
++/**
++ * Represents an emoji selected from the picker. Sourced from the `emoji-mart`
++ * library's selection data.
++ */
++export type Emoji = {
++  aliases?: string[]
++  emoticons: string[]
++  id: string
++  keywords: string[]
++  name: string
++  /** The native unicode character for the emoji, e.g. "😀" */
++  native: string
++  shortcodes?: string
++  /** The unicode codepoint, e.g. "1f600" */
++  unified: string
++  /** Skin tone variant (1–6), if applicable */
++  skin?: number
++}
++
++type FocusableElement = {focus: () => void}
++
++export interface RootProps {
++  children: React.ReactNode
++  control?: DialogControlProps
++  /**
++   * Called when the user selects an emoji. On web this fires in addition to
++   * the `textInputWebEmitter` event, so callers that only need the text
++   * insertion can omit this.
++   */
++  onEmojiSelect?: (emoji: Emoji) => void
++  /**
++   * When `true` (default), preloads emoji data as soon as the component
++   * mounts so the picker opens instantly. Set to `false` to defer loading
++   * until the picker is actually opened.
++   */
++  preloadOnMount?: boolean
++  /**
++   * Element to return focus to when the picker closes. Accepts either a ref
++   * or a getter function.
++   */
++  nextFocusRef?:
++    | React.RefObject<FocusableElement | null>
++    | (() => FocusableElement | null | undefined)
++}
++
++/**
++ * Props for the trigger button that opens the emoji picker. Extends
++ * {@link MenuTriggerProps} — accepts the same render-prop children pattern.
++ */
++export interface TriggerProps extends MenuTriggerProps {}
++
++/**
++ * Props for the picker panel itself.
++ */
++export interface PickerProps {
++  /**
++   * When `true`, the picker will remain open after selecting an emoji when the Shift key is held down.
++   *
++   * @default true
++   */
++  keepOpenWhenShiftHeld?: boolean
++}
+diff --git a/src/components/dms/EmojiReactionPicker.web.tsx b/src/components/dms/EmojiReactionPicker.web.tsx
+index 6be85efb4c..1a78a55458 100644
+--- a/src/components/dms/EmojiReactionPicker.web.tsx
++++ b/src/components/dms/EmojiReactionPicker.web.tsx
+@@ -1,18 +1,14 @@
+ import {useState} from 'react'
+ import {Pressable, View} from 'react-native'
+ import {type ChatBskyConvoDefs} from '@atproto/api'
+-import EmojiPicker from '@emoji-mart/react'
+-import {msg} from '@lingui/core/macro'
+-import {useLingui} from '@lingui/react'
++import {useLingui} from '@lingui/react/macro'
+ import {DropdownMenu} from 'radix-ui'
+ 
+ import {useSession} from '#/state/session'
+-import {type Emoji} from '#/view/com/composer/text-input/web/EmojiPicker'
+-import {useWebPreloadEmoji} from '#/view/com/composer/text-input/web/useWebPreloadEmoji'
+ import {atoms as a, flatten, useTheme} from '#/alf'
++import * as EmojiPicker from '#/components/EmojiPicker'
+ import {DotGrid3x1_Stroke2_Corner0_Rounded as DotGridIcon} from '#/components/icons/DotGrid'
+ import * as Menu from '#/components/Menu'
+-import {type TriggerProps} from '#/components/Menu/types'
+ import {Text} from '#/components/Typography'
+ import {hasAlreadyReacted, hasReachedReactionLimit} from './util'
+ 
+@@ -22,19 +18,21 @@ export function EmojiReactionPicker({
+   onEmojiSelect,
+ }: {
+   message: ChatBskyConvoDefs.MessageView
+-  children?: TriggerProps['children']
++  children?: EmojiPicker.TriggerProps['children']
+   onEmojiSelect: (emoji: string) => void
+ }) {
+   if (!children)
+     throw new Error('EmojiReactionPicker requires the children prop on web')
+ 
+-  const {_} = useLingui()
++  const {t: l} = useLingui()
+ 
+   return (
+-    <Menu.Root>
+-      <Menu.Trigger label={_(msg`Add emoji reaction`)}>{children}</Menu.Trigger>
++    <EmojiPicker.Root onEmojiSelect={emoji => onEmojiSelect(emoji.native)}>
++      <EmojiPicker.Trigger label={l`Add emoji reaction`}>
++        {children}
++      </EmojiPicker.Trigger>
+       <MenuInner message={message} onEmojiSelect={onEmojiSelect} />
+-    </Menu.Root>
++    </EmojiPicker.Root>
+   )
+ }
+ 
+@@ -49,8 +47,6 @@ function MenuInner({
+   const {control} = Menu.useMenuContext()
+   const {currentAccount} = useSession()
+ 
+-  useWebPreloadEmoji({immediate: true})
+-
+   const [expanded, setExpanded] = useState(false)
+ 
+   const [prevOpen, setPrevOpen] = useState(control.isOpen)
+@@ -62,10 +58,6 @@ function MenuInner({
+     }
+   }
+ 
+-  const handleEmojiPickerResponse = (emoji: Emoji) => {
+-    handleEmojiSelect(emoji.native)
+-  }
+-
+   const handleEmojiSelect = (emoji: string) => {
+     control.close()
+     onEmojiSelect(emoji)
+@@ -74,18 +66,7 @@ function MenuInner({
+   const limitReacted = hasReachedReactionLimit(message, currentAccount?.did)
+ 
+   return expanded ? (
+-    <DropdownMenu.Portal>
+-      <DropdownMenu.Content
+-        sideOffset={5}
+-        collisionPadding={{left: 5, right: 5, bottom: 5}}>
+-        <div onWheel={evt => evt.stopPropagation()}>
+-          <EmojiPicker
+-            onEmojiSelect={handleEmojiPickerResponse}
+-            autoFocus={true}
+-          />
+-        </div>
+-      </DropdownMenu.Content>
+-    </DropdownMenu.Portal>
++    <EmojiPicker.Picker keepOpenWhenShiftHeld={false} />
+   ) : (
+     <Menu.Outer style={[a.rounded_full]}>
+       <View style={[a.flex_row, a.gap_xs]}>
+diff --git a/src/screens/Messages/components/MessageComposer.tsx b/src/screens/Messages/components/MessageComposer.tsx
+index cb5da5628a..b0ec463979 100644
+--- a/src/screens/Messages/components/MessageComposer.tsx
++++ b/src/screens/Messages/components/MessageComposer.tsx
+@@ -1,4 +1,4 @@
+-import {useEffect, useState} from 'react'
++import {useState} from 'react'
+ import {Pressable, View} from 'react-native'
+ import {
+   useKeyboardHandler,
+@@ -25,14 +25,9 @@ import {
+   useMessageDraft,
+   useSaveMessageDraft,
+ } from '#/state/messages/message-drafts'
+-import {textInputWebEmitter} from '#/view/com/composer/text-input/textInputWebEmitter'
+-import {
+-  type Emoji,
+-  EmojiPicker,
+-  type EmojiPickerState,
+-} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import {atoms as a, native, platform, tokens, useTheme, utils} from '#/alf'
+ import {Composer, useComposerInternalApiRef} from '#/components/Composer'
++import * as EmojiPicker from '#/components/EmojiPicker'
+ import {GlassView} from '#/components/GlassView'
+ import {EmojiArc_Stroke2_Corner0_Rounded as EmojiSmileIcon} from '#/components/icons/Emoji'
+ import {PaperPlaneVertical_Filled_Stroke2_Corner1_Rounded as PaperPlaneIcon} from '#/components/icons/PaperPlane'
+@@ -60,10 +55,6 @@ export function MessageComposer({
+   const {needsEmailVerification} = useEmail()
+   const editable = !needsEmailVerification
+   const {getDraft, clearDraft} = useMessageDraft()
+-  const [emojiPickerState, setEmojiPickerState] = useState<EmojiPickerState>({
+-    isOpen: false,
+-    pos: {top: 0, left: 0, right: 0, bottom: 0, nextFocusRef: null},
+-  })
+   const composerInternalApiRef = useComposerInternalApiRef()
+ 
+   const [text, setText] = useState(getDraft)
+@@ -85,10 +76,6 @@ export function MessageComposer({
+ 
+   const submitDisabled = !editable || (!hasEmbed && text.trim().length === 0)
+ 
+-  const openEmojiPicker = (pos: any) => {
+-    setEmojiPickerState({isOpen: true, pos})
+-  }
+-
+   const onSubmit = () => {
+     if (!editable) return
+     if (!hasEmbed && text.trim() === '') return
+@@ -112,16 +99,6 @@ export function MessageComposer({
+     }
+   }
+ 
+-  useEffect(() => {
+-    function onEmojiInserted(emoji: Emoji) {
+-      composerInternalApiRef.current?.insert(emoji.native)
+-    }
+-    textInputWebEmitter.addListener('emoji-inserted', onEmojiInserted)
+-    return () => {
+-      textInputWebEmitter.removeListener('emoji-inserted', onEmojiInserted)
+-    }
+-  }, [composerInternalApiRef])
+-
+   return (
+     <ComposerContainer>
+       {children}
+@@ -142,54 +119,47 @@ export function MessageComposer({
+             tintColor={t.palette.contrast_50}
+             fallbackStyle={[t.atoms.bg_contrast_50]}>
+             {IS_WEB && (
+-              <Pressable
+-                onPress={e => {
+-                  e.currentTarget.measure(
+-                    (_fx, _fy, _width, _height, px, py) => {
+-                      // TODO: rip this horrible system out
+-                      openEmojiPicker?.({
+-                        top: py,
+-                        left: px - 400,
+-                        right: px - 400,
+-                        bottom: py,
+-                        nextFocusRef: {
+-                          current:
+-                            composerInternalApiRef.current?.input?.element,
++              <EmojiPicker.Root
++                onEmojiSelect={emoji =>
++                  composerInternalApiRef.current?.insert(emoji.native)
++                }
++                nextFocusRef={() =>
++                  composerInternalApiRef.current?.input?.element
++                }>
++                <EmojiPicker.Trigger label={l`Open emoji picker`}>
++                  {({props, state, control}) => (
++                    <Pressable
++                      {...props}
++                      style={[
++                        a.overflow_hidden,
++                        a.absolute,
++                        a.rounded_full,
++                        a.align_center,
++                        a.justify_center,
++                        a.z_30,
++                        {
++                          height: 20,
++                          width: 20,
++                          top: 10,
++                          right: 10,
+                         },
+-                      })
+-                    },
+-                  )
+-                }}
+-                style={[
+-                  a.overflow_hidden,
+-                  a.absolute,
+-                  a.rounded_full,
+-                  a.align_center,
+-                  a.justify_center,
+-                  a.z_30,
+-                  {
+-                    height: 20,
+-                    width: 20,
+-                    top: 10,
+-                    right: 10,
+-                  },
+-                ]}
+-                accessibilityLabel={l`Open emoji picker`}
+-                accessibilityHint="">
+-                {state => (
+-                  <EmojiSmileIcon
+-                    size="md"
+-                    style={
+-                      state.hovered ||
+-                      state.focused ||
+-                      state.pressed ||
+-                      emojiPickerState.isOpen
+-                        ? {color: t.palette.primary_500}
+-                        : t.atoms.text_contrast_high
+-                    }
+-                  />
+-                )}
+-              </Pressable>
++                      ]}>
++                      <EmojiSmileIcon
++                        size="md"
++                        style={
++                          state.hovered ||
++                          state.focused ||
++                          state.pressed ||
++                          control.isOpen
++                            ? {color: t.palette.primary_500}
++                            : t.atoms.text_contrast_high
++                        }
++                      />
++                    </Pressable>
++                  )}
++                </EmojiPicker.Trigger>
++                <EmojiPicker.Picker />
++              </EmojiPicker.Root>
+             )}
+ 
+             <Composer
+@@ -226,14 +196,6 @@ export function MessageComposer({
+           <SubmitButton onPress={onSubmit} disabled={submitDisabled} />
+         </GlassContainer>
+       </View>
+-
+-      {IS_WEB && (
+-        <EmojiPicker
+-          pinToTop
+-          state={emojiPickerState}
+-          close={() => setEmojiPickerState(prev => ({...prev, isOpen: false}))}
+-        />
+-      )}
+     </ComposerContainer>
+   )
+ }
+diff --git a/src/screens/Messages/components/MessageInput.tsx b/src/screens/Messages/components/MessageInput.tsx
+index e2bf735713..d545e6d7b5 100644
+--- a/src/screens/Messages/components/MessageInput.tsx
++++ b/src/screens/Messages/components/MessageInput.tsx
+@@ -25,7 +25,6 @@ import {
+   useMessageDraft,
+   useSaveMessageDraft,
+ } from '#/state/messages/message-drafts'
+-import {type EmojiPickerPosition} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import {atoms as a, platform, tokens, useTheme} from '#/alf'
+ import {GlassView} from '#/components/GlassView'
+ import {PaperPlaneVertical_Filled_Stroke2_Corner1_Rounded as PaperPlaneIcon} from '#/components/icons/PaperPlane'
+@@ -50,7 +49,6 @@ export function MessageInput({
+   hasEmbed: boolean
+   setEmbed: (embedUrl: string | undefined) => void
+   children?: React.ReactNode
+-  openEmojiPicker?: (pos: EmojiPickerPosition) => void
+ }) {
+   const {t: l} = useLingui()
+   const t = useTheme()
+diff --git a/src/screens/Messages/components/MessageInput.web.tsx b/src/screens/Messages/components/MessageInput.web.tsx
+index 5e71fb2ef0..1ba7619d85 100644
+--- a/src/screens/Messages/components/MessageInput.web.tsx
++++ b/src/screens/Messages/components/MessageInput.web.tsx
+@@ -1,4 +1,4 @@
+-import {useCallback, useEffect, useRef, useState} from 'react'
++import {useCallback, useRef, useState} from 'react'
+ import {Pressable, View} from 'react-native'
+ import {useLingui} from '@lingui/react/macro'
+ import {flushSync} from 'react-dom'
+@@ -11,13 +11,9 @@ import {
+   useMessageDraft,
+   useSaveMessageDraft,
+ } from '#/state/messages/message-drafts'
+-import {textInputWebEmitter} from '#/view/com/composer/text-input/textInputWebEmitter'
+-import {
+-  type Emoji,
+-  type EmojiPickerPosition,
+-} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import {atoms as a, flatten, useTheme} from '#/alf'
+ import {Button} from '#/components/Button'
++import * as EmojiPicker from '#/components/EmojiPicker'
+ import {useSharedInputStyles} from '#/components/forms/TextField'
+ import {EmojiArc_Stroke2_Corner0_Rounded as EmojiSmile} from '#/components/icons/Emoji'
+ import {PaperPlane_Stroke2_Corner0_Rounded as PaperPlane} from '#/components/icons/PaperPlane'
+@@ -30,13 +26,11 @@ export function MessageInput({
+   hasEmbed,
+   setEmbed,
+   children,
+-  openEmojiPicker,
+ }: {
+   onSendMessage: (message: string) => void
+   hasEmbed: boolean
+   setEmbed: (embedUrl: string | undefined) => void
+   children?: React.ReactNode
+-  openEmojiPicker?: (pos: EmojiPickerPosition) => void
+ }) {
+   const {isMobile} = useWebMediaQueries()
+   const {t: l} = useLingui()
+@@ -104,12 +98,11 @@ export function MessageInput({
+   }, [])
+ 
+   const onEmojiInserted = useCallback(
+-    (emoji: Emoji) => {
++    (emoji: EmojiPicker.Emoji) => {
+       if (!textAreaRef.current) {
+         return
+       }
+       const position = textAreaRef.current.selectionStart ?? 0
+-      textAreaRef.current.focus()
+       flushSync(() => {
+         setMessage(
+           message =>
+@@ -121,12 +114,6 @@ export function MessageInput({
+     },
+     [setMessage],
+   )
+-  useEffect(() => {
+-    textInputWebEmitter.addListener('emoji-inserted', onEmojiInserted)
+-    return () => {
+-      textInputWebEmitter.removeListener('emoji-inserted', onEmojiInserted)
+-    }
+-  }, [onEmojiInserted])
+ 
+   useSaveMessageDraft(message)
+   useExtractEmbedFromFacets(message, setEmbed)
+@@ -152,49 +139,45 @@ export function MessageInput({
+         // @ts-expect-error web only
+         onMouseEnter={() => setIsHovered(true)}
+         onMouseLeave={() => setIsHovered(false)}>
+-        <Button
+-          onPress={e => {
+-            e.currentTarget.measure((_fx, _fy, _width, _height, px, py) => {
+-              openEmojiPicker?.({
+-                top: py,
+-                left: px,
+-                right: px,
+-                bottom: py,
+-                nextFocusRef:
+-                  textAreaRef as unknown as React.MutableRefObject<HTMLElement>,
+-              })
+-            })
+-          }}
+-          style={[
+-            a.rounded_full,
+-            a.overflow_hidden,
+-            a.align_center,
+-            a.justify_center,
+-            {
+-              marginTop: 5,
+-              height: 30,
+-              width: 30,
+-            },
+-          ]}
+-          label={l`Open emoji picker`}>
+-          {state => (
+-            <View
+-              style={[
+-                a.absolute,
+-                a.inset_0,
+-                a.align_center,
+-                a.justify_center,
+-                {
+-                  backgroundColor:
+-                    state.hovered || state.focused || state.pressed
+-                      ? t.atoms.bg.backgroundColor
+-                      : undefined,
+-                },
+-              ]}>
+-              <EmojiSmile size="lg" />
+-            </View>
+-          )}
+-        </Button>
++        <EmojiPicker.Root
++          onEmojiSelect={onEmojiInserted}
++          nextFocusRef={textAreaRef}>
++          <EmojiPicker.Trigger label={l`Open emoji picker`}>
++            {({props, state}) => (
++              <Button
++                style={[
++                  a.rounded_full,
++                  a.overflow_hidden,
++                  a.align_center,
++                  a.justify_center,
++                  {
++                    marginTop: 5,
++                    height: 30,
++                    width: 30,
++                  },
++                ]}
++                label={props.accessibilityLabel}
++                {...props}>
++                <View
++                  style={[
++                    a.absolute,
++                    a.inset_0,
++                    a.align_center,
++                    a.justify_center,
++                    {
++                      backgroundColor:
++                        state.hovered || state.focused || state.pressed
++                          ? t.atoms.bg.backgroundColor
++                          : undefined,
++                    },
++                  ]}>
++                  <EmojiSmile size="lg" />
++                </View>
++              </Button>
++            )}
++          </EmojiPicker.Trigger>
++          <EmojiPicker.Picker />
++        </EmojiPicker.Root>
+         <TextareaAutosize
+           ref={textAreaRef}
+           style={flatten([
+diff --git a/src/screens/Messages/components/MessagesList.tsx b/src/screens/Messages/components/MessagesList.tsx
+index 90953b44aa..bdff2412c1 100644
+--- a/src/screens/Messages/components/MessagesList.tsx
++++ b/src/screens/Messages/components/MessagesList.tsx
+@@ -49,10 +49,6 @@ import {
+ } from '#/state/messages/convo/types'
+ import {useGetPost} from '#/state/queries/post'
+ import {useAgent} from '#/state/session'
+-import {
+-  EmojiPicker,
+-  type EmojiPickerState,
+-} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import {List, type ListMethods} from '#/view/com/util/List'
+ import {ChatDisabled} from '#/screens/Messages/components/ChatDisabled'
+ import {MessageComposer} from '#/screens/Messages/components/MessageComposer'
+@@ -124,11 +120,6 @@ export function MessagesList({
+     startContentOffset: 0,
+   })
+ 
+-  const [emojiPickerState, setEmojiPickerState] = useState<EmojiPickerState>({
+-    isOpen: false,
+-    pos: {top: 0, left: 0, right: 0, bottom: 0, nextFocusRef: null},
+-  })
+-
+   const inputHeightUI = useSharedValue(0)
+   const [inputHeightJS, setInputHeightJS] = useState(0)
+ 
+@@ -382,10 +373,6 @@ export function MessagesList({
+     })
+   }, [flatListRef])
+ 
+-  const onOpenEmojiPicker = useCallback((pos: any) => {
+-    setEmojiPickerState({isOpen: true, pos})
+-  }, [])
+-
+   const renderItem = ({item}: {item: ConvoItem}) => {
+     if (item.type === 'message' || item.type === 'pending-message') {
+       return (
+@@ -525,8 +512,7 @@ export function MessagesList({
+                   textInputId={textInputId}
+                   onSendMessage={onSendMessage}
+                   hasEmbed={!!embedUri}
+-                  setEmbed={setEmbed}
+-                  openEmojiPicker={onOpenEmojiPicker}>
++                  setEmbed={setEmbed}>
+                   <MessageInputEmbed embedUri={embedUri} setEmbed={setEmbed} />
+                 </MessageInput>
+               )}
+@@ -535,14 +521,6 @@ export function MessagesList({
+         </KeyboardStickyView>
+       </KeyboardGestureArea>
+ 
+-      {IS_WEB && (
+-        <EmojiPicker
+-          pinToTop
+-          state={emojiPickerState}
+-          close={() => setEmojiPickerState(prev => ({...prev, isOpen: false}))}
+-        />
+-      )}
+-
+       {newMessagesPill.show && <NewMessagesPill onPress={scrollToEndOnPress} />}
+     </DateDividerToggleProvider>
+   )
+diff --git a/src/state/shell/composer/index.tsx b/src/state/shell/composer/index.tsx
+index eda5235523..c29fb41872 100644
+--- a/src/state/shell/composer/index.tsx
++++ b/src/state/shell/composer/index.tsx
+@@ -17,7 +17,6 @@ import {
+   RQKEY_GIF_ROOT,
+   RQKEY_LINK_ROOT,
+ } from '#/state/queries/resolve-link'
+-import {type EmojiPickerPosition} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import * as Toast from '#/components/Toast'
+ 
+ export interface ComposerOptsPostRef {
+@@ -51,7 +50,6 @@ export interface ComposerOpts {
+   onPostSuccess?: (data: OnPostSuccessData) => void
+   quote?: AppBskyFeedDefs.PostView
+   mention?: string // handle of user to mention
+-  openEmojiPicker?: (pos: EmojiPickerPosition | undefined) => void
+   text?: string
+   imageUris?: {uri: string; width: number; height: number; altText?: string}[]
+   videoUri?: {uri: string; width: number; height: number}
+diff --git a/src/view/com/composer/Composer.tsx b/src/view/com/composer/Composer.tsx
+index f05ff232fb..d12b3a0bea 100644
+--- a/src/view/com/composer/Composer.tsx
++++ b/src/view/com/composer/Composer.tsx
+@@ -72,7 +72,6 @@ import {
+ } from '#/lib/constants'
+ import {useIsKeyboardVisible} from '#/lib/hooks/useIsKeyboardVisible'
+ import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
+-import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
+ import {mimeToExt} from '#/lib/media/video/util'
+ import {useCallOnce} from '#/lib/once'
+ import {type NavigationProp} from '#/lib/routes/types'
+@@ -122,9 +121,10 @@ import {SubtitleDialogBtn} from '#/view/com/composer/videos/SubtitleDialog'
+ import {VideoPreview} from '#/view/com/composer/videos/VideoPreview'
+ import {VideoTranscodeProgress} from '#/view/com/composer/videos/VideoTranscodeProgress'
+ import {UserAvatar} from '#/view/com/util/UserAvatar'
+-import {atoms as a, native, useTheme, web} from '#/alf'
++import {atoms as a, native, useBreakpoints, useTheme, web} from '#/alf'
+ import {Admonition} from '#/components/Admonition'
+ import {Button, ButtonIcon, ButtonText} from '#/components/Button'
++import * as EmojiPicker from '#/components/EmojiPicker'
+ import {CircleInfo_Stroke2_Corner0_Rounded as CircleInfoIcon} from '#/components/icons/CircleInfo'
+ import {EmojiArc_Stroke2_Corner0_Rounded as EmojiSmileIcon} from '#/components/icons/Emoji'
+ import {PlusLarge_Stroke2_Corner0_Rounded as PlusIcon} from '#/components/icons/Plus'
+@@ -185,7 +185,6 @@ export const ComposePost = ({
+   onPostSuccess,
+   quote: initQuote,
+   mention: initMention,
+-  openEmojiPicker,
+   text: initText,
+   imageUris: initImageUris,
+   videoUri: initVideoUri,
+@@ -206,7 +205,7 @@ export const ComposePost = ({
+   const requireAltTextEnabled = useRequireAltTextEnabled()
+   const langPrefs = useLanguagePrefs()
+   const setLangPrefs = useLanguagePrefsApi()
+-  const textInput = useRef<TextInputRef>(null)
++  const textInputRef = useRef<TextInputRef>(null)
+   const discardPromptControl = Prompt.usePromptControl()
+   const {mutateAsync: saveDraft, isPending: _isSavingDraft} =
+     useSaveDraftMutation()
+@@ -708,7 +707,7 @@ export const ComposePost = ({
+   )
+ 
+   const onPressCancel = useCallback(() => {
+-    if (textInput.current?.maybeClosePopup()) {
++    if (textInputRef.current?.maybeClosePopup()) {
+       return
+     }
+ 
+@@ -1064,17 +1063,6 @@ export const ComposePost = ({
+     }
+   }
+ 
+-  const onEmojiButtonPress = useCallback(() => {
+-    const rect = textInput.current?.getCursorPosition()
+-    if (rect) {
+-      openEmojiPicker?.({
+-        ...rect,
+-        nextFocusRef:
+-          textInput as unknown as React.MutableRefObject<HTMLElement>,
+-      })
+-    }
+-  }, [openEmojiPicker])
+-
+   const scrollViewRef = useAnimatedRef<Animated.ScrollView>()
+   useEffect(() => {
+     if (composerState.mutableNeedsFocusActive) {
+@@ -1082,7 +1070,7 @@ export const ComposePost = ({
+       // On Android, this risks getting the cursor stuck behind the keyboard.
+       // Not worth it.
+       if (!IS_ANDROID) {
+-        textInput.current?.focus()
++        textInputRef.current?.focus()
+       }
+     }
+   }, [composerState])
+@@ -1123,7 +1111,6 @@ export const ComposePost = ({
+           !isEmptyPost(activePost) && (!nextPost || !isEmptyPost(nextPost))
+         }
+         onError={setError}
+-        onEmojiButtonPress={onEmojiButtonPress}
+         onSelectVideo={selectVideo}
+         onAddPost={() => {
+           composerDispatch({
+@@ -1133,6 +1120,7 @@ export const ComposePost = ({
+         currentLanguages={currentLanguages}
+         onSelectLanguage={onSelectLanguage}
+         openGallery={openGallery}
++        textInputRef={textInputRef}
+       />
+     </>
+   )
+@@ -1201,7 +1189,7 @@ export const ComposePost = ({
+                 <ComposerPost
+                   post={post}
+                   dispatch={composerDispatch}
+-                  textInput={post.id === activePost.id ? textInput : null}
++                  textInputRef={post.id === activePost.id ? textInputRef : null}
+                   isFirstPost={index === 0}
+                   isLastPost={index === thread.posts.length - 1}
+                   isPartOfThread={thread.posts.length > 1}
+@@ -1288,7 +1276,7 @@ export const ComposePost = ({
+ let ComposerPost = memo(function ComposerPost({
+   post,
+   dispatch,
+-  textInput,
++  textInputRef,
+   isActive,
+   isReply,
+   isFirstPost,
+@@ -1303,7 +1291,7 @@ let ComposerPost = memo(function ComposerPost({
+ }: {
+   post: PostDraft
+   dispatch: (action: ComposerAction) => void
+-  textInput: React.Ref<TextInputRef>
++  textInputRef: React.RefObject<TextInputRef | null> | null
+   isActive: boolean
+   isReply: boolean
+   isFirstPost: boolean
+@@ -1404,7 +1392,7 @@ let ComposerPost = memo(function ComposerPost({
+           style={[a.mt_xs]}
+         />
+         <TextInput
+-          ref={textInput}
++          ref={textInputRef}
+           style={[a.pt_xs]}
+           richtext={richtext}
+           placeholder={selectTextInputPlaceholder}
+@@ -1822,27 +1810,27 @@ function ComposerFooter({
+   post,
+   dispatch,
+   showAddButton,
+-  onEmojiButtonPress,
+   onSelectVideo,
+   onAddPost,
+   currentLanguages,
+   onSelectLanguage,
+   openGallery,
++  textInputRef,
+ }: {
+   post: PostDraft
+   dispatch: (action: PostAction) => void
+   showAddButton: boolean
+-  onEmojiButtonPress: () => void
+   onError: (error: string) => void
+   onSelectVideo: (postId: string, asset: ImagePickerAsset) => void
+   onAddPost: () => void
+   currentLanguages: string[]
+   onSelectLanguage?: (language: string) => void
+   openGallery?: boolean
++  textInputRef: React.RefObject<TextInputRef | null>
+ }) {
+   const t = useTheme()
+   const {t: l} = useLingui()
+-  const {isMobile} = useWebMediaQueries()
++  const {gtPhone} = useBreakpoints()
+   /*
+    * Once we've allowed a certain type of asset to be selected, we don't allow
+    * other types of media to be selected.
+@@ -1965,17 +1953,23 @@ function ComposerFooter({
+                 onAdd={onImageAdd}
+               />
+               <SelectGifBtn onSelectGif={onSelectGif} disabled={!!media} />
+-              {!isMobile ? (
+-                <Button
+-                  onPress={onEmojiButtonPress}
+-                  style={a.p_sm}
+-                  label={l`Open emoji picker`}
+-                  accessibilityHint={l`Opens emoji picker`}
+-                  variant="ghost"
+-                  shape="round"
+-                  color="primary">
+-                  <EmojiSmileIcon size="lg" />
+-                </Button>
++              {IS_WEB && gtPhone ? (
++                <EmojiPicker.Root nextFocusRef={textInputRef}>
++                  <EmojiPicker.Trigger label={l`Open emoji picker`}>
++                    {({props}) => (
++                      <Button
++                        style={a.p_sm}
++                        label={props.accessibilityLabel}
++                        variant="ghost"
++                        shape="round"
++                        color="primary"
++                        {...props}>
++                        <EmojiSmileIcon size="lg" />
++                      </Button>
++                    )}
++                  </EmojiPicker.Trigger>
++                  <EmojiPicker.Picker />
++                </EmojiPicker.Root>
+               ) : null}
+             </ToolbarWrapper>
+           )}
+diff --git a/src/view/com/composer/SelectMediaButton.tsx b/src/view/com/composer/SelectMediaButton.tsx
+index 259d1304fd..8f44cfc3e7 100644
+--- a/src/view/com/composer/SelectMediaButton.tsx
++++ b/src/view/com/composer/SelectMediaButton.tsx
+@@ -32,7 +32,7 @@ export type SelectMediaButtonProps = {
+     type: AssetType
+     assets: ImagePickerAsset[]
+     errors: string[]
+-  }) => void
++  }) => void | Promise<void>
+   /**
+    * If true, automatically open the media picker when the component mounts.
+    */
+diff --git a/src/view/com/composer/text-input/TextInput.web.tsx b/src/view/com/composer/text-input/TextInput.web.tsx
+index fe6fee2b3f..bb314f116c 100644
+--- a/src/view/com/composer/text-input/TextInput.web.tsx
++++ b/src/view/com/composer/text-input/TextInput.web.tsx
+@@ -32,11 +32,11 @@ import {
+ import {textInputWebEmitter} from '#/view/com/composer/text-input/textInputWebEmitter'
+ import {atoms as a, useAlf} from '#/alf'
+ import {normalizeTextStyles} from '#/alf/typography'
++import {type Emoji} from '#/components/EmojiPicker'
+ import {Portal} from '#/components/Portal'
+ import {Text} from '#/components/Typography'
+ import {type TextInputProps} from './TextInput.types'
+ import {type AutocompleteRef, createSuggestion} from './web/Autocomplete'
+-import {type Emoji} from './web/EmojiPicker'
+ import {LinkDecorator} from './web/LinkDecorator'
+ import {TagDecorator} from './web/TagDecorator'
+ 
+diff --git a/src/view/com/composer/text-input/web/EmojiPicker.tsx b/src/view/com/composer/text-input/web/EmojiPicker.tsx
+deleted file mode 100644
+index 5001753a5b..0000000000
+--- a/src/view/com/composer/text-input/web/EmojiPicker.tsx
++++ /dev/null
+@@ -1,37 +0,0 @@
+-export type Emoji = {
+-  aliases?: string[]
+-  emoticons: string[]
+-  id: string
+-  keywords: string[]
+-  name: string
+-  native: string
+-  shortcodes?: string
+-  unified: string
+-}
+-
+-export interface EmojiPickerPosition {
+-  top: number
+-  left: number
+-  right: number
+-  bottom: number
+-  nextFocusRef: React.MutableRefObject<HTMLElement> | null
+-}
+-
+-export interface EmojiPickerState {
+-  isOpen: boolean
+-  pos: EmojiPickerPosition
+-}
+-
+-interface IProps {
+-  state: EmojiPickerState
+-  close: () => void
+-  /**
+-   * If `true`, overrides position and ensures picker is pinned to the top of
+-   * the target element.
+-   */
+-  pinToTop?: boolean
+-}
+-
+-export function EmojiPicker(_opts: IProps) {
+-  return null
+-}
+diff --git a/src/view/com/composer/text-input/web/EmojiPicker.web.tsx b/src/view/com/composer/text-input/web/EmojiPicker.web.tsx
+deleted file mode 100644
+index c5a7e6491d..0000000000
+--- a/src/view/com/composer/text-input/web/EmojiPicker.web.tsx
++++ /dev/null
+@@ -1,180 +0,0 @@
+-import {useEffect, useMemo, useRef} from 'react'
+-import {Pressable, useWindowDimensions, View} from 'react-native'
+-import Picker from '@emoji-mart/react'
+-import {msg} from '@lingui/core/macro'
+-import {useLingui} from '@lingui/react'
+-import {DismissableLayer, FocusScope} from 'radix-ui/internal'
+-
+-import {textInputWebEmitter} from '#/view/com/composer/text-input/textInputWebEmitter'
+-import {atoms as a, flatten} from '#/alf'
+-import {Portal} from '#/components/Portal'
+-
+-const HEIGHT_OFFSET = 40
+-const WIDTH_OFFSET = 100
+-const PICKER_HEIGHT = 435 + HEIGHT_OFFSET
+-const PICKER_WIDTH = 350 + WIDTH_OFFSET
+-
+-export type Emoji = {
+-  aliases?: string[]
+-  emoticons: string[]
+-  id: string
+-  keywords: string[]
+-  name: string
+-  native: string
+-  shortcodes?: string
+-  unified: string
+-}
+-
+-export interface EmojiPickerPosition {
+-  top: number
+-  left: number
+-  right: number
+-  bottom: number
+-  nextFocusRef: React.MutableRefObject<HTMLElement> | null
+-}
+-
+-export interface EmojiPickerState {
+-  isOpen: boolean
+-  pos: EmojiPickerPosition
+-}
+-
+-interface IProps {
+-  state: EmojiPickerState
+-  close: () => void
+-  /**
+-   * If `true`, overrides position and ensures picker is pinned to the top of
+-   * the target element.
+-   */
+-  pinToTop?: boolean
+-}
+-
+-export function EmojiPicker({state, close, pinToTop}: IProps) {
+-  const {_} = useLingui()
+-  const {height, width} = useWindowDimensions()
+-
+-  const isShiftDown = useRef(false)
+-
+-  const position = useMemo(() => {
+-    if (pinToTop) {
+-      return {
+-        top: state.pos.top - PICKER_HEIGHT + HEIGHT_OFFSET - 10,
+-        left: state.pos.left,
+-      }
+-    }
+-
+-    const fitsBelow = state.pos.top + PICKER_HEIGHT < height
+-    const fitsAbove = PICKER_HEIGHT < state.pos.top
+-    const placeOnLeft = PICKER_WIDTH < state.pos.left
+-    const screenYMiddle = height / 2 - PICKER_HEIGHT / 2
+-
+-    if (fitsBelow) {
+-      return {
+-        top: state.pos.top + HEIGHT_OFFSET,
+-      }
+-    } else if (fitsAbove) {
+-      return {
+-        bottom: height - state.pos.bottom + HEIGHT_OFFSET,
+-      }
+-    } else {
+-      return {
+-        top: screenYMiddle,
+-        left: placeOnLeft ? state.pos.left - PICKER_WIDTH : undefined,
+-        right: !placeOnLeft
+-          ? width - state.pos.right - PICKER_WIDTH
+-          : undefined,
+-      }
+-    }
+-  }, [state.pos, height, width, pinToTop])
+-
+-  useEffect(() => {
+-    if (!state.isOpen) return
+-
+-    const onKeyDown = (e: KeyboardEvent) => {
+-      if (e.key === 'Shift') {
+-        isShiftDown.current = true
+-      }
+-    }
+-    const onKeyUp = (e: KeyboardEvent) => {
+-      if (e.key === 'Shift') {
+-        isShiftDown.current = false
+-      }
+-    }
+-    window.addEventListener('keydown', onKeyDown, true)
+-    window.addEventListener('keyup', onKeyUp, true)
+-
+-    return () => {
+-      window.removeEventListener('keydown', onKeyDown, true)
+-      window.removeEventListener('keyup', onKeyUp, true)
+-    }
+-  }, [state.isOpen])
+-
+-  const onInsert = (emoji: Emoji) => {
+-    textInputWebEmitter.emit('emoji-inserted', emoji)
+-
+-    if (!isShiftDown.current) {
+-      close()
+-    }
+-  }
+-
+-  if (!state.isOpen) return null
+-
+-  return (
+-    <Portal>
+-      <FocusScope.FocusScope
+-        loop
+-        trapped
+-        onUnmountAutoFocus={e => {
+-          const nextFocusRef = state.pos.nextFocusRef
+-          const node = nextFocusRef?.current
+-          if (node) {
+-            e.preventDefault()
+-            node.focus()
+-          }
+-        }}>
+-        <Pressable
+-          accessible
+-          accessibilityLabel={_(msg`Close emoji picker`)}
+-          accessibilityHint={_(msg`Closes the emoji picker`)}
+-          onPress={close}
+-          style={[a.fixed, a.inset_0]}
+-        />
+-
+-        <View
+-          style={flatten([
+-            a.fixed,
+-            a.w_full,
+-            a.h_full,
+-            a.align_center,
+-            a.z_10,
+-            {
+-              top: 0,
+-              left: 0,
+-              right: 0,
+-            },
+-          ])}>
+-          <View style={[{position: 'absolute'}, position]}>
+-            <DismissableLayer.DismissableLayer
+-              onFocusOutside={evt => evt.preventDefault()}
+-              onDismiss={close}>
+-              <Picker
+-                data={async () => {
+-                  return (await import('@emoji-mart/data')).default
+-                }}
+-                onEmojiSelect={onInsert}
+-                autoFocus={true}
+-              />
+-            </DismissableLayer.DismissableLayer>
+-          </View>
+-        </View>
+-
+-        <Pressable
+-          accessible
+-          accessibilityLabel={_(msg`Close emoji picker`)}
+-          accessibilityHint={_(msg`Closes the emoji picker`)}
+-          onPress={close}
+-          style={[a.fixed, a.inset_0]}
+-        />
+-      </FocusScope.FocusScope>
+-    </Portal>
+-  )
+-}
+diff --git a/src/view/shell/Composer.web.tsx b/src/view/shell/Composer.web.tsx
+index d99e55aacb..d3232f492b 100644
+--- a/src/view/shell/Composer.web.tsx
++++ b/src/view/shell/Composer.web.tsx
+@@ -1,4 +1,3 @@
+-import {useCallback, useState} from 'react'
+ import {StyleSheet, View} from 'react-native'
+ import {DismissableLayer, FocusGuards, FocusScope} from 'radix-ui/internal'
+ import {RemoveScrollBar} from 'react-remove-scroll-bar'
+@@ -6,11 +5,6 @@ import {RemoveScrollBar} from 'react-remove-scroll-bar'
+ import {useA11y} from '#/state/a11y'
+ import {useModals} from '#/state/modals'
+ import {type ComposerOpts, useComposerState} from '#/state/shell/composer'
+-import {
+-  EmojiPicker,
+-  type EmojiPickerPosition,
+-  type EmojiPickerState,
+-} from '#/view/com/composer/text-input/web/EmojiPicker'
+ import {atoms as a, flatten, useBreakpoints, useTheme} from '#/alf'
+ import {ComposePost, useComposerCancelRef} from '../com/composer/Composer'
+ 
+@@ -41,25 +35,6 @@ function Inner({state}: {state: ComposerOpts}) {
+   const t = useTheme()
+   const {gtMobile} = useBreakpoints()
+   const {reduceMotionEnabled} = useA11y()
+-  const [pickerState, setPickerState] = useState<EmojiPickerState>({
+-    isOpen: false,
+-    pos: {top: 0, left: 0, right: 0, bottom: 0, nextFocusRef: null},
+-  })
+-
+-  const onOpenPicker = useCallback((pos: EmojiPickerPosition | undefined) => {
+-    if (!pos) return
+-    setPickerState({
+-      isOpen: true,
+-      pos,
+-    })
+-  }, [])
+-
+-  const onClosePicker = useCallback(() => {
+-    setPickerState(prev => ({
+-      ...prev,
+-      isOpen: false,
+-    }))
+-  }, [])
+ 
+   FocusGuards.useFocusGuards()
+ 
+@@ -104,13 +79,11 @@ function Inner({state}: {state: ComposerOpts}) {
+             onPost={state.onPost}
+             onPostSuccess={state.onPostSuccess}
+             mention={state.mention}
+-            openEmojiPicker={onOpenPicker}
+             text={state.text}
+             imageUris={state.imageUris}
+             openGallery={state.openGallery}
+           />
+         </View>
+-        <EmojiPicker state={pickerState} close={onClosePicker} />
+       </DismissableLayer.DismissableLayer>
+     </FocusScope.FocusScope>
+   )

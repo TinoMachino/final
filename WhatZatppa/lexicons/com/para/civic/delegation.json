@@ -1,0 +1,26 @@
+{
+  "lexicon": 1,
+  "id": "com.para.civic.delegation",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Standing delegation of civic voting power.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["delegateTo", "createdAt"],
+        "properties": {
+          "cabildeo": { "type": "string", "format": "at-uri" },
+          "delegateTo": { "type": "string", "format": "did" },
+          "scopeFlairs": {
+            "type": "array",
+            "items": { "type": "string", "maxLength": 100 },
+            "maxLength": 10
+          },
+          "reason": { "type": "string", "maxLength": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

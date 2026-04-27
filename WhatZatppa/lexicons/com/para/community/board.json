@@ -1,0 +1,54 @@
+{
+  "lexicon": 1,
+  "id": "com.para.community.board",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A repository record acting as the anchor for a PARA community, linking the spatial map quadrant to the underlying ATProto group chats.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "quadrant", "delegatesChatId", "subdelegatesChatId", "createdAt", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 128,
+            "maxLength": 1280
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "quadrant": {
+            "type": "string",
+            "description": "Spatial mapping token indicating the nonant or 25th block.",
+            "maxLength": 64
+          },
+          "delegatesChatId": {
+            "type": "string",
+            "description": "Reference to the 270-member bounded bsky group chat."
+          },
+          "subdelegatesChatId": {
+            "type": "string",
+            "description": "Reference to the 30-member bounded public-view bsky group chat."
+          },
+          "status": {
+            "type": "string",
+            "description": "The lifecycle status of the community.",
+            "knownValues": ["draft", "active"]
+          },
+          "founderStarterPackUri": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference to the starter pack used to track the founding member quorum."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

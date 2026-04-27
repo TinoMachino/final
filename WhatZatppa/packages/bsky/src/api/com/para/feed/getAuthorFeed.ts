@@ -1,0 +1,120 @@
+// @ts-nocheck
+import { InvalidRequestError } from '@atproto/xrpc-server'
+import { AppContext } from '../../../../context'
+import { DataPlaneClient } from '../../../../data-plane'
+import { HydrateCtx, Hydrator } from '../../../../hydration/hydrator'
+import { parseString } from '../../../../hydration/util'
+import { Server } from '../../../../lexicon'
+import { QueryParams } from '../../../../lexicon/types/com/para/feed/getAuthorFeed'
+import { Views } from '../../../../views'
+import { clearlyBadCursor, resHeaders } from '../../../util'
+
+export default function (server: Server, ctx: AppContext) {
+  server.com.para.feed.getAuthorFeed({
+    auth: ctx.authVerifier.optionalStandardOrRole,
+    handler: async ({ params, auth, req }) => {
+      const { viewer, includeTakedowns } = ctx.authVerifier.parseCreds(auth)
+      const labelers = ctx.reqLabelers(req)
+      const hydrateCtx = await ctx.hydrator.createContext({
+        labelers,
+        viewer,
+        includeTakedowns,
+      })
+
+      const result = await getAuthorFeed({
+        ctx,
+        params: { ...params, hydrateCtx },
+      })
+      const repoRev = await ctx.hydrator.actor.getRepoRevSafe(viewer)
+
+      return {
+        encoding: 'application/json' as const,
+        body: result,
+        headers: resHeaders({
+          repoRev,
+          labelers: hydrateCtx.labelers,
+        }),
+      }
+    },
+  })
+}
+
+const getAuthorFeed = async (inputs: { ctx: Context; params: Params }) => {
+  const { ctx, params } = inputs
+  const [did] = await ctx.hydrator.actor.getDids([params.actor])
+  if (!did) {
+    throw new InvalidRequestError('Profile not found')
+  }
+
+  const actors = await ctx.hydrator.actor.getActors([did], {
+    includeTakedowns: params.hydrateCtx.includeTakedowns,
+    skipCacheForDids: params.hydrateCtx.skipCacheForViewer,
+  })
+  const actor = actors.get(did)
+  if (!actor) {
+    throw new InvalidRequestError('Profile not found')
+  }
+
+  const profileViewerState = await ctx.hydrator.hydrateProfileViewers(
+    [actor.did],
+    params.hydrateCtx,
+  )
+  const relationship = profileViewerState.profileViewers?.get(actor.did)
+  if (
+    relationship &&
+    (relationship.blocking ||
+      ctx.views.blockingByList(relationship, profileViewerState))
+  ) {
+    throw new InvalidRequestError(
+      `Requester has blocked actor: ${actor.did}`,
+      'BlockedActor',
+    )
+  }
+  if (
+    relationship &&
+    (relationship.blockedBy ||
+      ctx.views.blockedByList(relationship, profileViewerState))
+  ) {
+    throw new InvalidRequestError(
+      `Requester is blocked by actor: ${actor.did}`,
+      'BlockedByActor',
+    )
+  }
+
+  if (clearlyBadCursor(params.cursor)) {
+    return { feed: [] }
+  }
+
+  const res = await ctx.dataplane.getParaAuthorFeed({
+    actorDid: did,
+    limit: params.limit,
+    cursor: params.cursor,
+  })
+
+  return {
+    feed: res.items.map((item) => ({
+      uri: item.uri,
+      cid: item.cid,
+      author: item.author,
+      text: item.text,
+      createdAt: item.createdAt,
+      replyRoot: parseString(item.replyRoot),
+      replyParent: parseString(item.replyParent),
+      langs: item.langs.length ? item.langs : undefined,
+      tags: item.tags.length ? item.tags : undefined,
+      flairs: item.flairs.length ? item.flairs : undefined,
+      postType: parseString(item.postType),
+    })),
+    cursor: parseString(res.cursor),
+  }
+}
+
+type Context = {
+  hydrator: Hydrator
+  dataplane: DataPlaneClient
+  views: Views
+}
+
+type Params = QueryParams & {
+  hydrateCtx: HydrateCtx
+}

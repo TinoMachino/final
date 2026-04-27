@@ -1,0 +1,52 @@
+{
+  "lexicon": 1,
+  "id": "com.para.civic.cabildeo",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A structured civic deliberation proposal.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["title", "description", "community", "options", "phase"],
+        "properties": {
+          "title": { "type": "string", "maxLength": 300 },
+          "description": { "type": "string", "maxLength": 30000 },
+          "community": { "type": "string", "maxLength": 100 },
+          "communities": {
+            "type": "array",
+            "items": { "type": "string", "maxLength": 100 },
+            "maxLength": 10
+          },
+          "flairs": {
+            "type": "array",
+            "items": { "type": "string", "maxLength": 100 },
+            "maxLength": 10
+          },
+          "region": { "type": "string", "maxLength": 100 },
+          "geoRestricted": { "type": "boolean" },
+          "options": {
+            "type": "array",
+            "items": { "type": "ref", "ref": "#cabildeoOption" },
+            "maxLength": 10
+          },
+          "minQuorum": { "type": "integer", "minimum": 1 },
+          "phase": {
+            "type": "string",
+            "knownValues": ["draft", "open", "deliberating", "voting", "resolved"]
+          },
+          "phaseDeadline": { "type": "string", "format": "datetime" },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "cabildeoOption": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "label": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 }
+      }
+    }
+  }
+}

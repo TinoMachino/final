@@ -1,0 +1,48 @@
+{
+  "lexicon": 1,
+  "id": "com.para.discourse.getSnapshot",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get aggregate discourse metrics for a community.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "community": { "type": "string" },
+          "timeframe": { "type": "string", "enum": ["1h", "24h", "7d", "30d"] }
+        },
+        "required": ["timeframe"]
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["snapshots"],
+          "properties": {
+            "snapshots": {
+              "type": "array",
+              "items": { "type": "ref", "ref": "#snapshot" }
+            }
+          }
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "required": ["community", "bucket", "postCount", "uniqueAuthors"],
+      "properties": {
+        "community": { "type": "string" },
+        "bucket": { "type": "string", "format": "datetime" },
+        "postCount": { "type": "integer" },
+        "uniqueAuthors": { "type": "integer" },
+        "avgConstructiveness": { "type": "integer", "description": "Scaled 0-100" },
+        "semanticVolatility": { "type": "integer", "description": "Scaled 0-100" },
+        "lexicalDiversity": { "type": "integer", "description": "Scaled 0-100" },
+        "polarizationDelta": { "type": "integer", "description": "Scaled 0-100" },
+        "echoChamberIndex": { "type": "integer", "description": "Scaled 0-100" },
+        "topKeywords": { "type": "string" },
+        "sentimentDistribution": { "type": "string" }
+      }
+    }
+  }
+}

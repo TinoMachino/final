@@ -1,0 +1,88 @@
+diff --git a/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/map-view.js b/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/map-view.js
+index c7b8abb..3ac4432 100644
+--- a/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/map-view.js
++++ b/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/map-view.js
+@@ -11,7 +11,6 @@ var _camera = require("../utils/camera");
+ var _log = require("../utils/log");
+ var _useUserLocation = require("../hooks/use-user-location");
+ var _userLocationMarker = require("./user-location-marker");
+-var Location = _interopRequireWildcard(require("expo-location"));
+ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ function _MapView(props, ref) {
+@@ -187,7 +186,12 @@ function _MapView(props, ref) {
+       return '';
+     },
+     async addressForCoordinate(_coordinate) {
+-      Location.setGoogleApiKey(props.googleMapsApiKey || '');
++      let Location;
++      try {
++        Location = await Promise.resolve().then(() => _interopRequireWildcard(require("expo-location")));
++      } catch (e) {
++        return null;
++      }
+       const [address] = await Location.reverseGeocodeAsync(_coordinate, {
+         useGoogleMaps: true
+       });
+diff --git a/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/polygon.js b/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/polygon.js
+index 93272e4..75cb85a 100644
+--- a/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/polygon.js
++++ b/node_modules/@teovilla/react-native-web-maps/dist/commonjs/components/polygon.js
+@@ -15,7 +15,12 @@ function Polygon(props) {
+       lat: c.latitude,
+       lng: c.longitude
+     })),
+-    onClick: e => (0, _mouseEvent.mapMouseEventToMapEvent)(e, null, map, 'polygon-press'),
++    onClick: e => {
++      const event = (0, _mouseEvent.mapMouseEventToMapEvent)(e, null, map, 'polygon-press');
++      if (props.onPress) {
++        props.onPress(event);
++      }
++    },
+     options: {
+       geodesic: props.geodesic,
+       clickable: props.tappable,
+diff --git a/node_modules/@teovilla/react-native-web-maps/dist/module/components/map-view.js b/node_modules/@teovilla/react-native-web-maps/dist/module/components/map-view.js
+index 8bca5e5..7a6501c 100644
+--- a/node_modules/@teovilla/react-native-web-maps/dist/module/components/map-view.js
++++ b/node_modules/@teovilla/react-native-web-maps/dist/module/components/map-view.js
+@@ -5,7 +5,6 @@ import { transformRNCameraObject } from '../utils/camera';
+ import { logMethodNotImplementedWarning, logDeprecationWarning } from '../utils/log';
+ import { useUserLocation } from '../hooks/use-user-location';
+ import { UserLocationMarker } from './user-location-marker';
+-import * as Location from 'expo-location';
+ function _MapView(props, ref) {
+   // State
+ 
+@@ -179,7 +178,12 @@ function _MapView(props, ref) {
+       return '';
+     },
+     async addressForCoordinate(_coordinate) {
+-      Location.setGoogleApiKey(props.googleMapsApiKey || '');
++      let Location;
++      try {
++        Location = await import('expo-location');
++      } catch (e) {
++        return null;
++      }
+       const [address] = await Location.reverseGeocodeAsync(_coordinate, {
+         useGoogleMaps: true
+       });
+diff --git a/node_modules/@teovilla/react-native-web-maps/dist/module/components/polygon.js b/node_modules/@teovilla/react-native-web-maps/dist/module/components/polygon.js
+index 2f81fe9..73bafde 100644
+--- a/node_modules/@teovilla/react-native-web-maps/dist/module/components/polygon.js
++++ b/node_modules/@teovilla/react-native-web-maps/dist/module/components/polygon.js
+@@ -8,7 +8,12 @@ export function Polygon(props) {
+       lat: c.latitude,
+       lng: c.longitude
+     })),
+-    onClick: e => mapMouseEventToMapEvent(e, null, map, 'polygon-press'),
++    onClick: e => {
++      const event = mapMouseEventToMapEvent(e, null, map, 'polygon-press');
++      if (props.onPress) {
++        props.onPress(event);
++      }
++    },
+     options: {
+       geodesic: props.geodesic,
+       clickable: props.tappable,

@@ -1,0 +1,27 @@
+yarn run v1.22.22
+$ /Users/mlv/Desktop/MASTER/PARA/node_modules/.bin/eslint --quiet src
+
+/Users/mlv/Desktop/MASTER/PARA/src/components/ProfileBadges.tsx
+  5:54  error  Unable to resolve path to module '#/components/BotBadge'  import-x/no-unresolved
+
+/Users/mlv/Desktop/MASTER/PARA/src/components/dms/getSystemMessageInfo.ts
+  7:65  error  Unable to resolve path to module '#/components/icons/ArrowBoxRight'  import-x/no-unresolved
+
+/Users/mlv/Desktop/MASTER/PARA/src/lib/constants/mapHelpers.ts
+  2:14  error  'CityData' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/PARA/src/screens/Messages/Conversation.tsx
+    2:14  error  'LayoutChangeEvent' is defined but never used. Allowed unused vars must match /^_.+/u         @typescript-eslint/no-unused-vars
+  202:15  error  'topInset' is assigned a value but never used. Allowed unused vars must match /^_.+/u         @typescript-eslint/no-unused-vars
+  203:24  error  'setHeaderHeight' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/PARA/src/screens/Messages/components/MessagesListInfoPanel.tsx
+  13:9  error  'parseConvoView' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/PARA/src/screens/VideoFeed/index.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+✖ 8 problems (8 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

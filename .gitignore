@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env files (security)
+.env
+.env.*
+!.env.example
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Global build artifacts (subprojects have their own .gitignore)
+*.tsbuildinfo

@@ -1,0 +1,39 @@
+{
+  "lexicon": 1,
+  "id": "com.para.discourse.getSentiment",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get the sentiment breakdown for a community.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "community": { "type": "string" },
+          "timeframe": { "type": "string", "enum": ["1h", "24h", "7d", "30d"] }
+        },
+        "required": ["timeframe"]
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["sentiment"],
+          "properties": {
+            "sentiment": { "type": "ref", "ref": "#sentimentDistribution" }
+          }
+        }
+      }
+    },
+    "sentimentDistribution": {
+      "type": "object",
+      "required": ["anger", "fear", "trust", "uncertainty", "neutral"],
+      "properties": {
+        "anger": { "type": "integer", "description": "Scaled 0-100" },
+        "fear": { "type": "integer", "description": "Scaled 0-100" },
+        "trust": { "type": "integer", "description": "Scaled 0-100" },
+        "uncertainty": { "type": "integer", "description": "Scaled 0-100" },
+        "neutral": { "type": "integer", "description": "Scaled 0-100" }
+      }
+    }
+  }
+}

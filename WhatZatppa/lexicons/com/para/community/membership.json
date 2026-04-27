@@ -1,0 +1,48 @@
+{
+  "lexicon": 1,
+  "id": "com.para.community.membership",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Membership state of an actor in a Para community.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["community", "membershipState", "joinedAt"],
+        "properties": {
+          "community": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference to the community board record."
+          },
+          "membershipState": {
+            "type": "string",
+            "knownValues": ["pending", "active", "left", "removed", "blocked"]
+          },
+          "roles": {
+            "type": "array",
+            "maxLength": 16,
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "maxGraphemes": 64
+            }
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 64,
+            "maxGraphemes": 64
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "leftAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,286 @@
+diff --git a/node_modules/react-native-sticky-table/lib/components/index.js b/node_modules/react-native-sticky-table/lib/components/index.js
+index 38a899f..776b434 100644
+--- a/node_modules/react-native-sticky-table/lib/components/index.js
++++ b/node_modules/react-native-sticky-table/lib/components/index.js
+@@ -1,2 +1 @@
+ export * from './sticky-table';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/index.js.map b/node_modules/react-native-sticky-table/lib/components/index.js.map
+deleted file mode 100644
+index 8edb368..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/components/index.ts"],"names":[],"mappings":"AAAA,cAAc,gBAAgB,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js
+index 1bad17b..1bd5b89 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js
+@@ -38,7 +38,7 @@ const ListItem = ({ item, index, defaultMaxWidth, listItemContainerStyle, listIt
+             !isNil(defaultMaxWidth) && getWidth(defaultMaxWidth),
+             listItemContainerStyle,
+         ], ...listItemContainerProps }, item ? ((_a = item === null || item === void 0 ? void 0 : item.data) === null || _a === void 0 ? void 0 : _a.map((innerItem, innerIndex) => {
+-        return (React.createElement(React.Fragment, null,
++        return (React.createElement(React.Fragment, { key: innerIndex },
+             React.createElement(View, { key: `${innerItem}-${innerIndex}`, ...columnItemContainerProps, style: [
+                     innerIndex === 0
+                         ? styles.tableRowTitleView
+@@ -59,4 +59,3 @@ const ListItem = ({ item, index, defaultMaxWidth, listItemContainerStyle, listIt
+     })) : (React.createElement(React.Fragment, null))));
+ };
+ export default memo(ListItem);
+-//# sourceMappingURL=ListItem.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js.map
+deleted file mode 100644
+index 2b260a3..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/ListItem.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"ListItem.js","sourceRoot":"","sources":["../../../src/components/sticky-table/ListItem.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js
+index da1d46a..28c27af 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js
+@@ -38,4 +38,3 @@ const StickyTable = ({ data, maxWidth = AppConst.maxWidth, minWidth = AppConst.m
+                 }, keyExtractor: (_item, index) => index.toString(), showsHorizontalScrollIndicator: false, ...flatListProps, data: data === null || data === void 0 ? void 0 : data.tableData, horizontal: true, nestedScrollEnabled: true, bounces: false, overScrollMode: 'never', onScroll: onScroll }))));
+ };
+ export default StickyTable;
+-//# sourceMappingURL=StickyTable.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js.map
+deleted file mode 100644
+index 463dd66..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTable.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"StickyTable.js","sourceRoot":"","sources":["../../../src/components/sticky-table/StickyTable.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAC1B,OAAO,EAAE,UAAU,EAAE,IAAI,EAAE,MAAM,cAAc,CAAC;AAChD,OAAO,QAAQ,MAAM,yBAAyB,CAAC;AAC/C,OAAO,EAAE,QAAQ,EAAE,MAAM,iBAAiB,CAAC;AAC3C,OAAO,QAAQ,MAAM,YAAY,CAAC;AAClC,OAAO,KAAK,MAAM,SAAS,CAAC;AAC5B,OAAO,EAAE,cAAc,EAAE,MAAM,SAAS,CAAC;AACzC,OAAO,MAAM,MAAM,qBAAqB,CAAC;AAOzC;;;;;;;GAOG;AACH,MAAM,WAAW,GAAG,CAAC,EACnB,IAAI,EACJ,QAAQ,GAAG,QAAQ,CAAC,QAAQ,EAC5B,QAAQ,GAAG,QAAQ,CAAC,QAAQ,EAC5B,aAAa,EACb,eAAe,EACf,cAAc,EACd,cAAc,EACd,aAAa,EACb,cAAc,GACG,EAAE,EAAE;;IACrB,MAAM,EACJ,WAAW,EACX,QAAQ,EACR,kBAAkB,EAClB,uBAAuB,EACvB,SAAS,EACT,kBAAkB,EAClB,eAAe,EACf,YAAY,GACb,GAAwB,cAAc,CAAC,EAAE,QAAQ,EAAE,QAAQ,EAAE,CAAC,CAAC;IAEhE,OAAO,CACL,oBAAC,UAAU,IAAC,KAAK,EAAE,MAAM,CAAC,MAAM,KAAM,eAAe;QACnD,oBAAC,IAAI,IAAC,KAAK,EAAE,CAAC,MAAM,CAAC,SAAS,EAAE,cAAc,CAAC,KAAM,cAAc;YACjE,oBAAC,IAAI,QACF,MAAA,IAAI,aAAJ,IAAI,uBAAJ,IAAI,CAAE,SAAS,0CAAE,GAAG,CAAC,CAAC,IAAY,EAAE,KAAa,EAAE,EAAE;gBACpD,OAAO,CACL,oBAAC,KAAK,IACJ,GAAG,EAAE,GAAG,KAAK,IAAI,IAAI,EAAE,KACnB;wBACF,IAAI;wBACJ,KAAK;wBACL,kBAAkB;wBAClB,uBAAuB;wBACvB,kBAAkB;wBAClB,eAAe;wBACf,QAAQ;wBACR,QAAQ;wBACR,YAAY;wBACZ,SAAS;qBACV,KACG,aAAa,GACjB,CACH,CAAC;YACJ,CAAC,CAAC,CACG;YACP,oBAAC,QAAQ,CAAC,QAAQ,IAChB,GAAG,EAAE,WAAW,EAChB,UAAU,EAAE,CAAC,EACX,IAAI,EACJ,KAAK,GACiC,EAAE,EAAE;oBAC1C,OAAO,CACL,oBAAC,QAAQ,IACP,IAAI,EAAE,IAAI,EACV,KAAK,EAAE,KAAK,KACR,CAAC,CAAA,IAAI,aAAJ,IAAI,uBAAJ,IAAI,CAAE,QAAQ,KAAI,EAAE,eAAe,EAAE,IAAI,aAAJ,IAAI,uBAAJ,IAAI,CAAE,QAAQ,EAAE,CAAC,KACvD,cAAc,GAClB,CACH,CAAC;gBACJ,CAAC,EACD,YAAY,EAAE,CAAC,KAAK,EAAE,KAAK,EAAE,EAAE,CAAC,KAAK,CAAC,QAAQ,EAAE,EAChD,8BAA8B,EAAE,KAAK,KACjC,aAAa,EACjB,IAAI,EAAE,IAAI,aAAJ,IAAI,uBAAJ,IAAI,CAAE,SAAS,EACrB,UAAU,QACV,mBAAmB,QACnB,OAAO,EAAE,KAAK,EACd,cAAc,EAAE,OAAO,EACvB,QAAQ,EAAE,QAAQ,GAClB,CACG,CACI,CACd,CAAC;AACJ,CAAC,CAAC;AAEF,eAAe,WAAW,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js
+index f9b9251..88a6fbd 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js
+@@ -96,4 +96,3 @@ const styles = StyleSheet.create({
+     },
+ });
+ export default styles;
+-//# sourceMappingURL=StickyTableStyles.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js.map
+deleted file mode 100644
+index 6a76021..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableStyles.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"StickyTableStyles.js","sourceRoot":"","sources":["../../../src/components/sticky-table/StickyTableStyles.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js
+index 3189b09..cb0ff5c 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js
+@@ -1,2 +1 @@
+ export {};
+-//# sourceMappingURL=StickyTableTypes.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js.map
+deleted file mode 100644
+index f6f6c70..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/StickyTableTypes.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"StickyTableTypes.js","sourceRoot":"","sources":["../../../src/components/sticky-table/StickyTableTypes.ts"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js
+index 116083f..780dfa7 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js
+@@ -59,4 +59,3 @@ const Title = ({ item, index, animatedWidthStyle, translateFirstTextStyle, setFi
+             React.createElement(View, { style: [styles.separatorView, separatorViewStyle] }))));
+ };
+ export default Title;
+-//# sourceMappingURL=Title.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js.map
+deleted file mode 100644
+index bad786e..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/Title.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"Title.js","sourceRoot":"","sources":["../../../src/components/sticky-table/Title.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js
+index 249fec2..21a1457 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js
+@@ -1,3 +1,2 @@
+ export { default as useStickyTable } from './useStickyTable';
+ export { default as useTitle } from './useTitle';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js.map
+deleted file mode 100644
+index 9db6058..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/components/sticky-table/hooks/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAC7D,OAAO,EAAE,OAAO,IAAI,QAAQ,EAAE,MAAM,YAAY,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js
+index cf5debf..16d5217 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js
+@@ -89,4 +89,3 @@ export default function useStickyTable({ maxWidth = AppConst.maxWidth, minWidth
+         translationX,
+     };
+ }
+-//# sourceMappingURL=useStickyTable.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js.map
+deleted file mode 100644
+index c9dc7b2..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useStickyTable.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"useStickyTable.js","sourceRoot":"","sources":["../../../../src/components/sticky-table/hooks/useStickyTable.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js
+index dbd9f28..714f5aa 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js
+@@ -52,4 +52,3 @@ export default function useTitle({ item, removeProperty = '', translationX, inde
+         onTextLayout,
+     };
+ }
+-//# sourceMappingURL=useTitle.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js.map
+deleted file mode 100644
+index bcd3e14..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/hooks/useTitle.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"useTitle.js","sourceRoot":"","sources":["../../../../src/components/sticky-table/hooks/useTitle.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js b/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js
+index 6370374..9430fc9 100644
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js
++++ b/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js
+@@ -1,3 +1,2 @@
+ export { default as StickyTable } from './StickyTable';
+ export * from './StickyTableTypes';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js.map b/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js.map
+deleted file mode 100644
+index 4fd366a..0000000
+--- a/node_modules/react-native-sticky-table/lib/components/sticky-table/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/components/sticky-table/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,WAAW,EAAE,MAAM,eAAe,CAAC;AACvD,cAAc,oBAAoB,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/constants/AppConst.js b/node_modules/react-native-sticky-table/lib/constants/AppConst.js
+index cbbda0a..a0358bb 100644
+--- a/node_modules/react-native-sticky-table/lib/constants/AppConst.js
++++ b/node_modules/react-native-sticky-table/lib/constants/AppConst.js
+@@ -10,4 +10,3 @@ export default Object.freeze({
+     minOffsetThreshold,
+     paddingHorizontal,
+ });
+-//# sourceMappingURL=AppConst.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/constants/AppConst.js.map b/node_modules/react-native-sticky-table/lib/constants/AppConst.js.map
+deleted file mode 100644
+index 73c9b3e..0000000
+--- a/node_modules/react-native-sticky-table/lib/constants/AppConst.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"AppConst.js","sourceRoot":"","sources":["../../src/constants/AppConst.ts"],"names":[],"mappings":"AAAA,MAAM,eAAe,GAAG,EAAE,CAAC;AAC3B,MAAM,QAAQ,GAAG,GAAG,CAAC;AACrB,MAAM,QAAQ,GAAG,GAAG,CAAC;AACrB,MAAM,kBAAkB,GAAG,CAAC,CAAC;AAC7B,MAAM,iBAAiB,GAAG,EAAE,CAAC,CAAC,yDAAyD;AAEvF,eAAe,MAAM,CAAC,MAAM,CAAC;IAC3B,eAAe;IACf,QAAQ;IACR,QAAQ;IACR,kBAAkB;IAClB,iBAAiB;CAClB,CAAC,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/constants/index.js b/node_modules/react-native-sticky-table/lib/constants/index.js
+index 41ee4e5..cc16737 100644
+--- a/node_modules/react-native-sticky-table/lib/constants/index.js
++++ b/node_modules/react-native-sticky-table/lib/constants/index.js
+@@ -1,2 +1 @@
+ export { default as AppConst } from './AppConst';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/constants/index.js.map b/node_modules/react-native-sticky-table/lib/constants/index.js.map
+deleted file mode 100644
+index 52651c1..0000000
+--- a/node_modules/react-native-sticky-table/lib/constants/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/constants/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,QAAQ,EAAE,MAAM,YAAY,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/index.js b/node_modules/react-native-sticky-table/lib/index.js
+index 87a26fd..07635cb 100644
+--- a/node_modules/react-native-sticky-table/lib/index.js
++++ b/node_modules/react-native-sticky-table/lib/index.js
+@@ -1,2 +1 @@
+ export * from './components';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/index.js.map b/node_modules/react-native-sticky-table/lib/index.js.map
+deleted file mode 100644
+index d8d9dd2..0000000
+--- a/node_modules/react-native-sticky-table/lib/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,cAAc,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/Colors.js b/node_modules/react-native-sticky-table/lib/theme/Colors.js
+index 11b5dc3..d7f3fba 100644
+--- a/node_modules/react-native-sticky-table/lib/theme/Colors.js
++++ b/node_modules/react-native-sticky-table/lib/theme/Colors.js
+@@ -8,4 +8,3 @@ const colors = {
+     lightGray: '#c5c0bf50',
+ };
+ export default colors;
+-//# sourceMappingURL=Colors.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/Colors.js.map b/node_modules/react-native-sticky-table/lib/theme/Colors.js.map
+deleted file mode 100644
+index 9e1a260..0000000
+--- a/node_modules/react-native-sticky-table/lib/theme/Colors.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"Colors.js","sourceRoot":"","sources":["../../src/theme/Colors.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,GAAG;IACb,KAAK,EAAE,SAAS;IAChB,KAAK,EAAE,SAAS;IAChB,GAAG,EAAE,SAAS;IACd,WAAW,EAAE,aAAa;IAC1B,WAAW,EAAE,WAAW;IACxB,KAAK,EAAE,SAAS;IAChB,SAAS,EAAE,WAAW;CACvB,CAAC;AAEF,eAAe,MAAM,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/Metrics.js b/node_modules/react-native-sticky-table/lib/theme/Metrics.js
+index 3e706b7..bb0c760 100644
+--- a/node_modules/react-native-sticky-table/lib/theme/Metrics.js
++++ b/node_modules/react-native-sticky-table/lib/theme/Metrics.js
+@@ -41,4 +41,3 @@ const globalMetrics = {
+     isWeb: Platform.OS === 'web',
+ };
+ export { globalMetrics, horizontalScale, verticalScale, moderateScale, width, height, };
+-//# sourceMappingURL=Metrics.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/Metrics.js.map b/node_modules/react-native-sticky-table/lib/theme/Metrics.js.map
+deleted file mode 100644
+index 66ea510..0000000
+--- a/node_modules/react-native-sticky-table/lib/theme/Metrics.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"Metrics.js","sourceRoot":"","sources":["../../src/theme/Metrics.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,QAAQ,EAAmB,MAAM,cAAc,CAAC;AAErE;;;GAGG;AACH,IAAI,EAAE,KAAK,EAAE,MAAM,EAAE,GAAe,UAAU,CAAC,GAAG,CAAC,QAAQ,CAAC,CAAC;AAE7D,IAAI,KAAK,GAAG,MAAM,EAAE;IAClB,CAAC,KAAK,EAAE,MAAM,CAAC,GAAG,CAAC,MAAM,EAAE,KAAK,CAAC,CAAC;CACnC;AAED,gEAAgE;AAChE,MAAM,kBAAkB,GAAW,GAAG,CAAC;AAEvC,MAAM,mBAAmB,GAAW,GAAG,CAAC;AAExC;;;;GAIG;AACH,MAAM,eAAe,GAAG,CAAC,IAAY,EAAU,EAAE,CAC/C,CAAC,KAAK,GAAG,kBAAkB,CAAC,GAAG,IAAI,CAAC;AAEtC;;;;GAIG;AACH,MAAM,aAAa,GAAG,CAAC,IAAY,EAAU,EAAE,CAC7C,CAAC,MAAM,GAAG,mBAAmB,CAAC,GAAG,IAAI,CAAC;AAExC;;;;;GAKG;AACH,MAAM,aAAa,GAAG,CAAC,IAAY,EAAE,MAAM,GAAG,GAAG,EAAU,EAAE,CAC3D,IAAI,GAAG,CAAC,eAAe,CAAC,IAAI,CAAC,GAAG,IAAI,CAAC,GAAG,MAAM,CAAC;AAejD;;;GAGG;AACH,MAAM,aAAa,GAAsB;IACvC,SAAS,EAAE,QAAQ,CAAC,EAAE,KAAK,SAAS;IACpC,KAAK,EAAE,QAAQ,CAAC,EAAE,KAAK,KAAK;IAC5B,KAAK,EAAE,QAAQ,CAAC,EAAE,KAAK,KAAK,IAAI,QAAQ,CAAC,KAAK;IAC9C,IAAI,EAAE,QAAQ,CAAC,IAAI;IACnB,KAAK,EAAE,QAAQ,CAAC,EAAE,KAAK,KAAK;CAC7B,CAAC;AAEF,OAAO,EACL,aAAa,EACb,eAAe,EACf,aAAa,EACb,aAAa,EACb,KAAK,EACL,MAAM,GACP,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/index.js b/node_modules/react-native-sticky-table/lib/theme/index.js
+index 299eb52..510610f 100644
+--- a/node_modules/react-native-sticky-table/lib/theme/index.js
++++ b/node_modules/react-native-sticky-table/lib/theme/index.js
+@@ -1,3 +1,2 @@
+ export { default as Colors } from './Colors';
+ export * from './Metrics';
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sticky-table/lib/theme/index.js.map b/node_modules/react-native-sticky-table/lib/theme/index.js.map
+deleted file mode 100644
+index e41d100..0000000
+--- a/node_modules/react-native-sticky-table/lib/theme/index.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/theme/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,MAAM,EAAE,MAAM,UAAU,CAAC;AAC7C,cAAc,WAAW,CAAC"}
+\ No newline at end of file

@@ -136,4 +136,7 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
       createdAt: new Date().toISOString(),
     },
   )
+
+  // Ensure AppView indexes actors before seeding posts
+  await env.processAll()
 }

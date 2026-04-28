@@ -412,187 +412,223 @@ export default async (sc: SeedClient) => {
   await castVote(bob, bob.assertDid, cabildeos[3].uri, 0)
 
   // ── POSTS ───────────────────────────────────────────────────────────
-  // Civic posts (associated with civic communities)
-  const civicPosts = [
-    {
-      agent: alice,
-      party: 'Morena',
-      title: 'Informe de Avance: Techos Verdes',
-      text: 'Tras 6 meses de implementación, los techos verdes en 3 edificios piloto han reducido la temperatura interior en 4°C promedio. Solicitamos ampliación a 15 edificios.',
-      postType: 'matter',
-      tags: ['ambiente', 'arquitectura', 'datos'],
-      flairs: ['||#TechosVerdes', '|#RespetoAmbiental'],
-    },
-    {
-      agent: bob,
-      party: 'PAN',
-      title: 'Consulta Pública: Tarifas de Transporte',
-      text: 'La Secretaría de Movilidad abre consulta pública sobre ajuste tarifario. ¿Consideras que el incremento propuesto del 8% es justificado por la inflación?',
-      postType: 'open_question',
-      tags: ['consulta', 'transporte', 'tarifas'],
-      flairs: ['||#TransportePublico', '|#?OpenQuestion'],
-    },
-    {
-      agent: carla,
-      party: 'PRI',
-      title: 'RAQ: Becas de Excelencia 2025',
-      text: 'Aclaración respecto a las becas de excelencia: el requisito de promedio mínimo es 8.5, no 9.0 como circuló en redes. La convocatoria cierra el 30 de noviembre.',
-      postType: 'raq',
-      tags: ['educacion', 'becas', 'aclaracion'],
-      flairs: ['||#EscuelasPublicas', '|#!RAQ'],
-    },
-    {
-      agent: dan,
-      party: 'PVEM',
-      title: 'Propuesta: Banco de Alimentos Municipal',
-      text: 'Creemos necesario establecer un banco de alimentos municipal para redistribuir excedentes de mercados y restaurantes hacia comedores comunitarios.',
-      postType: 'policy',
-      tags: ['alimentacion', 'desperdicio', 'solidaridad'],
-      flairs: ['||#ComedoresEscolaresGratuitos', '|#BancoDeAlimentos'],
-    },
-    {
-      agent: eva,
-      party: 'PT',
-      title: 'Meme: Cuando llega la cuenta de luz',
-      text: 'Mi cara cuando veo que el aire acondicionado estuvo prendido todo el fin de semana... 💸⚡😭 #EnergiaSolarYa',
-      postType: 'meme',
-      tags: ['humor', 'energia', 'domestico'],
-      flairs: ['||#EnergiaSolar', '#MEME'],
-    },
-    {
-      agent: alice,
-      party: 'MC',
-      title: 'Meta: Reunión de Coordinación',
-      text: 'Recordatorio: mañana viernes 10:00 hrs reunión de coordinación de vocales en el Centro Cultural Centro. Agenda: asignación de mesas de trabajo.',
-      postType: 'meta',
-      tags: ['anuncio', 'asamblea', 'coordinacion'],
-      flairs: ['||#PresupuestoParticipativo', '#META'],
-    },
-  ]
+  // Each post is created as BOTH:
+  //   1. com.para.post (PARA-specific, with flairs)
+  //   2. app.bsky.feed.post (Bluesky-compatible, with clean tags for indexing)
+  //
+  // Tags on app.bsky.feed.post MUST include the party name so the new
+  // backend tag-filtering (post.tags ?& '["<party>"]') matches them.
+  // Keep PARA flair syntax ONLY in com.para.post flairs.
 
-  // Party-specific posts (designed to show up in community profile search)
-  const partyPosts = [
-    // Morena
+  const seededPosts = [
+    // ── Morena ──────────────────────────────────────────────────────
     {
-      agent: alice,
-      party: 'Morena',
+      agent: alice, party: 'Morena',
       title: 'Reforma Energética Morena',
-      text: 'Desde Morena impulsamos la reforma energética para garantizar precios justos de electricidad a todas las familias mexicanas. La soberanía energética es prioridad nacional.',
+      text: 'Desde Morena impulsamos la reforma energética para garantizar precios justos de electricidad a todas las familias. La soberanía energética es prioridad nacional.',
       postType: 'policy',
-      tags: ['Morena', '||#Policy', 'reforma', 'energia'],
-      flairs: ['||#Policy', '||#EmpresaPublicaDeAgua'],
+      bskyTags: ['Morena', 'policy', 'energia', 'reforma'],
+      paraFlairs: ['||#Policy', '||#EmpresaPublicaDeAgua'],
     },
     {
-      agent: bob,
-      party: 'Morena',
+      agent: bob, party: 'Morena',
       title: 'Consulta Morena: Salario Mínimo',
       text: 'Morena consulta a la base: ¿apoyas la propuesta de incrementar el salario mínimo a 12,000 pesos mensuales con prestaciones completas?',
       postType: 'raq',
-      tags: ['Morena', '|#!RAQ', 'salario', 'trabajo'],
-      flairs: ['|#!RAQ'],
+      bskyTags: ['Morena', 'raq', 'salario', 'trabajo'],
+      paraFlairs: ['|#!RAQ'],
     },
-    // PAN
     {
-      agent: bob,
-      party: 'PAN',
+      agent: alice, party: 'Morena',
+      title: 'Informe de Avance: Techos Verdes',
+      text: 'Tras 6 meses de implementación, los techos verdes en 3 edificios piloto han reducido la temperatura interior en 4°C promedio. Solicitamos ampliación a 15 edificios.',
+      postType: 'matter',
+      bskyTags: ['Morena', 'matter', 'ambiente', 'arquitectura'],
+      paraFlairs: ['||#TechosVerdes', '|#RespetoAmbiental'],
+    },
+    {
+      agent: bob, party: 'Morena',
+      title: 'Morena: Movilidad Sostenible',
+      text: 'Presentamos plan de movilidad sostenible con ampliación de ciclovías y transporte eléctrico en zonas urbanas prioritarias.',
+      postType: 'policy',
+      bskyTags: ['Morena', 'policy', 'movilidad', 'sustentabilidad'],
+      paraFlairs: ['||#Policy', '||#TransportePublico'],
+    },
+
+    // ── PAN ─────────────────────────────────────────────────────────
+    {
+      agent: bob, party: 'PAN',
       title: 'Iniciativa Anticorrupción PAN',
       text: 'El PAN presenta iniciativa de fortalecimiento institucional anticorrupción con fiscalía autónoma, rendición de cuentas y protección a denunciantes.',
       postType: 'policy',
-      tags: ['PAN', '||#Policy', 'anticorrupcion', 'instituciones'],
-      flairs: ['||#Policy', '||#LimiteDeMandatos'],
+      bskyTags: ['PAN', 'policy', 'anticorrupcion', 'instituciones'],
+      paraFlairs: ['||#Policy', '||#LimiteDeMandatos'],
     },
     {
-      agent: carla,
-      party: 'PAN',
+      agent: carla, party: 'PAN',
       title: 'PAN pregunta a ciudadanos',
       text: 'PAN pregunta: ¿cuál es tu prioridad para el siguiente período legislativo? Seguridad, economía, salud o educación.',
       postType: 'open_question',
-      tags: ['PAN', '|#?OpenQuestion', 'prioridades', 'legislativo'],
-      flairs: ['|#?OpenQuestion'],
+      bskyTags: ['PAN', 'open_question', 'prioridades', 'legislativo'],
+      paraFlairs: ['|#?OpenQuestion'],
     },
-    // PRI
     {
-      agent: carla,
-      party: 'PRI',
+      agent: bob, party: 'PAN',
+      title: 'PAN: Tarifas de Transporte',
+      text: 'La Secretaría de Movilidad abre consulta pública sobre ajuste tarifario. ¿Consideras que el incremento propuesto del 8% es justificado por la inflación?',
+      postType: 'open_question',
+      bskyTags: ['PAN', 'open_question', 'transporte', 'tarifas'],
+      paraFlairs: ['||#TransportePublico', '|#?OpenQuestion'],
+    },
+    {
+      agent: carla, party: 'PAN',
+      title: 'PAN propone blindaje electoral',
+      text: 'Iniciativa para blindar elecciones de interferencia externa con auditoría de software y observación internacional.',
+      postType: 'policy',
+      bskyTags: ['PAN', 'policy', 'elecciones', 'democracia'],
+      paraFlairs: ['||#Policy'],
+    },
+
+    // ── PRI ─────────────────────────────────────────────────────────
+    {
+      agent: carla, party: 'PRI',
       title: 'Modernización Energética PRI',
       text: 'El PRI impulsa la modernización del sector energético con inversión privada participativa y transición sustentable hacia energías limpias.',
       postType: 'policy',
-      tags: ['PRI', '||#Policy', 'energia', 'modernizacion'],
-      flairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
+      bskyTags: ['PRI', 'policy', 'energia', 'modernizacion'],
+      paraFlairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
     },
     {
-      agent: dan,
-      party: 'PRI',
+      agent: dan, party: 'PRI',
       title: 'PRI consulta a militantes',
       text: 'El PRI consulta a militantes: ¿estás de acuerdo con la alianza opositora para las elecciones de 2025? Tu opinión cuenta.',
       postType: 'raq',
-      tags: ['PRI', '|#!RAQ', 'alianza', 'elecciones'],
-      flairs: ['|#!RAQ'],
+      bskyTags: ['PRI', 'raq', 'alianza', 'elecciones'],
+      paraFlairs: ['|#!RAQ'],
     },
-    // PVEM
     {
-      agent: dan,
-      party: 'PVEM',
+      agent: carla, party: 'PRI',
+      title: 'PRI: Becas de Excelencia 2025',
+      text: 'Aclaración respecto a las becas de excelencia: el requisito de promedio mínimo es 8.5, no 9.0 como circuló en redes. La convocatoria cierra el 30 de noviembre.',
+      postType: 'raq',
+      bskyTags: ['PRI', 'raq', 'educacion', 'becas'],
+      paraFlairs: ['||#EscuelasPublicas', '|#!RAQ'],
+    },
+    {
+      agent: dan, party: 'PRI',
+      title: 'Infraestructura hídrica PRI',
+      text: 'Plan de inversión en infraestructura hídrica para garantizar abasto en 50 comunidades rurales del centro del país.',
+      postType: 'matter',
+      bskyTags: ['PRI', 'matter', 'agua', 'infraestructura'],
+      paraFlairs: ['|#Matter'],
+    },
+
+    // ── PVEM ────────────────────────────────────────────────────────
+    {
+      agent: dan, party: 'PVEM',
       title: 'Ley de Cambio Climático PVEM',
       text: 'PVEM propone ley integral de cambio climático con metas claras de reducción de emisiones para 2030 y fondo de adaptación ecológica.',
       postType: 'policy',
-      tags: ['PVEM', '||#Policy', 'clima', 'emisiones'],
-      flairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
+      bskyTags: ['PVEM', 'policy', 'clima', 'emisiones'],
+      paraFlairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
     },
     {
-      agent: eva,
-      party: 'PVEM',
+      agent: eva, party: 'PVEM',
       title: 'Análisis PVEM: Calidad del Aire',
       text: 'PVEM presenta análisis sobre calidad del aire en zonas metropolitanas. Se requieren acciones urgentes en 8 ciudades.',
       postType: 'matter',
-      tags: ['PVEM', '|#Matter', 'aire', 'salud'],
-      flairs: ['|#Matter', '||#ServiciosPublicosDeSalud'],
+      bskyTags: ['PVEM', 'matter', 'aire', 'salud'],
+      paraFlairs: ['|#Matter', '||#ServiciosPublicosDeSalud'],
     },
-    // PT
     {
-      agent: eva,
-      party: 'PT',
+      agent: dan, party: 'PVEM',
+      title: 'PVEM: Corredores Biológicos',
+      text: 'Propuesta para crear corredores biológicos urbanos que conecten áreas verdes y promuevan biodiversidad en zonas metropolitanas.',
+      postType: 'policy',
+      bskyTags: ['PVEM', 'policy', 'biodiversidad', 'urbanismo'],
+      paraFlairs: ['||#Policy'],
+    },
+    {
+      agent: eva, party: 'PVEM',
+      title: 'Reciclaje PVEM',
+      text: 'Campaña de reciclaje intensivo con puntos de acopio digitales y recompensas ciudadanas por kilo de material reciclado.',
+      postType: 'matter',
+      bskyTags: ['PVEM', 'matter', 'reciclaje', 'medioambiente'],
+      paraFlairs: ['|#Matter'],
+    },
+
+    // ── PT ──────────────────────────────────────────────────────────
+    {
+      agent: eva, party: 'PT',
       title: 'Incremento Salarial PT',
       text: 'El PT exige incremento inmediato al salario mínimo y garantía de prestaciones laborales para todos los trabajadores del país.',
       postType: 'policy',
-      tags: ['PT', '||#Policy', 'salario', 'trabajadores'],
-      flairs: ['||#Policy', '||#ComedoresEscolaresGratuitos'],
+      bskyTags: ['PT', 'policy', 'salario', 'trabajadores'],
+      paraFlairs: ['||#Policy', '||#ComedoresEscolaresGratuitos'],
     },
     {
-      agent: alice,
-      party: 'PT',
+      agent: alice, party: 'PT',
       title: 'PT consulta: Política Social',
       text: 'El PT consulta a la ciudadanía: ¿qué política social debería ser prioridad nacional? Vivienda, salud, educación o alimentación.',
       postType: 'open_question',
-      tags: ['PT', '|#?OpenQuestion', 'social', 'prioridad'],
-      flairs: ['|#?OpenQuestion'],
+      bskyTags: ['PT', 'open_question', 'social', 'prioridad'],
+      paraFlairs: ['|#?OpenQuestion'],
     },
-    // MC
     {
-      agent: alice,
-      party: 'MC',
+      agent: eva, party: 'PT',
+      title: 'PT: Vivienda Digna',
+      text: 'Programa de vivienda digna con créditos a tasa cero para familias de bajos recursos en 20 estados del país.',
+      postType: 'policy',
+      bskyTags: ['PT', 'policy', 'vivienda', 'bienestar'],
+      paraFlairs: ['||#Policy'],
+    },
+    {
+      agent: alice, party: 'PT',
+      title: 'Meme PT: Cuando llega la cuenta de luz',
+      text: 'Mi cara cuando veo que el aire acondicionado estuvo prendido todo el fin de semana... 💸⚡😭',
+      postType: 'meme',
+      bskyTags: ['PT', 'meme', 'humor', 'energia'],
+      paraFlairs: ['||#EnergiaSolar', '#MEME'],
+    },
+
+    // ── MC ──────────────────────────────────────────────────────────
+    {
+      agent: alice, party: 'MC',
       title: 'Presupuesto Participativo MC',
       text: 'Movimiento Ciudadano propone presupuesto participativo con votación digital ciudadana y transparencia total en el gasto público.',
       postType: 'policy',
-      tags: ['MC', '||#Policy', 'presupuesto', 'digital'],
-      flairs: ['||#Policy', '||#PresupuestoParticipativo'],
+      bskyTags: ['MC', 'policy', 'presupuesto', 'digital'],
+      paraFlairs: ['||#Policy', '||#PresupuestoParticipativo'],
     },
     {
-      agent: carla,
-      party: 'MC',
+      agent: carla, party: 'MC',
       title: 'MC: Consulta Movilidad Urbana',
       text: 'MC analiza resultados de la consulta ciudadana sobre movilidad urbana. El 78% apoya ampliación de transporte público.',
       postType: 'matter',
-      tags: ['MC', '|#Matter', 'movilidad', 'urbana'],
-      flairs: ['|#Matter', '||#TransportePublico'],
+      bskyTags: ['MC', 'matter', 'movilidad', 'urbana'],
+      paraFlairs: ['|#Matter', '||#TransportePublico'],
+    },
+    {
+      agent: alice, party: 'MC',
+      title: 'MC: Reunión de Coordinación',
+      text: 'Recordatorio: mañana viernes 10:00 hrs reunión de coordinación de vocales en el Centro Cultural Centro. Agenda: asignación de mesas de trabajo.',
+      postType: 'meta',
+      bskyTags: ['MC', 'meta', 'anuncio', 'asamblea'],
+      paraFlairs: ['||#PresupuestoParticipativo', '#META'],
+    },
+    {
+      agent: carla, party: 'MC',
+      title: 'MC: Transparencia Fiscal',
+      text: 'Plataforma de transparencia fiscal con seguimiento en tiempo real de cada peso gastado por dependencias federales.',
+      postType: 'policy',
+      bskyTags: ['MC', 'policy', 'transparencia', 'fiscal'],
+      paraFlairs: ['||#Policy'],
     },
   ]
 
-  const allPosts = [...civicPosts, ...partyPosts]
-
   const createdPosts: {uri: string; cid: string; agent: typeof alice; party: string; postType: string}[] = []
-  for (const p of allPosts) {
-    // 1. Create com.para.post record
+  for (const p of seededPosts) {
+    // 1. Create com.para.post record (PARA-specific with flairs)
     const paraRes = await p.agent.com.atproto.repo.createRecord({
       repo: p.agent.assertDid,
       collection: 'com.para.post',
@@ -602,21 +638,21 @@ export default async (sc: SeedClient) => {
         text: p.text,
         createdAt: createdAt(),
         postType: p.postType,
-        tags: p.tags,
-        flairs: p.flairs,
+        tags: p.bskyTags,
+        flairs: p.paraFlairs,
       },
     })
     createdPosts.push({uri: paraRes.data.uri, cid: paraRes.data.cid, agent: p.agent, party: p.party, postType: p.postType})
 
-    // 2. Mirror to app.bsky.feed.post with party name in text and tags
-    //    so it appears in search, timeline, and community filters.
+    // 2. Mirror to app.bsky.feed.post with CLEAN tags (no flair syntax)
+    //    The party name MUST be first in tags so backend tag-filtering works.
     const bskyText = `[${p.party}] ${p.title}\n\n${p.text}`
     await p.agent.app.bsky.feed.post.create(
       {repo: p.agent.assertDid},
       {
         text: bskyText,
         createdAt: createdAt(),
-        tags: p.tags,
+        tags: p.bskyTags,
       },
     )
   }
@@ -734,7 +770,7 @@ export default async (sc: SeedClient) => {
   console.log(`   Cabildeos: ${cabildeos.length}`)
   console.log(`   Votes: 14`)
   console.log(`   Positions: 4`)
-  console.log(`   Posts: ${allPosts.length}`)
+  console.log(`   Posts: ${seededPosts.length}`)
   console.log(`   Highlights: 3`)
   console.log(`   Delegations: 2`)
   console.log(`   Parties covered: Morena, PAN, PRI, PVEM, PT, MC`)

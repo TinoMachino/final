@@ -100,6 +100,7 @@ jest.mock('expo-modules-core', () => ({
   requireNativeViewManager: jest.fn().mockImplementation(_ => {
     return () => null
   }),
+  createPermissionHook: jest.fn().mockImplementation(() => () => [{granted: true}]),
 }))
 
 jest.mock('expo-localization', () => ({
@@ -114,3 +115,7 @@ jest.mock('statsig-react-native-expo', () => ({
     },
   },
 }), {virtual: true})
+
+import {i18n} from '@lingui/core'
+i18n.load('en', {})
+i18n.activate('en')

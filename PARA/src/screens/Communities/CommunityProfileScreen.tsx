@@ -21,7 +21,6 @@ import {usePalette} from '#/lib/hooks/usePalette'
 import {getPostBadges} from '#/lib/post-flairs'
 import {type NavigationProp} from '#/lib/routes/types'
 import {
-  buildCommunitySearchQuery,
   formatCommunityName,
   formatGeographicGroupName,
   isGeographicGroupCommunity,
@@ -101,14 +100,6 @@ export function CommunityProfileScreen() {
     communityId,
   })
   const governance = fetchedGovernance || EMPTY_GOVERNANCE
-  const communitySearchQuery = useMemo(
-    () =>
-      buildCommunitySearchQuery(
-        board?.name || communityName,
-        fetchedGovernance?.community,
-      ),
-    [board?.name, communityName, fetchedGovernance?.community],
-  )
   const governanceCommunity = fetchedGovernance?.community
   const resolvedCommunityName = governanceCommunity || board?.name || communityName
   const isGeographicGroup = isGeographicGroupCommunity({
@@ -147,7 +138,11 @@ export function CommunityProfileScreen() {
     refetch,
     fetchNextPage,
     hasNextPage,
-  } = useSearchPostsQuery({query: communitySearchQuery, sort: 'latest'})
+  } = useSearchPostsQuery({
+    query: '',
+    tag: [plainCommunityName],
+    sort: 'latest',
+  })
 
   const posts = useMemo(() => {
     return (

@@ -1,5 +1,5 @@
 import './env'
-import { generateMockSetup } from './mock'
+import { generateMinimalMockSetup } from './mock/minimal'
 import { TestNetwork } from './network'
 import { mockMailer } from './util'
 import { paraDemoSeed } from './seed'
@@ -56,7 +56,7 @@ const run = async () => {
     console.log(`🤖 Feed Generator (${fg.did}) http://localhost:${fg.port}`)
   }
 
-  await generateMockSetup(network)
+  await generateMinimalMockSetup(network)
 
   const sc = network.getSeedClient()
   await paraDemoSeed(sc)

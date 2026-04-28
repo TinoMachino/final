@@ -1137,6 +1137,7 @@ message SearchPostsRequest {
   string term = 1;
   int32 limit = 2;
   string cursor = 3;
+  repeated string tags = 4;
 }
 
 message SearchPostsResponse {

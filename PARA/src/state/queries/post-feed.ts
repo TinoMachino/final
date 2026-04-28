@@ -27,6 +27,7 @@ import {ListFeedAPI} from '#/lib/api/feed/list'
 import {MergeFeedAPI} from '#/lib/api/feed/merge'
 import {ParaFeedAPI} from '#/lib/api/feed/para'
 import {PostListFeedAPI} from '#/lib/api/feed/posts'
+import {SearchPostsFeedAPI} from '#/lib/api/feed/search'
 import {type FeedAPI, type ReasonFeedSource} from '#/lib/api/feed/types'
 import {aggregateUserInterests} from '#/lib/api/feed/utils'
 import {FeedTuner, type FeedTunerFn} from '#/lib/api/feed-manip'
@@ -69,6 +70,7 @@ export type FeedDescriptor =
   | `likes|${ActorDid}`
   | `list|${ListUri}`
   | `posts|${PostsUriList}`
+  | `search|${string}`
   | 'demo'
 export interface FeedParams {
   mergeFeedEnabled?: boolean
@@ -510,6 +512,17 @@ function createApi({
     return new PostListFeedAPI({agent, feedParams: {uris: uriList.split(',')}})
   } else if (feedDesc === 'demo') {
     return new DemoFeedAPI({agent})
+  } else if (feedDesc.startsWith('search')) {
+    const [__, tagStr] = feedDesc.split('|')
+    const tags = tagStr ? tagStr.split(',').filter(Boolean) : undefined
+    return new SearchPostsFeedAPI({
+      agent,
+      feedParams: {
+        q: '',
+        tag: tags,
+        sort: 'latest',
+      },
+    })
   } else {
     // shouldnt happen
     return new FollowingFeedAPI({agent})

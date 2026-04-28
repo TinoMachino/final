@@ -99,6 +99,7 @@ const skeleton = async (
     term: params.q,
     limit: params.limit,
     cursor: params.cursor,
+    tags: params.tag,
   })
   return {
     posts: res.uris as AtUriString[],

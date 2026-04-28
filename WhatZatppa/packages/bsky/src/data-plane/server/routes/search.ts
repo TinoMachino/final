@@ -1,4 +1,5 @@
 import { ServiceImpl } from '@connectrpc/connect'
+import { sql } from 'kysely'
 import { Service } from '../../../proto/bsky_connect'
 import { Database } from '../db'
 import { IndexedAtDidKeyset, TimeCidKeyset, paginate } from '../db/pagination'
@@ -35,7 +36,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
 
   // @TODO post search endpoint still falls back to search service
   async searchPosts(req) {
-    const { term, limit, cursor } = req
+    const { term, limit, cursor, tags } = req
     const { q, author } = parsePostSearchQuery(term)
 
     let authorDid = author
@@ -49,10 +50,18 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     }
 
     const { ref } = db.db.dynamic
-    let builder = db.db
-      .selectFrom('post')
-      .where('post.text', 'like', `%${q}%`)
-      .selectAll()
+    let builder = db.db.selectFrom('post').selectAll()
+
+    if (tags && tags.length > 0) {
+      // Use PostgreSQL jsonb ?& operator for AND matching of all tags
+      builder = builder.where(
+        sql<boolean>`"post"."tags" ?& ${JSON.stringify(tags)}`,
+      )
+    }
+
+    if (q) {
+      builder = builder.where('post.text', 'like', `%${q}%`)
+    }
 
     if (authorDid) {
       builder = builder.where('post.creator', '=', authorDid)

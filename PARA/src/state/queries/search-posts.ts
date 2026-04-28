@@ -22,20 +22,26 @@ import {
 } from './util'
 
 const searchPostsQueryKeyRoot = 'search-posts'
-const searchPostsQueryKey = ({query, sort}: {query: string; sort?: string}) => [
-  searchPostsQueryKeyRoot,
+const searchPostsQueryKey = ({
   query,
   sort,
-]
+  tag,
+}: {
+  query: string
+  sort?: string
+  tag?: string[]
+}) => [searchPostsQueryKeyRoot, query, sort, tag?.join(',') ?? '']
 
 export function useSearchPostsQuery({
   query,
   sort,
   enabled,
+  tag,
 }: {
   query: string
   sort?: 'top' | 'latest'
   enabled?: boolean
+  tag?: string[]
 }) {
   const agent = useAgent()
   const moderationOpts = useModerationOpts()
@@ -59,10 +65,11 @@ export function useSearchPostsQuery({
     QueryKey,
     string | undefined
   >({
-    queryKey: searchPostsQueryKey({query, sort}),
+    queryKey: searchPostsQueryKey({query, sort, tag}),
     queryFn: async ({pageParam}) => {
       const res = await agent.app.bsky.feed.searchPosts({
         q: query,
+        tag,
         limit: 25,
         cursor: pageParam,
         sort,

@@ -10,6 +10,7 @@ import {ComposeIcon2} from '#/lib/icons'
 import {type NavigationProp} from '#/lib/routes/types'
 import {s} from '#/lib/styles'
 import {useProfileQuery} from '#/state/queries/profile'
+import {type FeedDescriptor} from '#/state/queries/post-feed'
 import {useSession} from '#/state/session'
 import {useBaseFilter} from '#/state/shell/base-filter'
 import {PostFeed} from '#/view/com/posts/PostFeed'
@@ -126,6 +127,14 @@ export function BaseScreen() {
   const handleCommunities = () => navigation.navigate('Communities')
   const handleCreatePost = () => navigation.navigate('CreatePost')
 
+  // Compute feed descriptor based on active community filters
+  const feedDescriptor = useMemo<FeedDescriptor>(() => {
+    if (activeFilters.length > 0) {
+      return `search|${activeFilters.join(',')}`
+    }
+    return 'following'
+  }, [activeFilters])
+
   // Card background — shared across all Data cards
   const cardBgColor = {
     backgroundColor: t.palette.contrast_25 + '30',
@@ -241,8 +250,7 @@ export function BaseScreen() {
             />
             <View style={styles.feedSection}>
               <PostFeed
-                feed="following"
-                applyBaseCommunityFilters
+                feed={feedDescriptor}
                 style={styles.feedContainer}
                 scrollElRef={scrollRef}
                 manualRefreshSignal={refreshSignal}

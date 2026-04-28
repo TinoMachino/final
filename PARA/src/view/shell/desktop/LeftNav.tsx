@@ -668,6 +668,27 @@ function CommunitiesNavItem() {
   )
 }
 
+function CabildeoNavItem() {
+  const pal = usePalette('default')
+
+  return (
+    <NavItem
+      href="/communities/cabildeos"
+      icon={
+        <List style={pal.text} aria-hidden={true} width={NAV_ICON_WIDTH} />
+      }
+      iconFilled={
+        <ListFilled
+          style={pal.text}
+          aria-hidden={true}
+          width={NAV_ICON_WIDTH}
+        />
+      }
+      label="Cabildeo"
+    />
+  )
+}
+
 export function DesktopLeftNav() {
   const {hasSession, currentAccount} = useSession()
   const pal = usePalette('default')
@@ -767,6 +788,7 @@ export function DesktopLeftNav() {
           <BaseNavItem />
           <MessagesNavItem />
           <CommunitiesNavItem />
+          <CabildeoNavItem />
           <NavItem
             href="/feeds"
             icon={

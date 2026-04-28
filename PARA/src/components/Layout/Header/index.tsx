@@ -105,7 +105,12 @@ export function Slot({children}: {children?: React.ReactNode}) {
   return <View style={[a.z_50, {width: HEADER_SLOT_SIZE}]}>{children}</View>
 }
 
-export function BackButton({onPress, style, ...props}: Partial<ButtonProps>) {
+export function BackButton({
+  onPress,
+  fallback,
+  style,
+  ...props
+}: Partial<ButtonProps> & {fallback?: string}) {
   const {_} = useLingui()
   const navigation = useNavigation<NavigationProp>()
 
@@ -116,10 +121,10 @@ export function BackButton({onPress, style, ...props}: Partial<ButtonProps>) {
       if (navigation.canGoBack()) {
         navigation.goBack()
       } else {
-        navigation.navigate('Home')
+        navigation.navigate((fallback || 'Home') as never)
       }
     },
-    [onPress, navigation],
+    [onPress, fallback, navigation],
   )
 
   return (

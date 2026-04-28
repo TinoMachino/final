@@ -4,12 +4,12 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {msg, plural} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Plural, Trans} from '@lingui/react/macro'
-import {StackActions, useNavigation} from '@react-navigation/native'
+import {StackActions, useNavigation, useNavigationState} from '@react-navigation/native'
 
 import {useActorStatus} from '#/lib/actor-status'
 import {FEEDBACK_FORM_URL, HELP_DESK_URL} from '#/lib/constants'
 import {useNavigationTabState} from '#/lib/hooks/useNavigationTabState'
-import {getTabState, TabState} from '#/lib/routes/helpers'
+import {getCurrentRoute, getTabState, TabState} from '#/lib/routes/helpers'
 import {type NavigationProp} from '#/lib/routes/types'
 import {sanitizeHandle} from '#/lib/strings/handles'
 import {colors} from '#/lib/styles'
@@ -34,7 +34,10 @@ import {
   Bell_Stroke2_Corner0_Rounded as Bell,
 } from '#/components/icons/Bell'
 import {Bookmark, BookmarkFilled} from '#/components/icons/Bookmark'
-import {BulletList_Stroke2_Corner0_Rounded as List} from '#/components/icons/BulletList'
+import {
+  BulletList_Stroke2_Corner0_Rounded as List,
+  BulletList_Filled_Corner0_Rounded as ListFilled,
+} from '#/components/icons/BulletList'
 import {
   CommunityIcon_Filled as CommunityFilled,
   CommunityIcon_Stroke as Community,
@@ -164,6 +167,15 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
     isAtBase,
     isAtCommunities,
   } = useNavigationTabState()
+  const currentRoute = useNavigationState(state =>
+    state ? getCurrentRoute(state) : {name: 'Home'},
+  )
+  const isAtCabildeos =
+    currentRoute.name === 'CabildeoList' ||
+    currentRoute.name === 'CabildeoDetail' ||
+    currentRoute.name === 'DelegateVote' ||
+    currentRoute.name === 'CreateCabildeo' ||
+    currentRoute.name === 'CreatePosition'
   const {hasSession, currentAccount} = useSession()
 
   // events
@@ -256,11 +268,21 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
     }
 
     setDrawerOpen(false)
-    // @ts-expect-error nested navigators aren't typed here
-    navigation.navigate('BaseTab', {
-      screen: 'Communities',
-      params: {},
-    })
+    const state = navigation.getState()
+    const tabState = getTabState(state, 'Base')
+    if (tabState === TabState.InsideAtRoot || tabState === TabState.Inside) {
+      // Already in BaseTab — push Communities onto the existing stack
+      navigation.navigate('Communities')
+    } else {
+      // Switch to BaseTab first, then push Communities so Base stays in the stack
+      navigation.navigate('BaseTab')
+      navigation.navigate('Communities')
+    }
+  }, [navigation, setDrawerOpen])
+
+  const onPressCabildeos = useCallback(() => {
+    navigation.navigate('CabildeoList')
+    setDrawerOpen(false)
   }, [navigation, setDrawerOpen])
 
   const onPressBase = useCallback(() => {
@@ -351,6 +373,10 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
             <CommunitiesMenuItem
               isActive={isAtCommunities}
               onPress={onPressCommunities}
+            />
+            <CabildeoMenuItem
+              isActive={isAtCabildeos}
+              onPress={onPressCabildeos}
             />
             <ListsMenuItem onPress={onPressLists} />
             <BookmarksMenuItem
@@ -693,6 +719,32 @@ let CommunitiesMenuItem = ({
   )
 }
 CommunitiesMenuItem = memo(CommunitiesMenuItem)
+
+let CabildeoMenuItem = ({
+  isActive,
+  onPress,
+}: {
+  isActive: boolean
+  onPress: () => void
+}): React.ReactNode => {
+  const t = useTheme()
+  const {_} = useLingui()
+  return (
+    <MenuItem
+      icon={
+        isActive ? (
+          <ListFilled style={[t.atoms.text]} width={iconWidth} />
+        ) : (
+          <List style={[t.atoms.text]} width={iconWidth} />
+        )
+      }
+      label={_(msg`Cabildeo`)}
+      bold={isActive}
+      onPress={onPress}
+    />
+  )
+}
+CabildeoMenuItem = memo(CabildeoMenuItem)
 
 let BaseMenuItem = ({
   isActive,

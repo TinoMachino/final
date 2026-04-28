@@ -168,7 +168,7 @@ export function CommunitiesScreen() {
   return (
     <Layout.Screen testID="communitiesScreen">
       <Layout.Header.Outer noBottomBorder>
-        <Layout.Header.BackButton />
+        <Layout.Header.BackButton fallback="Base" />
         <Layout.Header.Content>
           <Layout.Header.TitleText>
             <Trans>Communities</Trans>

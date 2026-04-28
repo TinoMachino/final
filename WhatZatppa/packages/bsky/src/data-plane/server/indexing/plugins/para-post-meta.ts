@@ -2,6 +2,7 @@
 import { Insertable, Selectable, sql } from 'kysely'
 import { CID } from 'multiformats/cid'
 import { AtUri, normalizeDatetimeAlways } from '@atproto/syntax'
+import { ParaCacheService } from '../../../cache/para-cache'
 import { BackgroundQueue } from '../../background'
 import { Database } from '../../db'
 import { DatabaseSchema, DatabaseSchemaType } from '../../db/database-schema'
@@ -115,11 +116,28 @@ const updateAggregates = async (db: DatabaseSchema, obj: ParaPostMeta) => {
   await recomputeParaProfileStats(db, obj.creator)
 }
 
+const invalidateCache = async (
+  _db: DatabaseSchema,
+  indexed: ParaPostMeta,
+): Promise<string[]> => {
+  const keys: string[] = []
+  // Invalidate author feed for the creator
+  keys.push(`authorFeed:${indexed.creator}:*`)
+  // If post has a community, invalidate boards for that community
+  if (indexed.community) {
+    keys.push(`boards:${indexed.community}:*`)
+  }
+  // Invalidate profile stats for the creator
+  keys.push(`profileStats:${indexed.creator}`)
+  return keys
+}
+
 export type PluginType = RecordProcessor<ParaPostMetaRecord, ParaPostMeta>
 
 export const makePlugin = (
   db: Database,
   background: BackgroundQueue,
+  paraCache?: ParaCacheService,
 ): PluginType => {
   return new RecordProcessor(db, background, {
     lexId,
@@ -129,7 +147,8 @@ export const makePlugin = (
     notifsForInsert,
     notifsForDelete,
     updateAggregates,
-  })
+    invalidateCache: paraCache ? invalidateCache : undefined,
+  }, paraCache)
 }
 
 export default makePlugin

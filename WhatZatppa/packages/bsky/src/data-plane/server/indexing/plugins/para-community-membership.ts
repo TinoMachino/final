@@ -2,10 +2,11 @@
 import {Selectable, sql} from 'kysely'
 import {CID} from 'multiformats/cid'
 import {AtUri, normalizeDatetimeAlways} from '@atproto/syntax'
-import {BackgroundQueue} from '../../background'
-import {Database} from '../../db'
-import {DatabaseSchema, DatabaseSchemaType} from '../../db/database-schema'
-import {RecordProcessor} from '../processor'
+import { ParaCacheService } from '../../../cache/para-cache'
+import { BackgroundQueue } from '../../background'
+import { Database } from '../../db'
+import { DatabaseSchema, DatabaseSchemaType } from '../../db/database-schema'
+import { RecordProcessor } from '../processor'
 
 interface ParaCommunityMembershipRecord {
   community: string
@@ -84,6 +85,18 @@ const notifsForDelete = () => {
   return {notifs: [], toDelete: []}
 }
 
+const invalidateCache = async (
+  _db: DatabaseSchema,
+  indexed: IndexedParaCommunityMembership,
+): Promise<string[]> => {
+  const keys: string[] = []
+  // Invalidate all members queries for this community
+  keys.push(`members:${indexed.communityUri}:*`)
+  // Invalidate profile stats for the member
+  keys.push(`profileStats:${indexed.creator}`)
+  return keys
+}
+
 export type PluginType = RecordProcessor<
   ParaCommunityMembershipRecord,
   IndexedParaCommunityMembership
@@ -92,6 +105,7 @@ export type PluginType = RecordProcessor<
 export const makePlugin = (
   db: Database,
   background: BackgroundQueue,
+  paraCache?: ParaCacheService,
 ): PluginType => {
   return new RecordProcessor(db, background, {
     lexId,
@@ -100,7 +114,8 @@ export const makePlugin = (
     deleteFn,
     notifsForInsert,
     notifsForDelete,
-  })
+    invalidateCache: paraCache ? invalidateCache : undefined,
+  }, paraCache)
 }
 
 export default makePlugin

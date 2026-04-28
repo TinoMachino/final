@@ -7,6 +7,7 @@ import { Database } from '../../db'
 import { DatabaseSchema, DatabaseSchemaType } from '../../db/database-schema'
 import { RecordProcessor } from '../processor'
 import { recomputeCabildeoAggregates } from './recompute-cabildeo-aggregates'
+import { ParaCacheService } from '../../../cache/para-cache'
 
 interface VoteRecord {
   subject?: string
@@ -245,11 +246,38 @@ const updateAggregates = async (
   }
 }
 
+const invalidateCache = async (
+  db: DatabaseSchema,
+  indexed: IndexedVote,
+): Promise<string[]> => {
+  const keys: string[] = []
+  const vote = indexed.cabildeoRecord || indexed.policyRecord
+  if (!vote) return keys
+
+  // Invalidate profile stats for the voter
+  keys.push(`profileStats:${vote.creator}`)
+
+  // If cabildeo vote, invalidate members cache for the community
+  if (indexed.cabildeoRecord) {
+    const cabildeo = await db
+      .selectFrom('cabildeo_cabildeo')
+      .where('uri', '=', indexed.cabildeoRecord.cabildeo)
+      .select('community')
+      .executeTakeFirst()
+    if (cabildeo?.community) {
+      keys.push(`members:${cabildeo.community}:*`)
+    }
+  }
+
+  return keys
+}
+
 export type PluginType = RecordProcessor<VoteRecord, IndexedVote>
 
 export const makePlugin = (
   db: Database,
   background: BackgroundQueue,
+  paraCache?: ParaCacheService,
 ): PluginType => {
   return new RecordProcessor(db, background, {
     lexId,
@@ -259,7 +287,8 @@ export const makePlugin = (
     notifsForInsert,
     notifsForDelete,
     updateAggregates,
-  })
+    invalidateCache: paraCache ? invalidateCache : undefined,
+  }, paraCache)
 }
 
 export default makePlugin

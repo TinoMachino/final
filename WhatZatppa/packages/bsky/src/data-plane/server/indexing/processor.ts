@@ -2,6 +2,7 @@ import { Insertable } from 'kysely'
 import { chunkArray } from '@atproto/common'
 import { Cid, l, lexParse, lexStringify, parseCid } from '@atproto/lex'
 import { AtUri } from '@atproto/syntax'
+import { ParaCacheService } from '../../../cache/para-cache'
 import { BackgroundQueue } from '../background'
 import { Database } from '../db'
 import { DatabaseSchema } from '../db/database-schema'
@@ -31,6 +32,7 @@ type RecordProcessorOptions<TSchema extends l.RecordSchema, TRow> = {
     replacedBy: TRow | null,
   ) => { notifs: Notif[]; toDelete: string[] }
   updateAggregates?: (db: DatabaseSchema, obj: TRow) => Promise<void>
+  invalidateCache?: (db: DatabaseSchema, obj: TRow) => Promise<string[]>
 }
 
 type Notif = Insertable<Notification>
@@ -40,6 +42,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
     private appDb: Database,
     private background: BackgroundQueue,
     private options: RecordProcessorOptions<TSchema, TRow>,
+    private paraCache?: ParaCacheService,
   ) {}
 
   get db() {
@@ -90,6 +93,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
     )
     if (inserted) {
       this.aggregateOnCommit(inserted)
+      this.invalidateOnCommit(inserted)
       if (!opts?.disableNotifs) {
         await this.handleNotifs({ inserted })
       }
@@ -157,6 +161,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
       return this.insertRecord(uri, cid, obj, timestamp)
     }
     this.aggregateOnCommit(deleted)
+    this.invalidateOnCommit(deleted)
     const inserted = await this.options.insertFn(
       this.db,
       uri,
@@ -170,6 +175,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
       )
     }
     this.aggregateOnCommit(inserted)
+    this.invalidateOnCommit(inserted)
     if (!opts?.disableNotifs) {
       await this.handleNotifs({ inserted, deleted })
     }
@@ -187,6 +193,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
     const deleted = await this.options.deleteFn(this.db, uri)
     if (!deleted) return
     this.aggregateOnCommit(deleted)
+    this.invalidateOnCommit(deleted)
     if (cascading) {
       await this.db
         .deleteFrom('duplicate_record')
@@ -219,6 +226,7 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
       )
       if (inserted) {
         this.aggregateOnCommit(inserted)
+        this.invalidateOnCommit(inserted)
       }
       await this.handleNotifs({ deleted, inserted: inserted ?? undefined })
     }
@@ -290,6 +298,19 @@ export class RecordProcessor<TSchema extends l.RecordSchema, TRow> {
     if (!updateAggregates) return
     this.appDb.onCommit(() => {
       this.background.add((db) => updateAggregates(db.db, indexed))
+    })
+  }
+
+  invalidateOnCommit(indexed: TRow) {
+    const { invalidateCache } = this.options
+    if (!invalidateCache || !this.paraCache) return
+    this.appDb.onCommit(() => {
+      this.background.add(async (db) => {
+        const keys = await invalidateCache(db.db, indexed)
+        if (keys.length > 0) {
+          await this.paraCache!.del(keys)
+        }
+      })
     })
   }
 }

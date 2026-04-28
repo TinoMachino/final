@@ -5,7 +5,12 @@ import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
 import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {logEvent} from '#/lib/statsig/statsig'
-import {useAutoplayDisabled, useSetAutoplayDisabled} from '#/state/preferences'
+import {
+  useAutoplayDisabled,
+  useSetAutoplayDisabled,
+  useSetShowPartyShields,
+  useShowPartyShields,
+} from '#/state/preferences'
 import {
   useInAppBrowser,
   useSetInAppBrowser,
@@ -35,6 +40,8 @@ type Props = NativeStackScreenProps<
 >
 export function ContentAndMediaSettingsScreen({}: Props) {
   const {_} = useLingui()
+  const showPartyShieldsPref = useShowPartyShields()
+  const setShowPartyShieldsPref = useSetShowPartyShields()
   const autoplayDisabledPref = useAutoplayDisabled()
   const setAutoplayDisabledPref = useSetAutoplayDisabled()
   const inAppBrowserPref = useInAppBrowser()
@@ -122,6 +129,19 @@ export function ContentAndMediaSettingsScreen({}: Props) {
               <SettingsList.ItemIcon icon={PlayIcon} />
               <SettingsList.ItemText>
                 <Trans>Autoplay videos and GIFs</Trans>
+              </SettingsList.ItemText>
+              <Toggle.Platform />
+            </SettingsList.Item>
+          </Toggle.Item>
+          <Toggle.Item
+            name="show_party_shields"
+            label={_(msg`Show party shields on posts`)}
+            value={showPartyShieldsPref ?? true}
+            onChange={value => setShowPartyShieldsPref(value)}>
+            <SettingsList.Item>
+              <SettingsList.ItemIcon icon={HashtagIcon} />
+              <SettingsList.ItemText>
+                <Trans>Show party shields on posts</Trans>
               </SettingsList.ItemText>
               <Toggle.Platform />
             </SettingsList.Item>

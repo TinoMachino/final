@@ -20,8 +20,10 @@ import * as scheduledAction from './scheduled-action'
 import * as setting from './setting'
 import * as signingKey from './signing_key'
 import * as verification from './verification'
+import * as expiringTag from './expiring_tag'
 
 export type DatabaseSchemaType = modEvent.PartialDB &
+  expiringTag.PartialDB &
   modSubjectStatus.PartialDB &
   label.PartialDB &
   signingKey.PartialDB &

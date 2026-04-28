@@ -24,6 +24,9 @@ import {
   DEFAULT_DISCOVER_FEED_URI,
   DEFAULT_DISCOVER_SAVED_FEED,
   IS_LOCAL_DEV_MODE,
+  PARA_COMMUNITIES_FEED_URI,
+  PARA_PARTIES_FEED_URI,
+  PARA_TRENDING_FEED_URI,
 } from '#/lib/constants'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
@@ -278,6 +281,28 @@ export function useGetPopularFeedsQuery(options?: GetPopularFeedsOptions) {
           }
         } catch (e) {
           console.warn('Failed to fetch custom cabildeo feeds', e)
+        }
+      }
+
+      // inject PARA native feeds
+      if (!pageParam) {
+        try {
+          const paraFeedsRes = await agent.app.bsky.feed.getFeedGenerators({
+            feeds: [
+              PARA_TRENDING_FEED_URI,
+              PARA_PARTIES_FEED_URI,
+              PARA_COMMUNITIES_FEED_URI,
+            ],
+          })
+          if (paraFeedsRes.data.feeds.length > 0) {
+            const paraUris = new Set(
+              paraFeedsRes.data.feeds.map(f => f.uri),
+            )
+            res.data.feeds = res.data.feeds.filter(f => !paraUris.has(f.uri))
+            res.data.feeds.unshift(...paraFeedsRes.data.feeds)
+          }
+        } catch (e) {
+          console.warn('Failed to fetch PARA native feeds', e)
         }
       }
 

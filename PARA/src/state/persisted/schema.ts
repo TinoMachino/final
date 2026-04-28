@@ -131,6 +131,7 @@ const schema = z.object({
   trendingVideoDisabled: z.boolean().optional(),
   raqAnswers: z.record(z.string(), z.number()).optional(),
   raqResults: z.array(z.any()).optional(),
+  showPartyShields: z.boolean().optional(),
 })
 export type Schema = z.infer<typeof schema>
 
@@ -180,6 +181,7 @@ export const defaults: Schema = {
   trendingVideoDisabled: false,
   raqAnswers: {},
   raqResults: [],
+  showPartyShields: true,
 }
 
 export function tryParse(rawData: string): Schema | undefined {

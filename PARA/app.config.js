@@ -44,9 +44,22 @@ module.exports = function (_config) {
     process.env.GOOGLE_MAPS_API_KEY ||
     DEFAULT_GOOGLE_MAPS_API_KEY
 
+  // MVP hardening: fail fast if placeholder key leaks into production builds.
+  if (IS_PRODUCTION) {
+    if (
+      GOOGLE_MAPS_IOS_API_KEY === DEFAULT_GOOGLE_MAPS_API_KEY ||
+      GOOGLE_MAPS_ANDROID_API_KEY === DEFAULT_GOOGLE_MAPS_API_KEY
+    ) {
+      throw new Error(
+        'Production build requires a real GOOGLE_MAPS_API_KEY. Set GOOGLE_MAPS_IOS_API_KEY and GOOGLE_MAPS_ANDROID_API_KEY env vars.',
+      )
+    }
+  }
+
   const IS_TESTFLIGHT = process.env.EXPO_PUBLIC_ENV === 'testflight'
   const IS_PRODUCTION = process.env.EXPO_PUBLIC_ENV === 'production'
-  const IS_DEV = !IS_TESTFLIGHT || !IS_PRODUCTION
+  // FIXED: was `!IS_TESTFLIGHT || !IS_PRODUCTION` which always evaluated to true.
+  const IS_DEV = !IS_TESTFLIGHT && !IS_PRODUCTION
 
   const ASSOCIATED_DOMAINS = [
     'applinks:bsky.app',
@@ -250,6 +263,7 @@ module.exports = function (_config) {
         favicon: './assets/favicon.png',
       },
       updates: {
+        // TODO: replace with your own update server before production
         url: 'https://updates.bsky.app/manifest',
         enabled: UPDATES_ENABLED,
         fallbackToCacheTimeout: 30000,

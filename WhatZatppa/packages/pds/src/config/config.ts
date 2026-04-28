@@ -224,7 +224,10 @@ export const envToCfg = (env: ServerEnvironment): ServerConfig => {
       }
     : null
 
-  const rateLimitsCfg: ServerConfig['rateLimits'] = env.rateLimitsEnabled
+  // MVP hardening: default rate limits ON in production unless explicitly disabled.
+  const rateLimitsEnabled =
+    env.rateLimitsEnabled ?? !env.devMode ?? true
+  const rateLimitsCfg: ServerConfig['rateLimits'] = rateLimitsEnabled
     ? {
         enabled: true,
         bypassKey: env.rateLimitBypassKey,

@@ -26,6 +26,7 @@ import {
   isGeographicGroupCommunity,
 } from '#/lib/strings/community-names'
 import {cleanError} from '#/lib/strings/errors'
+import {getCommunityEstandarte} from '#/lib/community-estandartes'
 import {
   useAcceptDraftInviteMutation,
   useCommunityBoardQuery,
@@ -46,6 +47,7 @@ import {Message_Stroke2_Corner0_Rounded as ChatIcon} from '#/components/icons/Me
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
 import * as Layout from '#/components/Layout'
+import {CommunityEstandarte} from '#/components/CommunityEstandarte'
 import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
 import {ProfileHoverCard} from '#/components/ProfileHoverCard'
 
@@ -339,6 +341,11 @@ export function CommunityProfileScreen() {
               styles.heroBanner,
               {backgroundColor: t.palette.primary_500},
             ]}>
+            <CommunityEstandarte
+              colors={getCommunityEstandarte(resolvedCommunityName)}
+              height={6}
+              style={{borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}
+            />
             <View style={styles.heroContent}>
               {/* Community Avatar and Name Row */}
               <View style={styles.heroTopRow}>

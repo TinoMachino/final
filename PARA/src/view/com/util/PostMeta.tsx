@@ -8,6 +8,7 @@ import {useQueryClient} from '@tanstack/react-query'
 import {useActorStatus} from '#/lib/actor-status'
 import {type PostBadge} from '#/lib/post-flairs'
 import {makeProfileLink} from '#/lib/routes/links'
+import {type PartyShieldInfo} from '#/lib/party-shields'
 import {forceLTR} from '#/lib/strings/bidi'
 import {NON_BREAKING_SPACE} from '#/lib/strings/constants'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
@@ -17,6 +18,8 @@ import {useProfileShadow} from '#/state/cache/profile-shadow'
 import {precacheProfile} from '#/state/queries/profile'
 import {atoms as a, platform, useTheme, web} from '#/alf'
 import {WebOnlyInlineLinkText} from '#/components/Link'
+import {CommunityEstandarte} from '#/components/CommunityEstandarte'
+import {PartyShield} from '#/components/PartyShield'
 import {PostFlairStrip} from '#/components/Post/PostFlairStrip'
 import {ProfileHoverCard} from '#/components/ProfileHoverCard'
 import {Text} from '#/components/Typography'
@@ -41,6 +44,8 @@ interface PostMetaOpts {
     color: string
     bgColor: string
   }
+  /** Party shield rendered next to author info */
+  partyShield?: PartyShieldInfo
   /** Optional multiple post flairs (e.g. one policy + one matter) */
   postFlairs?: PostBadge[]
   postFlairsBelow?: boolean
@@ -148,6 +153,16 @@ let PostMeta = (opts: PostMetaOpts): React.ReactNode => {
               ]}>
               {NON_BREAKING_SPACE + sanitizeHandle(handle, '@')}
             </WebOnlyInlineLinkText>
+            {/* Party shield insignia */}
+            {opts.partyShield && (
+              <View style={[a.ml_xs, a.self_center]}>
+                <PartyShield
+                  abbreviation={opts.partyShield.abbreviation}
+                  color={opts.partyShield.color}
+                  size="sm"
+                />
+              </View>
+            )}
             {/* User flair badge - like political alignment */}
             {opts.userFlair && (
               <View

@@ -2,6 +2,11 @@ import { MINUTE } from '@atproto/common'
 import { Database } from '../db'
 import { dbLogger } from '../logger'
 import { ModerationServiceCreator, ReversalSubject } from '../mod-service'
+import {
+  deleteExpiringTagsByIds,
+  getExpiredTags,
+} from '../mod-service/expiring-tags'
+import { ModSubject, RecordSubject, RepoSubject } from '../mod-service/subject'
 
 export class EventReverser {
   destroyed = false
@@ -55,6 +60,44 @@ export class EventReverser {
     })
   }
 
+  async revertExpiredTags() {
+    const expiredTagGroups = await getExpiredTags(this.db)
+    if (!expiredTagGroups.length) return
+
+    await Promise.all(
+      expiredTagGroups.map(async (group) => {
+        try {
+          await this.db.transaction(async (dbTxn) => {
+            const moderationTxn = this.modService(dbTxn)
+            let subject: ModSubject
+            if (group.recordPath) {
+              subject = new RecordSubject(group.recordPath, '', [])
+            } else {
+              subject = new RepoSubject(group.did)
+            }
+            await moderationTxn.logEvent({
+              event: {
+                $type: 'tools.ozone.moderation.defs#modEventTag',
+                add: [],
+                remove: group.tags,
+                comment: '[SCHEDULED_REVERSAL] Tag expired after durationInHours',
+              },
+              subject,
+              createdBy: group.createdBy,
+              createdAt: new Date(),
+            })
+            await deleteExpiringTagsByIds(dbTxn, group.ids)
+          })
+        } catch (err) {
+          dbLogger.error(
+            { err, did: group.did, tags: group.tags },
+            'Failed to revert expired tags',
+          )
+        }
+      }),
+    )
+  }
+
   async findAndRevertDueActions() {
     const moderationService = this.modService(this.db)
     const subjectsDueForReversal =
@@ -63,6 +106,9 @@ export class EventReverser {
     // We shouldn't have too many actions due for reversal at any given time, so running in parallel is probably fine
     // Internally, each reversal runs within its own transaction
     await Promise.all(subjectsDueForReversal.map(this.revertState.bind(this)))
+
+    // Also revert any expired tags
+    await this.revertExpiredTags()
   }
 }
 

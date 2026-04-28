@@ -159,6 +159,11 @@ export class Redis {
     return await this.driver.zadd(this.ns(key), score, member)
   }
 
+  async scan(cursor: string, ...args: (string | number)[]): Promise<[string, string[]]> {
+    const result = await (this.driver.scan as any)(cursor, ...args.map((a) => String(a)))
+    return [result[0], result[1]]
+  }
+
   async destroy() {
     await this.driver.quit()
   }

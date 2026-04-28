@@ -1,0 +1,92 @@
+import { InvalidRequestError } from '@atproto/xrpc-server'
+import { AppContext } from '../../context'
+import { publishableEventTypes, modEventToEventView } from '../../history/views'
+import { Server } from '../../lexicon'
+
+export default function (server: Server, ctx: AppContext) {
+  server.tools.ozone.history.getReportedSubjects({
+    auth: ctx.authVerifier.standardOptionalOrAdminToken,
+    handler: async ({ auth, params }) => {
+      const access = auth.credentials
+      const { limit = 50, cursor, sortDirection = 'desc' } = params
+      const db = ctx.db
+      const modService = ctx.modService(db)
+
+      // If this is a moderator/admin request, we allow fetching any account's reports
+      // Otherwise, users can only fetch their own reported subjects
+      const requesterDid = access.isModerator || access.isAdmin
+        ? params.account
+        : access.iss
+
+      if (!requesterDid) {
+        throw new InvalidRequestError('Account parameter is required')
+      }
+
+      // Get reports created by this user
+      const results = await modService.getEvents({
+        createdBy: requesterDid,
+        limit,
+        cursor,
+        sortDirection,
+        types: ['tools.ozone.moderation.defs#modEventReport'],
+        includeAllUserRecords: false,
+        addedLabels: [],
+        removedLabels: [],
+        addedTags: [],
+        removedTags: [],
+        collections: [],
+      })
+
+      const automods = ctx.cfg.automod?.did ? [ctx.cfg.automod.did] : []
+
+      // Group events by subject and build reportedSubjectViews
+      const subjectMap = new Map<string, {
+        subject: string
+        comment?: string
+        createdAt: string
+        status: 'open' | 'closed' | 'escalated' | 'queued' | 'assigned'
+        actions: any[]
+      }>()
+
+      for (const event of results.events) {
+        const subject = event.subjectUri || event.subjectDid
+        if (!subjectMap.has(subject)) {
+          subjectMap.set(subject, {
+            subject,
+            comment: event.comment || undefined,
+            createdAt: event.createdAt,
+            status: 'open',
+            actions: [],
+          })
+        }
+      }
+
+      // For each subject, fetch moderation actions
+      for (const [subject, subjectView] of subjectMap) {
+        const actionResults = await modService.getEvents({
+          subject,
+          limit: 50,
+          types: [...publishableEventTypes],
+          includeAllUserRecords: false,
+          addedLabels: [],
+          removedLabels: [],
+          addedTags: [],
+          removedTags: [],
+          collections: [],
+        })
+
+        subjectView.actions = actionResults.events
+          .map((event) => modEventToEventView(event, automods))
+          .filter((event): event is NonNullable<typeof event> => event !== null)
+      }
+
+      return {
+        encoding: 'application/json',
+        body: {
+          subjects: Array.from(subjectMap.values()),
+          cursor: results.cursor,
+        },
+      }
+    },
+  })
+}

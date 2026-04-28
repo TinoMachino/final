@@ -6,6 +6,7 @@ import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
 import {useBottomBarOffset} from '#/lib/hooks/useBottomBarOffset'
+import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {ComposeIcon2} from '#/lib/icons'
 import {type NavigationProp} from '#/lib/routes/types'
 import {s} from '#/lib/styles'
@@ -125,15 +126,14 @@ export function BaseScreen() {
 
   const handleMyBase = () => navigation.navigate('MyBase')
   const handleCommunities = () => navigation.navigate('Communities')
-  const handleCreatePost = () => navigation.navigate('CreatePost')
+  const {openComposer} = useOpenComposer()
+  const handleCreatePost = () => openComposer({logContext: 'Fab'})
 
-  // Compute feed descriptor based on active community filters
+  // Parties tab always uses the following feed;
+  // active community/compass filters are applied client-side via feed tuners.
   const feedDescriptor = useMemo<FeedDescriptor>(() => {
-    if (activeFilters.length > 0) {
-      return `search|${activeFilters.join(',')}`
-    }
     return 'following'
-  }, [activeFilters])
+  }, [])
 
   // Card background — shared across all Data cards
   const cardBgColor = {
@@ -255,6 +255,7 @@ export function BaseScreen() {
                 scrollElRef={scrollRef}
                 manualRefreshSignal={refreshSignal}
                 hideComposerPrompt={true}
+                applyBaseCommunityFilters={true}
                 renderEmptyState={() => (
                   <View style={styles.emptyState}>
                     <Text style={[styles.emptyStateText, t.atoms.text]}>

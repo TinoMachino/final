@@ -14,6 +14,10 @@ import {useQueryClient} from '@tanstack/react-query'
 import {useActorStatus} from '#/lib/actor-status'
 import {type ReasonFeedSource} from '#/lib/api/feed/types'
 import {MAX_POST_LINES} from '#/lib/constants'
+import {
+  createDisplayRichText,
+  extractPartyShield,
+} from '#/lib/party-shields'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {getPostBadges, isPolicyPostRecord} from '#/lib/post-flairs'
@@ -27,8 +31,12 @@ import {
 } from '#/state/cache/post-shadow'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {unstableCacheProfileView} from '#/state/queries/profile'
-import {useSession} from '#/state/session'
+import {
+  useSession,
+} from '#/state/session'
+import {useShowPartyShields} from '#/state/preferences'
 import {useMergedThreadgateHiddenReplies} from '#/state/threadgate-hidden-replies'
+import {type PartyShieldInfo} from '#/lib/party-shields'
 import {
   buildPostSourceKey,
   setUnstablePostSource,
@@ -98,6 +106,7 @@ export function PostFeedItem({
   onShowLess?: (interaction: AppBskyFeedDefs.Interaction) => void
 }): React.ReactNode {
   const postShadowed = usePostShadow(post)
+  const showPartyShields = useShowPartyShields()
   const richText = useMemo(
     () =>
       new RichTextAPI({
@@ -106,6 +115,12 @@ export function PostFeedItem({
       }),
     [record],
   )
+  const {shield: partyShield} = extractPartyShield(record.text)
+  const displayRichText = useMemo(() => {
+    const {richText: rt} = createDisplayRichText(richText)
+    return rt
+  }, [richText])
+
   if (postShadowed === POST_TOMBSTONE) {
     return null
   }
@@ -119,7 +134,8 @@ export function PostFeedItem({
         reason={reason}
         feedContext={feedContext}
         reqId={reqId}
-        richText={richText}
+        richText={displayRichText}
+        partyShield={showPartyShields ? (partyShield || undefined) : undefined}
         parentAuthor={parentAuthor}
         showReplyTo={showReplyTo}
         moderation={moderation}
@@ -144,6 +160,7 @@ let FeedItemInner = ({
   feedContext,
   reqId,
   richText,
+  partyShield,
   moderation,
   parentAuthor,
   showReplyTo,
@@ -157,6 +174,7 @@ let FeedItemInner = ({
   onShowLess,
 }: FeedItemProps & {
   richText: RichTextAPI
+  partyShield?: PartyShieldInfo
   post: Shadow<AppBskyFeedDefs.PostView>
   rootPost: AppBskyFeedDefs.PostView
   onShowLess?: (interaction: AppBskyFeedDefs.Interaction) => void
@@ -362,6 +380,7 @@ let FeedItemInner = ({
             timestamp={post.indexedAt}
             postHref={href}
             onOpenAuthor={onOpenAuthor}
+            partyShield={partyShield}
             postFlairs={postBadges.length ? postBadges : undefined}
             postFlairsBelow
           />

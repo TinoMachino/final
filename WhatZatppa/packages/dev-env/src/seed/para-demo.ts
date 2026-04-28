@@ -647,15 +647,15 @@ export default async (sc: SeedClient) => {
     })
     createdPosts.push({uri: paraRes.data.uri, cid: paraRes.data.cid, agent: p.agent, party: p.party, postType: p.postType})
 
-    // 2. Mirror to app.bsky.feed.post with CLEAN tags (no flair syntax)
-    //    The party name MUST be first in tags so backend tag-filtering works.
-    const bskyText = `[${p.party}] ${p.title}\n\n${p.text}`
+    // 2. Mirror to app.bsky.feed.post.
+    //    Party + flairs are carried in tags as metadata, NOT in text.
+    const bskyText = `${p.title}\n\n${p.text}`
     await p.agent.app.bsky.feed.post.create(
       {repo: p.agent.assertDid},
       {
         text: bskyText,
         createdAt: createdAt(),
-        tags: p.bskyTags,
+        tags: [...p.bskyTags, ...(p.paraFlairs || [])],
       },
     )
   }

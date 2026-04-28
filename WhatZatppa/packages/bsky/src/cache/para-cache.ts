@@ -53,6 +53,32 @@ export class ParaCacheService {
     }
   }
 
+  async del(keys: string[]): Promise<void> {
+    if (keys.length === 0) return
+    try {
+      const keysToDelete: string[] = []
+      for (const key of keys) {
+        if (key.includes('*')) {
+          // Pattern-based deletion using SCAN (production-safe)
+          let cursor = '0'
+          do {
+            const result = await this.redis.scan(cursor, 'MATCH', key, 'COUNT', 100)
+            cursor = result[0]
+            const matched = result[1]
+            keysToDelete.push(...matched)
+          } while (cursor !== '0')
+        } else {
+          keysToDelete.push(key)
+        }
+      }
+      if (keysToDelete.length > 0) {
+        await Promise.all(keysToDelete.map((key) => this.redis.del(key)))
+      }
+    } catch {
+      // Cache invalidation failures are non-fatal — TTL will eventually clean up
+    }
+  }
+
   boardsKey(params: {
     viewerDid: string
     sort: string

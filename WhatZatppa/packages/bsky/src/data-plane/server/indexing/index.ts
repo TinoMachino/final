@@ -13,6 +13,7 @@ import { AtUri, DidString } from '@atproto/syntax'
 import { com } from '../../../lexicons'
 import { subLogger } from '../../../logger'
 import { retryXrpc } from '../../../util/retry'
+import { ParaCacheService } from '../../../cache/para-cache'
 import { BackgroundQueue } from '../background'
 import { Database } from '../db'
 import { Actor } from '../db/tables/actor'
@@ -85,6 +86,7 @@ export class IndexingService {
     public db: Database,
     public idResolver: IdResolver,
     public background: BackgroundQueue,
+    public paraCache?: ParaCacheService,
   ) {
     this.records = {
       post: Post.makePlugin(this.db, this.background),
@@ -118,8 +120,9 @@ export class IndexingService {
       paraCommunityMembership: ParaCommunityMembership.makePlugin(
         this.db,
         this.background,
+        this.paraCache,
       ),
-      paraPostMeta: ParaPostMeta.makePlugin(this.db, this.background),
+      paraPostMeta: ParaPostMeta.makePlugin(this.db, this.background, this.paraCache),
       paraStatus: ParaStatus.makePlugin(this.db, this.background),
       cabildeo: Cabildeo.makePlugin(this.db, this.background),
       cabildeoPosition: CabildeoPosition.makePlugin(this.db, this.background),
@@ -127,14 +130,14 @@ export class IndexingService {
         this.db,
         this.background,
       ),
-      cabildeoVote: CabildeoVote.makePlugin(this.db, this.background),
+      cabildeoVote: CabildeoVote.makePlugin(this.db, this.background, this.paraCache),
       highlight: Highlight.makePlugin(this.db, this.background),
     }
   }
 
   transact(txn: Database) {
     txn.assertTransaction()
-    return new IndexingService(txn, this.idResolver, this.background)
+    return new IndexingService(txn, this.idResolver, this.background, this.paraCache)
   }
 
   async indexRecord(

@@ -38,8 +38,8 @@ export async function downloadAndResize(opts: DownloadAndResizeOpts) {
 }
 
 export async function shareImageModal(_opts: {uri: string}) {
-  // TODO
-  throw new Error('TODO')
+  // MVP: web share is not implemented yet. Log and return gracefully.
+  console.warn('shareImageModal: not implemented on web')
 }
 
 /**

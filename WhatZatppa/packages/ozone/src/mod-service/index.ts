@@ -59,6 +59,10 @@ import {
   subjectFromStatusRow,
 } from './subject'
 import {
+  insertExpiringTags,
+  removeExpiringTags,
+} from './expiring-tags'
+import {
   ModEventType,
   ModerationEventRow,
   ModerationSubjectStatusRow,
@@ -668,6 +672,35 @@ export class ModerationService {
 
     if (isAgeAssurancePurgeEvent(event)) {
       await this.purgeAgeAssuranceEvents(subjectInfo.subjectDid)
+    }
+
+    // Handle expiring tags: insert expiring tags for tags with durationInHours
+    if (
+      isModEventTag(event) &&
+      event.durationInHours &&
+      event.add?.length
+    ) {
+      const expiresAt = addHoursToDate(
+        event.durationInHours,
+        createdAt,
+      ).toISOString()
+      await insertExpiringTags(this.db, {
+        eventId: modEvent.id,
+        did: subjectInfo.subjectDid,
+        recordPath: subjectInfo.subjectUri || '',
+        tags: event.add,
+        expiresAt,
+        createdBy,
+      })
+    }
+
+    // Handle removal of expiring tags when tags are explicitly removed
+    if (isModEventTag(event) && event.remove?.length) {
+      await removeExpiringTags(this.db, {
+        did: subjectInfo.subjectDid,
+        recordPath: subjectInfo.subjectUri || '',
+        tags: event.remove,
+      })
     }
 
     // Updates are only needed if strikeCount is numeric (in some cases even 0)

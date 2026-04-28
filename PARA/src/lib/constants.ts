@@ -4,7 +4,7 @@ import {type AppBskyActorDefs, BSKY_LABELER_DID} from '@atproto/api'
 import {type ProxyHeaderValue} from '#/state/session/agent'
 import {BLUESKY_PROXY_DID, CHAT_PROXY_DID} from '#/env'
 
-const LOCAL_DEV_IP = process.env.EXPO_PUBLIC_LOCAL_DEV_IP || '192.168.100.31'
+const LOCAL_DEV_IP = process.env.EXPO_PUBLIC_LOCAL_DEV_IP || '192.168.100.30'
 const LOCAL_DEV_SERVICE_OVERRIDE = process.env.EXPO_PUBLIC_LOCAL_DEV_SERVICE
 const DEFAULT_SERVICE_OVERRIDE = process.env.EXPO_PUBLIC_DEFAULT_SERVICE
 const USE_LOCAL_DEFAULT_SERVICE =
@@ -30,6 +30,8 @@ export const DEFAULT_SERVICE =
   DEFAULT_SERVICE_OVERRIDE ||
   (USE_LOCAL_DEMO_DEFAULTS ? LOCAL_DEV_SERVICE : BSKY_SERVICE)
 export const IS_LOCAL_DEV_MODE = DEFAULT_SERVICE === LOCAL_DEV_SERVICE
+export const DEV_ENV_APPVIEW = `http://${LOCAL_DEV_IP}:2584` // always the same
+export const DEV_ENV_APPVIEW_DID = `did:plc:dw4kbjf5mn7nhenabiqpkyh3` // always the same
 const HELP_DESK_LANG = 'en-us'
 export const HELP_DESK_URL = `https://blueskyweb.zendesk.com/hc/${HELP_DESK_LANG}`
 export const EMBED_SERVICE = 'https://embed.bsky.app'
@@ -45,18 +47,22 @@ export const CARD_ASPECT_RATIO = 1200 / 630
 // code and update this number with each release until we can get the
 // server route done.
 // -prf
-export const JOINED_THIS_WEEK = 560000 // estimate as of 12/18/24
+// MVP: only show in dev builds to avoid stale/misleading stats in production.
+export const JOINED_THIS_WEEK = __DEV__ ? 560000 : undefined // estimate as of 12/18/24
 
-export const DISCOVER_DEBUG_DIDS: Record<string, true> = {
-  'did:plc:oisofpd7lj26yvgiivf3lxsi': true, // hailey.at
-  'did:plc:p2cp5gopk7mgjegy6wadk3ep': true, // samuel.bsky.team
-  'did:plc:ragtjsm2j2vknwkz3zp4oxrd': true, // pfrazee.com
-  'did:plc:vpkhqolt662uhesyj6nxm7ys': true, // why.bsky.team
-  'did:plc:3jpt2mvvsumj2r7eqk4gzzjz': true, // esb.lol
-  'did:plc:vjug55kidv6sye7ykr5faxxn': true, // emilyliu.me
-  'did:plc:tgqseeot47ymot4zro244fj3': true, // iwsmith.bsky.social
-  'did:plc:2dzyut5lxna5ljiaasgeuffz': true, // darrin.bsky.team
-}
+// MVP: debug DIDs for Discover feed — only active in dev builds.
+export const DISCOVER_DEBUG_DIDS: Record<string, true> = __DEV__
+  ? {
+      'did:plc:oisofpd7lj26yvgiivf3lxsi': true, // hailey.at
+      'did:plc:p2cp5gopk7mgjegy6wadk3ep': true, // samuel.bsky.team
+      'did:plc:ragtjsm2j2vknwkz3zp4oxrd': true, // pfrazee.com
+      'did:plc:vpkhqolt662uhesyj6nxm7ys': true, // why.bsky.team
+      'did:plc:3jpt2mvvsumj2r7eqk4gzzjz': true, // esb.lol
+      'did:plc:vjug55kidv6sye7ykr5faxxn': true, // emilyliu.me
+      'did:plc:tgqseeot47ymot4zro244fj3': true, // iwsmith.bsky.social
+      'did:plc:2dzyut5lxna5ljiaasgeuffz': true, // darrin.bsky.team
+    }
+  : {}
 
 const BASE_FEEDBACK_FORM_URL = `${HELP_DESK_URL}/requests/new`
 export function FEEDBACK_FORM_URL({
@@ -206,12 +212,30 @@ export const DEFAULT_VIDEO_SAVED_FEED = DEFAULT_VIDEO_FEED_URI
     }
   : null
 
+// MVP: PARA native feeds for dev/demo — appear in Discover and default saved feeds.
+// TODO: replace DEV_ENV_APPVIEW_DID with production PARA feed generator DID.
+export const PARA_TRENDING_FEED_URI = `at://${DEV_ENV_APPVIEW_DID}/app.bsky.feed.generator/para-trending`
+export const PARA_PARTIES_FEED_URI = `at://${DEV_ENV_APPVIEW_DID}/app.bsky.feed.generator/para-parties`
+export const PARA_COMMUNITIES_FEED_URI = `at://${DEV_ENV_APPVIEW_DID}/app.bsky.feed.generator/para-communities`
+
+export const PARA_SAVED_FEEDS: Pick<
+  AppBskyActorDefs.SavedFeed,
+  'type' | 'value' | 'pinned'
+>[] = IS_LOCAL_DEV_MODE
+  ? [
+      {type: 'feed', value: PARA_TRENDING_FEED_URI, pinned: false},
+      {type: 'feed', value: PARA_PARTIES_FEED_URI, pinned: false},
+      {type: 'feed', value: PARA_COMMUNITIES_FEED_URI, pinned: false},
+    ]
+  : []
+
 export const RECOMMENDED_SAVED_FEEDS: Pick<
   AppBskyActorDefs.SavedFeed,
   'type' | 'value' | 'pinned'
 >[] = [
   ...(DEFAULT_DISCOVER_SAVED_FEED ? [DEFAULT_DISCOVER_SAVED_FEED] : []),
   TIMELINE_SAVED_FEED,
+  ...PARA_SAVED_FEEDS,
 ]
 
 export const DEFAULT_ONBOARDING_SAVED_FEEDS: Pick<
@@ -221,6 +245,7 @@ export const DEFAULT_ONBOARDING_SAVED_FEEDS: Pick<
   ...(DEFAULT_DISCOVER_SAVED_FEED ? [DEFAULT_DISCOVER_SAVED_FEED] : []),
   TIMELINE_SAVED_FEED,
   ...(DEFAULT_VIDEO_SAVED_FEED ? [DEFAULT_VIDEO_SAVED_FEED] : []),
+  ...PARA_SAVED_FEEDS,
 ]
 
 export function isDefaultDiscoverFeedUri(uri?: string | null) {
@@ -297,8 +322,6 @@ export const PUBLIC_APPVIEW = 'https://api.bsky.app'
 export const PUBLIC_APPVIEW_DID = 'did:web:api.bsky.app'
 export const PUBLIC_STAGING_APPVIEW_DID = 'did:web:api.staging.bsky.dev'
 
-export const DEV_ENV_APPVIEW = `http://${LOCAL_DEV_IP}:2584` // always the same
-export const DEV_ENV_APPVIEW_DID = `did:plc:dw4kbjf5mn7nhenabiqpkyh3` // always the same
 // Stable local dev chat DID published by watx/packages/dev-env/src/service-profile-chat.ts
 // for the default handle `chat.test` on the default chat port `2590`.
 export const DEV_ENV_CHAT_DID = 'did:plc:ztgydimgwegx72nfqbfgurrb'

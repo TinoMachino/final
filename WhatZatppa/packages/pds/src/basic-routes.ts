@@ -48,5 +48,38 @@ Most API routes are under /xrpc/
     res.send({ version })
   })
 
+  // MVP: readiness probe — checks DB + Redis before marking pod ready.
+  router.get('/xrpc/_ready', async function (req, res) {
+    const { version } = ctx.cfg.service
+    const checks: string[] = []
+
+    try {
+      await sql`select 1`.execute(ctx.accountManager.db.db)
+      checks.push('db:ok')
+    } catch (err) {
+      req.log.error({ err }, 'readiness check failed: db')
+      checks.push('db:fail')
+    }
+
+    if (ctx.cfg.redis) {
+      try {
+        await ctx.redisScratch?.ping()
+        checks.push('redis:ok')
+      } catch (err) {
+        req.log.error({ err }, 'readiness check failed: redis')
+        checks.push('redis:fail')
+      }
+    } else {
+      checks.push('redis:skipped')
+    }
+
+    const allOk = checks.every((c) => c.endsWith(':ok') || c.endsWith(':skipped'))
+    if (allOk) {
+      res.send({ version, checks, ready: true })
+    } else {
+      res.status(503).send({ version, checks, ready: false })
+    }
+  })
+
   return router
 }

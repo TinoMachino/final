@@ -39,3 +39,17 @@ The current release uses manual approval. The planned next phase for Mexico is:
 - keep PARA's `com.para.identity` record as the durable authorization state after proof verification succeeds
 
 The goal is to verify authenticity without exposing sensitive identity documents to the public or making full identity disclosure a product requirement.
+
+## Paused features (post-MVP roadmap)
+
+The following features are present in the codebase but **paused for the MVP release**:
+
+### Age Assurance
+
+The app includes a full age-assurance subsystem (`src/ageAssurance/`) that enforces regional age-verification rules, content gating, and moderation prefs based on geolocation and birthdate. For the MVP, this system is **bypassed** — all users receive `Full` access regardless of region or verification status. This avoids blocking demo users and keeps the onboarding friction minimal while the product is being evaluated.
+
+**Re-enablement:** Remove the MVP bypass in `src/ageAssurance/state.ts` (restore the original `useAgeAssuranceState` logic) and ensure the PDS supports the `app.bsky.ageassurance.*` lexicon endpoints.
+
+### Discover feed
+
+In local-dev mode the Discover/What's Hot feed is intentionally disabled (`DEFAULT_DISCOVER_FEED_URI = null`) because the feed generator is not seeded in the dev environment. The home tab falls back to the Following timeline.

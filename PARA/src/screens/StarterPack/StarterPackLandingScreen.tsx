@@ -221,17 +221,19 @@ function LandingScreenLoaded({
                 size={12}
                 color={t.atoms.text_contrast_medium.color}
               />
-              <Text
-                style={[
-                  a.font_semi_bold,
-                  a.text_sm,
-                  t.atoms.text_contrast_medium,
-                ]}
-                numberOfLines={1}>
-                <Trans>
-                  {formatCount(i18n, JOINED_THIS_WEEK)} joined this week
-                </Trans>
-              </Text>
+              {JOINED_THIS_WEEK !== undefined && (
+                <Text
+                  style={[
+                    a.font_semi_bold,
+                    a.text_sm,
+                    t.atoms.text_contrast_medium,
+                  ]}
+                  numberOfLines={1}>
+                  <Trans>
+                    {formatCount(i18n, JOINED_THIS_WEEK)} joined this week
+                  </Trans>
+                </Text>
+              )}
             </View>
           </View>
           <View style={[a.gap_3xl]}>

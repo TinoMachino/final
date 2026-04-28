@@ -3,6 +3,7 @@ import { WriteOpAction } from '@atproto/repo'
 import { DidString } from '@atproto/syntax'
 import { Event as FirehoseEvent, Firehose, MemoryRunner } from '@atproto/sync'
 import { subLogger as log } from '../../logger'
+import { ParaCacheService } from '../../cache/para-cache'
 import { BackgroundQueue } from './background'
 import { Database } from './db'
 import { IndexingService } from './indexing'
@@ -14,11 +15,11 @@ export class RepoSubscription {
   indexingSvc: IndexingService
 
   constructor(
-    public opts: { service: string; db: Database; idResolver: IdResolver },
+    public opts: { service: string; db: Database; idResolver: IdResolver; paraCache?: ParaCacheService },
   ) {
-    const { service, db, idResolver } = opts
+    const { service, db, idResolver, paraCache } = opts
     this.background = new BackgroundQueue(db)
-    this.indexingSvc = new IndexingService(db, idResolver, this.background)
+    this.indexingSvc = new IndexingService(db, idResolver, this.background, paraCache)
 
     const { runner, firehose } = createFirehose({
       idResolver,

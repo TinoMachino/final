@@ -10,6 +10,7 @@ import {Provider as KawaiiProvider} from './kawaii'
 import {Provider as LanguagesProvider} from './languages'
 import {Provider as LargeAltBadgeProvider} from './large-alt-badge'
 import {Provider as SubtitlesProvider} from './subtitles'
+import {Provider as ShowPartyShieldsProvider} from './show-party-shields'
 import {Provider as TrendingSettingsProvider} from './trending'
 import {Provider as UsedStarterPacksProvider} from './used-starter-packs'
 
@@ -27,6 +28,10 @@ export {useHiddenPosts, useHiddenPostsApi} from './hidden-posts'
 export {useLabelDefinitions} from './label-defs'
 export {useLanguagePrefs, useLanguagePrefsApi} from './languages'
 export {useSetSubtitlesEnabled, useSubtitlesEnabled} from './subtitles'
+export {
+  useSetShowPartyShields,
+  useShowPartyShields,
+} from './show-party-shields'
 
 export function Provider({children}: PropsWithChildren<{}>) {
   return (
@@ -41,7 +46,9 @@ export function Provider({children}: PropsWithChildren<{}>) {
                     <UsedStarterPacksProvider>
                       <SubtitlesProvider>
                         <TrendingSettingsProvider>
-                          <KawaiiProvider>{children}</KawaiiProvider>
+                          <ShowPartyShieldsProvider>
+                            <KawaiiProvider>{children}</KawaiiProvider>
+                          </ShowPartyShieldsProvider>
                         </TrendingSettingsProvider>
                       </SubtitlesProvider>
                     </UsedStarterPacksProvider>

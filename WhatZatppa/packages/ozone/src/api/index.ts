@@ -8,6 +8,9 @@ import updateTemplate from './communication/updateTemplate'
 import fetchLabels from './label/fetchLabels'
 import queryLabels from './label/queryLabels'
 import subscribeLabels from './label/subscribeLabels'
+import getAccountActions from './history/getAccountActions'
+import getReportedSubjects from './history/getReportedSubjects'
+import getSubjectHistory from './history/getSubjectHistory'
 import cancelScheduledActions from './moderation/cancelScheduledActions'
 import emitEvent from './moderation/emitEvent'
 import getAccountTimeline from './moderation/getAccountTimeline'
@@ -100,5 +103,8 @@ export default function (server: Server, ctx: AppContext) {
   scheduleAction(server, ctx)
   listScheduledActions(server, ctx)
   cancelScheduledActions(server, ctx)
+  getAccountActions(server, ctx)
+  getReportedSubjects(server, ctx)
+  getSubjectHistory(server, ctx)
   return server
 }

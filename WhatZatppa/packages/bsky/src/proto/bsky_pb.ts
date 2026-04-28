@@ -10200,6 +10200,16 @@ export class GetParaAuthorFeedRequest extends Message<GetParaAuthorFeedRequest> 
    */
   cursor = "";
 
+  /**
+   * @generated from field: optional string party = 4;
+   */
+  party?: string;
+
+  /**
+   * @generated from field: optional string community = 5;
+   */
+  community?: string;
+
   constructor(data?: PartialMessage<GetParaAuthorFeedRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -10211,6 +10221,8 @@ export class GetParaAuthorFeedRequest extends Message<GetParaAuthorFeedRequest> 
     { no: 1, name: "actor_did", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 3, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "party", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "community", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaAuthorFeedRequest {
@@ -10392,6 +10404,16 @@ export class GetParaTimelineRequest extends Message<GetParaTimelineRequest> {
    */
   cursor = "";
 
+  /**
+   * @generated from field: optional string party = 4;
+   */
+  party?: string;
+
+  /**
+   * @generated from field: optional string community = 5;
+   */
+  community?: string;
+
   constructor(data?: PartialMessage<GetParaTimelineRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -10403,6 +10425,8 @@ export class GetParaTimelineRequest extends Message<GetParaTimelineRequest> {
     { no: 1, name: "actor_did", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 3, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "party", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "community", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaTimelineRequest {
@@ -12545,6 +12569,107 @@ export class GetParaCommunityMembersResponse extends Message<GetParaCommunityMem
 
   static equals(a: GetParaCommunityMembersResponse | PlainMessage<GetParaCommunityMembersResponse> | undefined, b: GetParaCommunityMembersResponse | PlainMessage<GetParaCommunityMembersResponse> | undefined): boolean {
     return proto3.util.equals(GetParaCommunityMembersResponse, a, b);
+  }
+}
+
+/**
+ * - Returns para posts for a specific community, paginated
+ *     - `com.para.community.listPosts`
+ *
+ * @generated from message bsky.GetParaCommunityPostsRequest
+ */
+export class GetParaCommunityPostsRequest extends Message<GetParaCommunityPostsRequest> {
+  /**
+   * @generated from field: string community = 1;
+   */
+  community = "";
+
+  /**
+   * @generated from field: int32 limit = 2;
+   */
+  limit = 0;
+
+  /**
+   * @generated from field: string cursor = 3;
+   */
+  cursor = "";
+
+  /**
+   * @generated from field: optional string post_type = 4;
+   */
+  postType?: string;
+
+  constructor(data?: PartialMessage<GetParaCommunityPostsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "bsky.GetParaCommunityPostsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "community", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "limit", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "post_type", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaCommunityPostsRequest {
+    return new GetParaCommunityPostsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetParaCommunityPostsRequest {
+    return new GetParaCommunityPostsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetParaCommunityPostsRequest {
+    return new GetParaCommunityPostsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetParaCommunityPostsRequest | PlainMessage<GetParaCommunityPostsRequest> | undefined, b: GetParaCommunityPostsRequest | PlainMessage<GetParaCommunityPostsRequest> | undefined): boolean {
+    return proto3.util.equals(GetParaCommunityPostsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message bsky.GetParaCommunityPostsResponse
+ */
+export class GetParaCommunityPostsResponse extends Message<GetParaCommunityPostsResponse> {
+  /**
+   * @generated from field: repeated bsky.ParaAuthorFeedItem items = 1;
+   */
+  items: ParaAuthorFeedItem[] = [];
+
+  /**
+   * @generated from field: string cursor = 2;
+   */
+  cursor = "";
+
+  constructor(data?: PartialMessage<GetParaCommunityPostsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "bsky.GetParaCommunityPostsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "items", kind: "message", T: ParaAuthorFeedItem, repeated: true },
+    { no: 2, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaCommunityPostsResponse {
+    return new GetParaCommunityPostsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetParaCommunityPostsResponse {
+    return new GetParaCommunityPostsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetParaCommunityPostsResponse {
+    return new GetParaCommunityPostsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetParaCommunityPostsResponse | PlainMessage<GetParaCommunityPostsResponse> | undefined, b: GetParaCommunityPostsResponse | PlainMessage<GetParaCommunityPostsResponse> | undefined): boolean {
+    return proto3.util.equals(GetParaCommunityPostsResponse, a, b);
   }
 }
 

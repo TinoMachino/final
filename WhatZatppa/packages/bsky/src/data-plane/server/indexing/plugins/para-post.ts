@@ -81,8 +81,19 @@ const insertFn = async (
   }
 }
 
-const findDuplicate = async (): Promise<AtUri | null> => {
-  return null
+const findDuplicate = async (
+  db: DatabaseSchema,
+  uri: AtUri,
+  obj: ParaPostRecord,
+): Promise<AtUri | null> => {
+  const found = await db
+    .selectFrom('para_post')
+    .where('creator', '=', uri.host)
+    .where('text', '=', obj.text)
+    .where('createdAt', '=', normalizeDatetimeAlways(obj.createdAt))
+    .select('uri')
+    .executeTakeFirst()
+  return found ? new AtUri(found.uri) : null
 }
 
 const notifsForInsert = (_obj: IndexedParaPost) => {

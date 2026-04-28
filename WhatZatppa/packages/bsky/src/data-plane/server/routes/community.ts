@@ -6,6 +6,8 @@ import {
   GetParaCommunityBoardsResponse,
   GetParaCommunityGovernanceResponse,
   GetParaCommunityMembersResponse,
+  GetParaCommunityPostsResponse,
+  ParaAuthorFeedItem,
   ParaCommunityDeputyRole,
   ParaCommunityGovernanceHistoryEntry,
   ParaCommunityGovernanceMetadata,
@@ -213,6 +215,52 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
               summary: entry.summary,
             }),
         ) ?? [],
+    })
+  },
+
+  async getParaCommunityPosts(req) {
+    const { ref } = db.db.dynamic
+    let builder = db.db
+      .selectFrom('para_post')
+      .innerJoin('para_post_meta', 'para_post_meta.postUri', 'para_post.uri')
+      .selectAll('para_post')
+      .where('para_post_meta.community', '=', req.community)
+
+    if (req.postType) {
+      builder = builder.where('para_post_meta.postType', '=', req.postType)
+    }
+
+    const keyset = new TimeCidKeyset(
+      ref('para_post.sortAt'),
+      ref('para_post.cid'),
+    )
+
+    builder = paginate(builder, {
+      limit: req.limit,
+      cursor: req.cursor,
+      keyset,
+      tryIndex: true,
+    })
+
+    const posts = await builder.execute()
+
+    return new GetParaCommunityPostsResponse({
+      items: posts.map((row) =>
+        new ParaAuthorFeedItem({
+          uri: row.uri,
+          cid: row.cid,
+          author: row.creator,
+          text: row.text,
+          createdAt: row.createdAt,
+          replyRoot: row.replyRoot ?? undefined,
+          replyParent: row.replyParent ?? undefined,
+          langs: row.langs ?? [],
+          tags: row.tags ?? [],
+          flairs: row.flairs ?? [],
+          postType: row.postType ?? undefined,
+        }),
+      ),
+      cursor: keyset.packFromResult(posts),
     })
   },
 })

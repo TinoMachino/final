@@ -109,6 +109,7 @@ import getParaCommunityBoard from './com/para/community/getBoard'
 import getParaCommunityGovernance from './com/para/community/getGovernance'
 import listParaCommunityBoards from './com/para/community/listBoards'
 import listParaCommunityMembers from './com/para/community/listMembers'
+import listParaCommunityPosts from './com/para/community/listPosts'
 import getParaDiscourseSentiment from './com/para/discourse/getSentiment'
 import getParaDiscourseSnapshot from './com/para/discourse/getSnapshot'
 import getParaDiscourseTopics from './com/para/discourse/getTopics'
@@ -255,6 +256,7 @@ export default function (server: Server, ctx: AppContext) {
   getParaCommunityGovernance(paraServer, ctx)
   listParaCommunityBoards(paraServer, ctx)
   listParaCommunityMembers(paraServer, ctx)
+  listParaCommunityPosts(paraServer, ctx)
   listParaHighlights(paraServer, ctx)
   getParaHighlight(paraServer, ctx)
   getParaPostSubscription(paraServer, ctx)

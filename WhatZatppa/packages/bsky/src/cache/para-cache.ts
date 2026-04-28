@@ -88,7 +88,18 @@ export class ParaCacheService {
     actorDid: string
     limit: number
     cursor: string
+    party: string
+    community: string
   }): string {
-    return `${params.actorDid}:${params.limit}:${params.cursor}`
+    return `${params.actorDid}:${params.limit}:${params.cursor}:${params.party}:${params.community}`
+  }
+
+  communityFeedKey(params: {
+    community: string
+    limit: number
+    cursor: string
+    postType: string
+  }): string {
+    return `${params.community}:${params.limit}:${params.cursor}:${params.postType}`
   }
 }

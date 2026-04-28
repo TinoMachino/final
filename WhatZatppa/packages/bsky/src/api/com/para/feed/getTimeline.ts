@@ -46,6 +46,8 @@ const getTimeline = async (inputs: { ctx: Context; params: Params }) => {
     actorDid: params.hydrateCtx.viewer,
     limit: params.limit,
     cursor: params.cursor,
+    party: params.party,
+    community: params.community,
   })
 
   const authors = [...new Set(res.items.map((item) => item.author))]

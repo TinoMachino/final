@@ -1418,6 +1418,8 @@ message GetParaAuthorFeedRequest {
   string actor_did = 1;
   int32 limit = 2;
   string cursor = 3;
+  optional string party = 4;
+  optional string community = 5;
 }
 
 message ParaAuthorFeedItem {
@@ -1445,6 +1447,8 @@ message GetParaTimelineRequest {
   string actor_did = 1;
   int32 limit = 2;
   string cursor = 3;
+  optional string party = 4;
+  optional string community = 5;
 }
 
 message GetParaTimelineResponse {
@@ -1730,6 +1734,20 @@ message ParaCommunityMemberView {
 
 message GetParaCommunityMembersResponse {
   repeated ParaCommunityMemberView members = 1;
+  string cursor = 2;
+}
+
+// - Returns para posts for a specific community, paginated
+//     - `com.para.community.listPosts`
+message GetParaCommunityPostsRequest {
+  string community = 1;
+  int32 limit = 2;
+  string cursor = 3;
+  optional string post_type = 4;
+}
+
+message GetParaCommunityPostsResponse {
+  repeated ParaAuthorFeedItem items = 1;
   string cursor = 2;
 }
 
@@ -2149,6 +2167,7 @@ service Service {
   rpc GetParaCommunityBoard(GetParaCommunityBoardRequest) returns (GetParaCommunityBoardResponse);
   rpc GetParaCommunityBoards(GetParaCommunityBoardsRequest) returns (GetParaCommunityBoardsResponse);
   rpc GetParaCommunityMembers(GetParaCommunityMembersRequest) returns (GetParaCommunityMembersResponse);
+  rpc GetParaCommunityPosts(GetParaCommunityPostsRequest) returns (GetParaCommunityPostsResponse);
   rpc GetParaCabildeos(GetParaCabildeosRequest) returns (GetParaCabildeosResponse);
   rpc GetParaCabildeo(GetParaCabildeoRequest) returns (GetParaCabildeoResponse);
   rpc GetParaCabildeoPositions(GetParaCabildeoPositionsRequest) returns (GetParaCabildeoPositionsResponse);

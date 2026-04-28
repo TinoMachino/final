@@ -20,7 +20,9 @@
             "maximum": 100,
             "default": 50
           },
-          "cursor": { "type": "string" }
+          "cursor": { "type": "string" },
+          "party": { "type": "string", "maxLength": 128 },
+          "community": { "type": "string", "maxLength": 128 }
         }
       },
       "output": {

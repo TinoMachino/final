@@ -865,7 +865,7 @@ export function CabildeoDetailScreen({route}: Props) {
                   style={[
                     styles.posFilterText,
                     positionFilter === f.key
-                      ? {color: t.palette.contrast_100}
+                      ? {color: '#FFFFFF'}
                       : t.atoms.text_contrast_medium,
                   ]}>
                   {f.label}

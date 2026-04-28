@@ -40,8 +40,15 @@ export function useCabildeosQuery() {
     queryKey: cabildeosQueryKey,
     placeholderData: previous => previous,
     queryFn: async () => {
-      const records = await fetchCabildeos(agent)
-      return mapCabildeosToView(records)
+      try {
+        const records = await fetchCabildeos(agent)
+        return mapCabildeosToView(records)
+      } catch (err: any) {
+        // Graceful fallback: if the civic endpoint is unavailable (e.g. dev
+        // env without para dataplane), return empty instead of crashing UI.
+        console.warn('Cabildeos fetch failed, returning empty:', err?.message)
+        return []
+      }
     },
   })
 }

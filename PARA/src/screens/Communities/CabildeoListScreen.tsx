@@ -136,7 +136,7 @@ export function CabildeoListScreen() {
                   style={[
                     styles.filterText,
                     activeFilter === f.key
-                      ? {color: t.palette.contrast_100}
+                      ? {color: '#FFFFFF'}
                       : t.atoms.text_contrast_medium,
                   ]}>
                   {f.label}
@@ -253,6 +253,52 @@ export function CabildeoListScreen() {
                       numberOfLines={2}>
                       {cabildeo.description}
                     </Text>
+
+                    {/* Impact Metrics */}
+                    <View style={styles.impactRow}>
+                      <View style={styles.impactItem}>
+                        <Text style={[styles.impactValue, t.atoms.text]}>
+                          {cabildeo.voteTotals.total}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.impactLabel,
+                            t.atoms.text_contrast_medium,
+                          ]}>
+                          {cabildeo.voteTotals.total === 1 ? 'voto' : 'votos'}
+                        </Text>
+                      </View>
+                      <View style={styles.impactDivider} />
+                      <View style={styles.impactItem}>
+                        <Text style={[styles.impactValue, t.atoms.text]}>
+                          {cabildeo.positionCounts.total}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.impactLabel,
+                            t.atoms.text_contrast_medium,
+                          ]}>
+                          {cabildeo.positionCounts.total === 1
+                            ? 'posición'
+                            : 'posiciones'}
+                        </Text>
+                      </View>
+                      <View style={styles.impactDivider} />
+                      <View style={styles.impactItem}>
+                        <Text style={[styles.impactValue, t.atoms.text]}>
+                          {cabildeo.options.length}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.impactLabel,
+                            t.atoms.text_contrast_medium,
+                          ]}>
+                          {cabildeo.options.length === 1
+                            ? 'opción'
+                            : 'opciones'}
+                        </Text>
+                      </View>
+                    </View>
 
                     {/* Footer */}
                     <View style={styles.cardFooter}>
@@ -423,7 +469,17 @@ const styles = StyleSheet.create({
   phaseBadgeText: {fontSize: 12, fontWeight: '800'},
   regionTag: {fontSize: 12, fontWeight: '600'},
   cardTitle: {fontSize: 16, fontWeight: '800', lineHeight: 22, marginBottom: 6},
-  cardDesc: {fontSize: 13, lineHeight: 18, marginBottom: 12},
+  cardDesc: {fontSize: 13, lineHeight: 18, marginBottom: 10},
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 4,
+  },
+  impactItem: {flex: 1, alignItems: 'center'},
+  impactValue: {fontSize: 16, fontWeight: '900'},
+  impactLabel: {fontSize: 10, fontWeight: '700', marginTop: 2},
+  impactDivider: {width: 1, height: 20, backgroundColor: 'rgba(128,128,128,0.2)'},
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',

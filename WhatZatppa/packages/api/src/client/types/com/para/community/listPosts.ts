@@ -10,17 +10,19 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
-import type * as ComParaFeedGetAuthorFeed from './getAuthorFeed.js'
+import type * as ComParaFeedGetAuthorFeed from '../feed/getAuthorFeed.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'com.para.feed.getTimeline'
+const id = 'com.para.community.listPosts'
 
 export type QueryParams = {
+  /** Community identifier (slug or normalized name). */
+  community: string
+  /** Filter by post type (e.g. policy, matter, meme). */
+  postType?: string
   limit?: number
   cursor?: string
-  party?: string
-  community?: string
 }
 export type InputSchema = undefined
 

@@ -319,6 +319,7 @@ import * as ComParaCommunityJoin from './types/com/para/community/join.js'
 import * as ComParaCommunityLeave from './types/com/para/community/leave.js'
 import * as ComParaCommunityListBoards from './types/com/para/community/listBoards.js'
 import * as ComParaCommunityListMembers from './types/com/para/community/listMembers.js'
+import * as ComParaCommunityListPosts from './types/com/para/community/listPosts.js'
 import * as ComParaCommunityMembership from './types/com/para/community/membership.js'
 import * as ComParaDiscourseGetSentiment from './types/com/para/discourse/getSentiment.js'
 import * as ComParaDiscourseGetSnapshot from './types/com/para/discourse/getSnapshot.js'
@@ -702,6 +703,7 @@ export * as ComParaCommunityJoin from './types/com/para/community/join.js'
 export * as ComParaCommunityLeave from './types/com/para/community/leave.js'
 export * as ComParaCommunityListBoards from './types/com/para/community/listBoards.js'
 export * as ComParaCommunityListMembers from './types/com/para/community/listMembers.js'
+export * as ComParaCommunityListPosts from './types/com/para/community/listPosts.js'
 export * as ComParaCommunityMembership from './types/com/para/community/membership.js'
 export * as ComParaDiscourseGetSentiment from './types/com/para/discourse/getSentiment.js'
 export * as ComParaDiscourseGetSnapshot from './types/com/para/discourse/getSnapshot.js'
@@ -6122,6 +6124,18 @@ export class ComParaCommunityNS {
   ): Promise<ComParaCommunityListMembers.Response> {
     return this._client.call(
       'com.para.community.listMembers',
+      params,
+      undefined,
+      opts,
+    )
+  }
+
+  listPosts(
+    params?: ComParaCommunityListPosts.QueryParams,
+    opts?: ComParaCommunityListPosts.CallOptions,
+  ): Promise<ComParaCommunityListPosts.Response> {
+    return this._client.call(
+      'com.para.community.listPosts',
       params,
       undefined,
       opts,

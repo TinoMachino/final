@@ -18,6 +18,8 @@ const id = 'com.para.feed.getTimeline'
 export type QueryParams = {
   limit: number
   cursor?: string
+  party?: string
+  community?: string
 }
 export type InputSchema = undefined
 

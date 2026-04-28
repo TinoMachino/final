@@ -20,6 +20,8 @@ export type QueryParams = {
   actor: string
   limit?: number
   cursor?: string
+  party?: string
+  community?: string
 }
 export type InputSchema = undefined
 

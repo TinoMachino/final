@@ -20420,6 +20420,59 @@ export const schemaDict = {
       },
     },
   },
+  ComParaCommunityListPosts: {
+    lexicon: 1,
+    id: 'com.para.community.listPosts',
+    defs: {
+      main: {
+        type: 'query',
+        description:
+          'Get a paginated feed of Para posts for a specific community.',
+        parameters: {
+          type: 'params',
+          required: ['community'],
+          properties: {
+            community: {
+              type: 'string',
+              description: 'Community identifier (slug or normalized name).',
+            },
+            postType: {
+              type: 'string',
+              description: 'Filter by post type (e.g. policy, matter, meme).',
+            },
+            limit: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 100,
+              default: 50,
+            },
+            cursor: {
+              type: 'string',
+            },
+          },
+        },
+        output: {
+          encoding: 'application/json',
+          schema: {
+            type: 'object',
+            required: ['feed'],
+            properties: {
+              cursor: {
+                type: 'string',
+              },
+              feed: {
+                type: 'array',
+                items: {
+                  type: 'ref',
+                  ref: 'lex:com.para.feed.getAuthorFeed#postView',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   ComParaCommunityMembership: {
     lexicon: 1,
     id: 'com.para.community.membership',
@@ -20701,6 +20754,14 @@ export const schemaDict = {
             cursor: {
               type: 'string',
             },
+            party: {
+              type: 'string',
+              maxLength: 128,
+            },
+            community: {
+              type: 'string',
+              maxLength: 128,
+            },
           },
         },
         output: {
@@ -20927,6 +20988,14 @@ export const schemaDict = {
             },
             cursor: {
               type: 'string',
+            },
+            party: {
+              type: 'string',
+              maxLength: 128,
+            },
+            community: {
+              type: 'string',
+              maxLength: 128,
             },
           },
         },
@@ -27202,6 +27271,7 @@ export const ids = {
   ComParaCommunityLeave: 'com.para.community.leave',
   ComParaCommunityListBoards: 'com.para.community.listBoards',
   ComParaCommunityListMembers: 'com.para.community.listMembers',
+  ComParaCommunityListPosts: 'com.para.community.listPosts',
   ComParaCommunityMembership: 'com.para.community.membership',
   ComParaDiscourseGetSentiment: 'com.para.discourse.getSentiment',
   ComParaDiscourseGetSnapshot: 'com.para.discourse.getSnapshot',

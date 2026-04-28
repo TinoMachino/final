@@ -9,24 +9,25 @@ import {
   is$typed as _is$typed,
   type OmitKey,
 } from '../../../../util'
+import type * as ComParaFeedGetAuthorFeed from '../feed/getAuthorFeed.js'
 
 const is$typed = _is$typed,
   validate = _validate
-const id = 'com.para.feed.getAuthorFeed'
+const id = 'com.para.community.listPosts'
 
 export type QueryParams = {
-  /** Handle or DID of the actor. */
-  actor: string
+  /** Community identifier (slug or normalized name). */
+  community: string
+  /** Filter by post type (e.g. policy, matter, meme). */
+  postType?: string
   limit: number
   cursor?: string
-  party?: string
-  community?: string
 }
 export type InputSchema = undefined
 
 export interface OutputSchema {
   cursor?: string
-  feed: PostView[]
+  feed: ComParaFeedGetAuthorFeed.PostView[]
 }
 
 export type HandlerInput = void
@@ -40,32 +41,6 @@ export interface HandlerSuccess {
 export interface HandlerError {
   status: number
   message?: string
-  error?: 'BlockedActor' | 'BlockedByActor'
 }
 
 export type HandlerOutput = HandlerError | HandlerSuccess
-
-export interface PostView {
-  $type?: 'com.para.feed.getAuthorFeed#postView'
-  uri: string
-  cid: string
-  author: string
-  text: string
-  createdAt: string
-  replyRoot?: string
-  replyParent?: string
-  langs?: string[]
-  tags?: string[]
-  flairs?: string[]
-  postType?: string
-}
-
-const hashPostView = 'postView'
-
-export function isPostView<V>(v: V) {
-  return is$typed(v, id, hashPostView)
-}
-
-export function validatePostView<V>(v: V) {
-  return validate<PostView & V>(v, id, hashPostView)
-}

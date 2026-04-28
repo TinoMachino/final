@@ -262,6 +262,7 @@ import * as ComParaCommunityJoin from './types/com/para/community/join.js'
 import * as ComParaCommunityLeave from './types/com/para/community/leave.js'
 import * as ComParaCommunityListBoards from './types/com/para/community/listBoards.js'
 import * as ComParaCommunityListMembers from './types/com/para/community/listMembers.js'
+import * as ComParaCommunityListPosts from './types/com/para/community/listPosts.js'
 import * as ComParaDiscourseGetSentiment from './types/com/para/discourse/getSentiment.js'
 import * as ComParaDiscourseGetSnapshot from './types/com/para/discourse/getSnapshot.js'
 import * as ComParaDiscourseGetTopics from './types/com/para/discourse/getTopics.js'
@@ -3829,6 +3830,18 @@ export class ComParaCommunityNS {
     >,
   ) {
     const nsid = 'com.para.community.listMembers' // @ts-ignore
+    return this._server.xrpc.method(nsid, cfg)
+  }
+
+  listPosts<A extends Auth = void>(
+    cfg: MethodConfigOrHandler<
+      A,
+      ComParaCommunityListPosts.QueryParams,
+      ComParaCommunityListPosts.HandlerInput,
+      ComParaCommunityListPosts.HandlerOutput
+    >,
+  ) {
+    const nsid = 'com.para.community.listPosts' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 }

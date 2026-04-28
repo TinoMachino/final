@@ -20,6 +20,7 @@ import {
 import { Service } from '../../../proto/bsky_connect'
 import { Database } from '../db'
 import { countAll } from '../db/util'
+import { TimeCidKeyset, paginate } from '../db/pagination'
 
 type BoardRow = {
   uri: string
@@ -32,6 +33,7 @@ type BoardRow = {
   delegatesChatId: string
   subdelegatesChatId: string
   createdAt: string
+  indexedAt: string
   creatorHandle: string | null
   creatorDisplayName: string | null
   state: string | null
@@ -241,6 +243,14 @@ const selectBoard = async (
   return (await builder.executeTakeFirst()) as BoardRow | undefined
 }
 
+const MAX_OFFSET = 1000
+
+const isOffsetCursor = (cursor?: string): boolean => {
+  if (!cursor) return false
+  const parsed = Number.parseInt(cursor, 10)
+  return Number.isFinite(parsed) && parsed >= 0 && String(parsed) === cursor
+}
+
 const selectBoards = async (
   db: Database,
   opts: {
@@ -254,7 +264,6 @@ const selectBoards = async (
     quadrant?: string
   },
 ): Promise<{ boards: BoardRow[]; cursor: string }> => {
-  const pageOffset = decodeOffsetCursor(opts.cursor)
   let builder = boardBaseQuery(db)
 
   if (opts.quadrant) {
@@ -288,34 +297,63 @@ const selectBoards = async (
     )
   }
 
-  const ordered =
-    opts.sort === 'size'
-      ? builder.orderBy(
-          (eb) =>
-            eb
-              .selectFrom('para_community_membership')
-              .whereRef('communityUri', '=', 'board.uri')
-              .where('membershipState', '=', 'active')
-              .select(sql<number>`count(*)`.as('memberCount')),
-          'desc',
-        )
-      : opts.sort === 'activity'
-        ? builder.orderBy('board.indexedAt', 'desc')
-        : builder.orderBy('board.createdAt', 'desc')
+  const sort = opts.sort
 
-  const rows = (await ordered
-    .orderBy('board.cid', 'desc')
-    .offset(pageOffset)
-    .limit(opts.limit + 1)
-    .execute()) as BoardRow[]
+  // Subquery-based sorts (size) cannot use keyset cursors efficiently.
+  // Fall back to offset with a hard cap to prevent deep-paging abuse.
+  if (sort === 'size') {
+    const pageOffset = Math.min(decodeOffsetCursor(opts.cursor), MAX_OFFSET)
+    const ordered = builder.orderBy(
+      (eb) =>
+        eb
+          .selectFrom('para_community_membership')
+          .whereRef('communityUri', '=', 'board.uri')
+          .where('membershipState', '=', 'active')
+          .select(sql<number>`count(*)`.as('memberCount')),
+      'desc',
+    )
 
+    const rows = (await ordered
+      .orderBy('board.cid', 'desc')
+      .offset(pageOffset)
+      .limit(opts.limit + 1)
+      .execute()) as BoardRow[]
+
+    const page = rows.slice(0, opts.limit)
+    const hasMore = rows.length > opts.limit && pageOffset < MAX_OFFSET
+    const nextOffset = pageOffset + page.length
+
+    return {
+      boards: page,
+      cursor: hasMore ? encodeOffsetCursor(nextOffset) : '',
+    }
+  }
+
+  // Cursor-based pagination for createdAt / indexedAt sorts
+  const { ref } = db.db.dynamic
+  const timeCol = sort === 'activity' ? 'board.indexedAt' : 'board.createdAt'
+  const keyset = new TimeCidKeyset(
+    ref(timeCol),
+    ref('board.cid'),
+  )
+
+  // Gracefully degrade old offset cursors to first page
+  const cursor = isOffsetCursor(opts.cursor) ? undefined : opts.cursor
+
+  builder = paginate(builder, {
+    limit: opts.limit + 1,
+    cursor,
+    keyset,
+    tryIndex: true,
+  })
+
+  const rows = (await builder.execute()) as BoardRow[]
   const page = rows.slice(0, opts.limit)
   const hasMore = rows.length > opts.limit
-  const nextOffset = pageOffset + page.length
 
   return {
     boards: page,
-    cursor: hasMore ? encodeOffsetCursor(nextOffset) : '',
+    cursor: hasMore ? keyset.packFromResult(page) ?? '' : '',
   }
 }
 
@@ -339,6 +377,7 @@ const boardBaseQuery = (db: Database) =>
       'board.delegatesChatId',
       'board.subdelegatesChatId',
       'board.createdAt',
+      'board.indexedAt',
       'gov.state',
       'gov.matterFlairIds',
       'gov.policyFlairIds',
@@ -463,7 +502,6 @@ const selectMembers = async (
     cursor?: string
   },
 ) => {
-  const offset = decodeOffsetCursor(opts.cursor)
   const requestedState = opts.membershipState?.trim() || 'active'
   let builder = db.db
     .selectFrom('para_community_membership as membership')
@@ -473,6 +511,7 @@ const selectMembers = async (
     .where('membership.membershipState', '=', requestedState)
     .select([
       'membership.creator as did',
+      'membership.cid',
       'membership.membershipState',
       'membership.roles',
       'membership.joinedAt',
@@ -487,23 +526,73 @@ const selectMembers = async (
     )
   }
 
-  const ordered =
-    opts.sort === 'participation'
-      ? builder.orderBy(
-          (eb) =>
-            eb
-              .selectFrom('cabildeo_vote')
-              .whereRef('creator', '=', 'membership.creator')
-              .select(sql<number>`count(*)`.as('voteCount')),
-          'desc',
-        )
-      : builder.orderBy('membership.joinedAt', 'desc')
+  // Subquery-based sorts (participation) cannot use keyset cursors efficiently.
+  // Fall back to offset with a hard cap to prevent deep-paging abuse.
+  if (opts.sort === 'participation') {
+    const offset = Math.min(decodeOffsetCursor(opts.cursor), MAX_OFFSET)
+    const ordered = builder.orderBy(
+      (eb) =>
+        eb
+          .selectFrom('cabildeo_vote')
+          .whereRef('creator', '=', 'membership.creator')
+          .select(sql<number>`count(*)`.as('voteCount')),
+      'desc',
+    )
 
-  const rows = await ordered
-    .orderBy('membership.cid', 'desc')
-    .offset(offset)
-    .limit(opts.limit + 1)
-    .execute()
+    const rows = await ordered
+      .orderBy('membership.cid', 'desc')
+      .offset(offset)
+      .limit(opts.limit + 1)
+      .execute()
+    const page = rows.slice(0, opts.limit)
+    const dids = page.map((row) => row.did)
+    const [voteCounts, delegationCounts, postCounts] = await Promise.all([
+      getVoteCounts(db, dids),
+      getDelegationCounts(db, dids),
+      getCommunityPostCounts(db, dids, communityUri),
+    ])
+
+    return {
+      members: page.map((row) => {
+        const postCount = postCounts.get(row.did)
+        return {
+          did: row.did,
+          handle: row.handle ?? '',
+          displayName: row.displayName ?? '',
+          avatar: '',
+          membershipState: row.membershipState,
+          roles: row.roles ?? [],
+          joinedAt: row.joinedAt,
+          votesCast: voteCounts.get(row.did) ?? 0,
+          delegationsReceived: delegationCounts.get(row.did) ?? 0,
+          policyPosts: postCount?.policyPosts ?? 0,
+          matterPosts: postCount?.matterPosts ?? 0,
+        }
+      }),
+      cursor: rows.length > opts.limit && offset < MAX_OFFSET
+        ? encodeOffsetCursor(offset + page.length)
+        : '',
+    }
+  }
+
+  // Cursor-based pagination for joinedAt sort
+  const { ref } = db.db.dynamic
+  const keyset = new TimeCidKeyset(
+    ref('membership.joinedAt'),
+    ref('membership.cid'),
+  )
+
+  // Gracefully degrade old offset cursors to first page
+  const cursor = isOffsetCursor(opts.cursor) ? undefined : opts.cursor
+
+  builder = paginate(builder, {
+    limit: opts.limit + 1,
+    cursor,
+    keyset,
+    tryIndex: true,
+  })
+
+  const rows = await builder.execute()
   const page = rows.slice(0, opts.limit)
   const dids = page.map((row) => row.did)
   const [voteCounts, delegationCounts, postCounts] = await Promise.all([
@@ -529,7 +618,7 @@ const selectMembers = async (
         matterPosts: postCount?.matterPosts ?? 0,
       }
     }),
-    cursor: rows.length > opts.limit ? encodeOffsetCursor(offset + page.length) : '',
+    cursor: rows.length > opts.limit ? keyset.packFromResult(page) ?? '' : '',
   }
 }
 

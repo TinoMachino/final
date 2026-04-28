@@ -1,0 +1,291 @@
+PARA DEMO OPERATIONS RUNBOOK
+============================
+
+Goal
+----
+Raise the full local demo with the current workspace split:
+
+- website = docs / marketing site
+- PARA = app client for phone, simulator, and Expo web
+- PARA/bskyweb = browser-facing web demo server
+- watx = backend stack (PLC, PDS, AppView)
+
+This is the only demo runbook.
+
+
+Before You Start
+----------------
+1. Open macOS Terminal.
+2. Create or choose window profiles so you can visually separate each service.
+3. Suggested tab labels:
+   - NGROK PDS
+   - NGROK APPVIEW
+   - WATX BACKEND
+   - PARA BSKYWEB
+   - BSKYWEB PUBLIC
+   - PARA EXPO
+   - WEBSITE
+4. Install and configure ngrok once if you have not already:
+   - `brew install ngrok/ngrok/ngrok`
+   - `ngrok config add-authtoken <YOUR_TOKEN>`
+
+
+Terminal 1: NGROK PDS TUNNEL
+----------------------------
+Profile color:
+- home-brew
+
+Commands:
+
+ngrok http --url=https://pds.paramx.social.ngrok.pro 2583
+
+What this does:
+- Publishes the local PDS on port 2583 to the public demo hostname.
+
+Expected result:
+- ngrok shows forwarding for `https://pds.paramx.social.ngrok.pro`
+
+
+Terminal 2: NGROK APPVIEW TUNNEL
+--------------------------------
+Profile color:
+- home-brew
+
+Commands:
+
+ngrok http --url=https://appview.paramx.social.ngrok.pro 2584
+
+What this does:
+- Publishes the local AppView on port 2584 to the public demo hostname.
+
+Expected result:
+- ngrok shows forwarding for `https://appview.paramx.social.ngrok.pro`
+
+
+Terminal 3: WATX BACKEND
+------------------------
+Profile color:
+- home-brew
+
+Commands:
+
+cd /Users/mlv/Desktop/MASTER/watx
+make nvm-setup
+make deps
+make build
+cp -n .env.shared-demo.example .env.shared-demo
+make run-dev-env-persistent
+
+What this does:
+- Starts the persistent backend stack.
+- Uses stable local storage for PDS data and blobs.
+- Uses the public hostnames from `.env.shared-demo`.
+
+Expected local services:
+- PLC: http://localhost:2582
+- PDS: http://localhost:2583
+- AppView: http://localhost:2584
+
+Important:
+- Use `make run-dev-env-persistent` for this demo flow.
+- Do not use `make run-dev-env` in this runbook.
+- Start both ngrok tunnels before starting the backend.
+- The dev-env introspection server is local-only at `http://127.0.0.1:2581`.
+- The ngrok hostnames are for public identity and external reachability.
+- Internal `dev-env` bootstrap still talks to local services on `localhost`.
+- If `.env.shared-demo` points to `pds.paramx.social.ngrok.pro` and `appview.paramx.social.ngrok.pro` but the tunnels are not live yet, bootstrap can fail with:
+  - `XRPCError: fetch failed`
+  - `UND_ERR_CONNECT_TIMEOUT`
+
+
+Seed Demo Data
+--------------
+Run this after Terminal 3 is healthy:
+
+```bash
+cd /Users/mlv/Desktop/MASTER/PARA
+yarn seed:civic:apply --introspect-url http://127.0.0.1:2581
+```
+
+What this does:
+- Writes the civic demo records into the local PDS.
+- Immediately tells the local dev-env to drain PDS events into AppView.
+
+Important:
+- Do not use plain `yarn seed:civic:apply` for the demo stack anymore.
+- If the seed command exits nonzero, treat that as a backend/AppView sync failure and fix it before opening the app.
+
+
+Terminal 4: PARA BSKYWEB FRONTEND
+---------------------------------
+Profile color:
+- home-brew
+
+Commands:
+
+cd /Users/mlv/Desktop/MASTER/PARA/bskyweb
+go run ./cmd/bskyweb serve --appview-host https://appview.paramx.social.ngrok.pro --http-address :8100
+
+What this does:
+- Starts the browser-facing web demo server.
+- This is the frontend entry you can open locally or tunnel separately.
+
+Expected result:
+- Local browser entry at http://localhost:8100
+
+Important:
+- Do not send the AppView URL itself to demo users.
+- AppView is backend infrastructure, not the browser-facing client.
+- If you need a public browser demo link, tunnel or host port 8100 and send that frontend URL.
+- Run only one `bskyweb` instance per port.
+- It is normal to run `bskyweb` on `8100` and Expo at the same time.
+- It is not valid to start `bskyweb` twice on `8100`.
+
+Terminal 5: OPTIONAL PUBLIC BSKYWEB TUNNEL
+------------------------------------------
+Profile color:
+- home-brew
+
+Commands:
+
+ngrok http --url=https://web.paramx.social.ngrok.pro 8100
+
+What this does:
+- Exposes the browser-facing frontend on port `8100`.
+- This is the link you can send to VCs, testers, or anyone outside your machine.
+
+Expected result:
+- ngrok shows forwarding for `https://web.paramx.social.ngrok.pro`
+
+Important:
+- Do not send `https://appview.paramx.social.ngrok.pro` as the demo link.
+- AppView is backend infrastructure.
+- The correct public browser demo link is `https://web.paramx.social.ngrok.pro`.
+- If the browser shows `ERR_NGROK_3200`, that endpoint is offline and the `8100`
+  tunnel is not running yet.
+
+Terminal 6: PARA EXPO CLIENT
+----------------------------
+Profile color:
+- Blue Ocean
+
+Commands:
+
+cd /Users/mlv/Desktop/MASTER/PARA
+yarn
+yarn web
+
+What this does:
+- Starts the Expo client.
+- This supports Expo web and the local dev flow for phone or simulator.
+
+Important:
+- Expo and `bskyweb` can run at the same time.
+- Do not confuse Expo web with `bskyweb`; they are different frontend surfaces.
+
+Terminal 7: WEBSITE
+-------------------
+Profile color:
+- Blue Ocean
+
+Commands:
+
+cd /Users/mlv/Desktop/website
+pnpm install
+pnpm dev
+
+What this does:
+- Starts the docs / marketing site.
+
+
+Startup Order
+-------------
+Use this order:
+
+1. Start Terminal 1 first so the PDS public hostname is live.
+2. Start Terminal 2 second so the AppView public hostname is live.
+3. Start Terminal 3 third so the backend can bootstrap against those public hostnames.
+4. Start Terminal 4 fourth so the browser-facing web demo can point at AppView.
+5. Start Terminal 5 fifth only if you need a public browser demo link for `bskyweb`.
+6. Start Terminal 6 sixth if you also want the Expo client running at the same time.
+7. Start Terminal 7 last if you also want the docs site running.
+
+Frontend Surface Rules
+----------------------
+This demo can run all of these at the same time:
+
+- one `watx` backend
+- one `bskyweb` server on `8100`
+- one public tunnel for `8100`
+- one Expo dev server for mobile and/or Expo web
+- one website server
+
+Use these links correctly:
+
+- backend AppView URL = `https://appview.paramx.social.ngrok.pro`
+- local browser demo URL = `http://localhost:8100`
+- public browser demo URL = `https://web.paramx.social.ngrok.pro`
+
+Do not send the AppView URL to testers or VCs.
+
+What you should not do:
+
+- start a second `bskyweb` on `:8100`
+- start duplicate Expo servers that compete for the same dev port
+
+If `bskyweb` prints `listen tcp :8100: bind: address already in use`:
+
+- the usual meaning is that another `bskyweb` is already running on `8100`
+- reuse the existing server at `http://localhost:8100`
+- or stop the old one and restart
+- or launch the second copy on another port, such as `:8101`
+
+
+Quick Smoke Check
+-----------------
+1. Confirm Terminal 1 shows forwarding for `https://pds.paramx.social.ngrok.pro`.
+2. Confirm Terminal 2 shows forwarding for `https://appview.paramx.social.ngrok.pro`.
+3. Confirm Terminal 3 prints:
+   - `Main PDS https://pds.paramx.social.ngrok.pro`
+   - `Bsky Appview https://appview.paramx.social.ngrok.pro`
+   - `Dev-env introspection server http://127.0.0.1:2581`
+4. Verify health:
+   - `curl http://localhost:2583/xrpc/_health`
+   - `curl http://localhost:2584/xrpc/_health`
+   - `curl https://pds.paramx.social.ngrok.pro/xrpc/_health`
+   - `curl https://appview.paramx.social.ngrok.pro/xrpc/_health`
+5. Verify AppView can now see seeded actors and posts:
+   - `curl 'http://localhost:2584/xrpc/app.bsky.actor.getProfile?actor=active-a.test'`
+   - `curl 'http://localhost:2584/xrpc/app.bsky.feed.getAuthorFeed?actor=active-a.test&limit=3'`
+6. Open `http://localhost:8100` and confirm Home/Base show posts.
+7. If Terminal 5 is running, open `https://web.paramx.social.ngrok.pro` and confirm it shows the same frontend.
+8. If Terminal 6 is running, confirm the Expo client also loads.
+9. Verify any VC-facing link points to the frontend URL, not AppView.
+
+
+If Something Breaks
+-------------------
+- If website fails: rerun `pnpm install` in `/Users/mlv/Desktop/website`
+- If PARA fails: rerun `yarn` in `/Users/mlv/Desktop/MASTER/PARA`
+- If bskyweb fails: make sure the backend and AppView tunnel are healthy first, then rerun the `go run` command in `/Users/mlv/Desktop/MASTER/PARA/bskyweb`
+- If bskyweb says `bind: address already in use`: do not treat that as a backend failure. Reuse the existing `8100` server or switch the new instance to another port.
+- If the public browser link fails but `http://localhost:8100` works: the `8100` tunnel is the problem, not the frontend.
+- If `https://web.paramx.social.ngrok.pro` shows `ERR_NGROK_3200`: start or restart Terminal 5.
+- If watx fails before startup finishes:
+  - confirm both ngrok tunnels are already live
+  - confirm `.env.shared-demo` matches those live hostnames
+  - confirm the repo was rebuilt after any `packages/dev-env/src/*` change
+  - check Docker first
+  - rerun `make deps` and `make build`
+
+
+Minimal Version
+---------------
+If you only care about the actual app demo and not the docs site:
+
+1. Start Terminal 1
+2. Start Terminal 2
+3. Start Terminal 3
+4. Start Terminal 4
+
+You can skip Terminal 5, Terminal 6, and Terminal 7.

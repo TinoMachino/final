@@ -67,3 +67,4 @@ export * as _20260325T070000000Z from './20260325T070000000Z-add-discourse-analy
 export * as _20260416T190000000Z from './20260416T190000000Z-add-para-community-foundations'
 export * as _20260417T210000000Z from './20260417T210000000Z-add-cabildeo-live'
 export * as _20260426T120000000Z from './20260426T120000000Z-add-post-subscriptions'
+export * as _20260428T050000000Z from './20260428T050000000Z-add-para-cursor-indexes'

@@ -181,9 +181,15 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       }
     }
 
-    const dids = [...rolesByDid.keys()]
+    let dids = [...rolesByDid.keys()]
     if (dids.length === 0) {
       return { candidates: [], cursor: '' }
+    }
+
+    // Hard cap to prevent unbounded memory usage during in-memory sort/hydration
+    const MAX_DELEGATION_CANDIDATES = 1000
+    if (dids.length > MAX_DELEGATION_CANDIDATES) {
+      dids = dids.slice(0, MAX_DELEGATION_CANDIDATES)
     }
 
     const [profiles, delegationCounts, votes] = await Promise.all([
@@ -221,15 +227,18 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         )
       })
 
-    const offset = decodeOffsetCursor(req.cursor)
+    const rawOffset = decodeOffsetCursor(req.cursor)
     const limit = normalizeLimit(req.limit)
+    const offset = Math.min(rawOffset, MAX_DELEGATION_CANDIDATES)
     const page = candidates.slice(offset, offset + limit)
     const nextOffset = offset + page.length
 
     return {
       candidates: page,
       cursor:
-        nextOffset < candidates.length ? encodeOffsetCursor(nextOffset) : '',
+        nextOffset < candidates.length && offset < MAX_DELEGATION_CANDIDATES
+          ? encodeOffsetCursor(nextOffset)
+          : '',
     }
   },
 

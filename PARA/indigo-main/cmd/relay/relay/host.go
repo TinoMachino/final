@@ -180,13 +180,19 @@ func ParseHostname(raw string) (hostname string, noSSL bool, err error) {
 	}
 
 	// check it is a real hostname (eg, not IP address or single-word alias)
-	// TODO: more SSRF protection here? eg disallow '.local'
 	h, err := syntax.ParseHandle(u.Host)
 	if err != nil {
 		return "", false, fmt.Errorf("not a public hostname")
 	}
+
+	// SSRF protection: block mDNS and local-only domains
+	normalized := h.Normalize().String()
+	if strings.HasSuffix(normalized, ".local") {
+		return "", false, fmt.Errorf("not a public hostname")
+	}
+
 	// lower-case in response
-	return h.Normalize().String(), noSSL, nil
+	return normalized, noSSL, nil
 }
 
 func IsTrustedHostname(hostname string, domains []string) bool {

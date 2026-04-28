@@ -289,3 +289,35 @@ If you only care about the actual app demo and not the docs site:
 4. Start Terminal 4
 
 You can skip Terminal 5, Terminal 6, and Terminal 7.
+
+
+---
+CABILDEO AUDIT & FIXES (Day 6)
+-------------------------------
+
+Critical fixes applied to the cabildeo (civic deliberation) module:
+
+1. Optimistic Vote Updates
+   - useVoteMutation now patches the detail query cache immediately onMutate.
+   - The UI shows the vote and updated tallies before the server responds.
+   - onError rolls back to the previous state automatically.
+
+2. Positions List Invalidation
+   - After voting, the positions query ([RQKEY_ROOT, 'positions', uri]) is
+     invalidated alongside the detail query and the master list.
+   - The "Posiciones" tab no longer stays stale.
+
+3. Race Condition Fix
+   - CabildeoDetailScreen state reset (selectedOption, hasVoted, positionFilter)
+     now depends on cabildeoUri instead of the cabildeo data object.
+   - Background refetches no longer snap the user's filter back to "Todas".
+
+Files modified:
+  - src/state/queries/cabildeo.ts
+  - src/screens/Communities/CabildeoDetailScreen.tsx
+
+Known post-launch improvements (tracked in LAUNCH_CHECKLIST.md):
+  - Form validation limits (max chars, max options) in CreateCabildeoScreen
+  - Vote button loading/disabled state during submission
+  - Hardcoded Spanish copy -> Lingui i18n
+  - Deduplicate getPhaseConfig/getPhaseMeta across screens

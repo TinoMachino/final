@@ -92,7 +92,7 @@ export function CabildeoDetailScreen({route}: Props) {
     setHasVoted(cabildeo.userContext?.viewerVoteOption !== undefined)
     setHasDismissedGracePeriod(false)
     setPositionFilter('all')
-  }, [cabildeo])
+  }, [cabildeoUri])
 
   // Calculate 24h grace period remaining time
   const gracePeriodRemainingMs = useMemo(() => {

@@ -156,11 +156,64 @@ export function useVoteMutation() {
         isDirect,
       })
     },
-    onSuccess: (_, {cabildeoUri}) => {
-      // Invalidate the detail query so the UI fetches the updated optionSummary from backend
+    onMutate: async ({cabildeoUri, selectedOption, isDirect}) => {
+      const queryKey = cabildeoDetailQueryKey(cabildeoUri)
+      await queryClient.cancelQueries({queryKey})
+      const previous = queryClient.getQueryData<CabildeoView>(queryKey)
+
+      if (previous) {
+        const nextOptionSummary = previous.optionSummary.map(s =>
+          s.optionIndex === selectedOption
+            ? {...s, votes: s.votes + 1}
+            : s,
+        )
+        // Add entry if this option hasn't been voted on yet
+        if (!nextOptionSummary.find(s => s.optionIndex === selectedOption)) {
+          const optionLabel =
+            previous.options[selectedOption]?.label || `Opción ${selectedOption + 1}`
+          nextOptionSummary.push({
+            optionIndex: selectedOption,
+            label: optionLabel,
+            votes: 1,
+            positions: 0,
+          })
+        }
+
+        queryClient.setQueryData(queryKey, {
+          ...previous,
+          userContext: {
+            ...previous.userContext,
+            viewerVoteOption: selectedOption,
+            viewerVoteIsDirect: isDirect,
+          },
+          optionSummary: nextOptionSummary,
+          voteTotals: {
+            ...previous.voteTotals,
+            total: previous.voteTotals.total + 1,
+            direct: previous.voteTotals.direct + (isDirect ? 1 : 0),
+          },
+        })
+      }
+
+      return {previous}
+    },
+    onError: (_err, {cabildeoUri}, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          cabildeoDetailQueryKey(cabildeoUri),
+          context.previous,
+        )
+      }
+    },
+    onSettled: (_data, _err, {cabildeoUri}) => {
+      // Revalidate detail, positions list, and master list
       void queryClient.invalidateQueries({
         queryKey: cabildeoDetailQueryKey(cabildeoUri),
       })
+      void queryClient.invalidateQueries({
+        queryKey: [RQKEY_ROOT, 'positions', cabildeoUri],
+      })
+      void queryClient.invalidateQueries({queryKey: cabildeosQueryKey})
     },
   })
 }

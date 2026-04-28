@@ -34,7 +34,8 @@ make run-dev-env    # levanta PDS + AppView + Ozone local
 ```bash
 cd PARA
 pnpm install
-npx expo start --web --clear
+yarn install
+yarn start
 ```
 
 ## Requisitos

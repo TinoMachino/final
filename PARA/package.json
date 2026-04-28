@@ -3,7 +3,7 @@
   "version": "1.121.0",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "packageManager": "yarn@1.22.22",
   "expo": {
@@ -142,7 +142,7 @@
     "@tiptap/suggestion": "^2.9.1",
     "@types/invariant": "^2.2.37",
     "@types/lodash.throttle": "^4.1.9",
-    "@types/node": "^20.14.3",
+    "@types/node": "^22.0.0",
     "array.prototype.findlast": "^1.2.3",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "bcp-47": "^2.1.0",

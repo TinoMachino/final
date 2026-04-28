@@ -155,8 +155,11 @@ export default async (sc: SeedClient) => {
         ],
         deputies: [
           {
+            key: `deputy-${p.name.toLowerCase()}`,
             tier: 'community',
             role: 'Diputado Digital',
+            description: `Representante digital de ${p.name} en la comunidad.`,
+            capabilities: ['vote', 'propose', 'delegate'],
             activeHolder: {
               did: p.deputy.assertDid,
               handle: (p.deputy as any).session?.handle || '',
@@ -738,8 +741,12 @@ export default async (sc: SeedClient) => {
   })
 
   // ── POST META (scores) ──────────────────────────────────────────────
+  // Only create postMeta for posts with valid postType enum values.
+  const VALID_POSTMETA_TYPES = ['policy', 'matter', 'meme']
   for (let i = 0; i < createdPosts.length; i++) {
     const p = createdPosts[i]
+    if (!VALID_POSTMETA_TYPES.includes(p.postType)) continue
+
     const rkey = p.uri.split('/').pop()
     if (!rkey) continue
 

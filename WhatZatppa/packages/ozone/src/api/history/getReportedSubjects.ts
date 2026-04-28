@@ -14,9 +14,14 @@ export default function (server: Server, ctx: AppContext) {
 
       // If this is a moderator/admin request, we allow fetching any account's reports
       // Otherwise, users can only fetch their own reported subjects
-      const requesterDid = access.isModerator || access.isAdmin
-        ? params.account
-        : access.iss
+      let requesterDid: string | undefined
+      if (access.type === 'admin_token') {
+        requesterDid = params.account
+      } else if (access.type === 'standard') {
+        requesterDid = access.isModerator || access.isAdmin
+          ? params.account
+          : access.iss
+      }
 
       if (!requesterDid) {
         throw new InvalidRequestError('Account parameter is required')
@@ -27,7 +32,7 @@ export default function (server: Server, ctx: AppContext) {
         createdBy: requesterDid,
         limit,
         cursor,
-        sortDirection,
+        sortDirection: sortDirection === 'asc' ? 'asc' : 'desc',
         types: ['tools.ozone.moderation.defs#modEventReport'],
         includeAllUserRecords: false,
         addedLabels: [],
@@ -36,8 +41,6 @@ export default function (server: Server, ctx: AppContext) {
         removedTags: [],
         collections: [],
       })
-
-      const automods = ctx.cfg.automod?.did ? [ctx.cfg.automod.did] : []
 
       // Group events by subject and build reportedSubjectViews
       const subjectMap = new Map<string, {
@@ -76,7 +79,7 @@ export default function (server: Server, ctx: AppContext) {
         })
 
         subjectView.actions = actionResults.events
-          .map((event) => modEventToEventView(event, automods))
+          .map((event) => modEventToEventView(event))
           .filter((event): event is NonNullable<typeof event> => event !== null)
       }
 

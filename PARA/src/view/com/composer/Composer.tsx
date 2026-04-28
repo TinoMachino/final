@@ -144,8 +144,6 @@ import {
 } from '#/components/icons/Chevron'
 import {CircleInfo_Stroke2_Corner0_Rounded as CircleInfoIcon} from '#/components/icons/CircleInfo'
 import {EmojiArc_Stroke2_Corner0_Rounded as EmojiSmileIcon} from '#/components/icons/Emoji'
-import {Globe_Stroke2_Corner0_Rounded as GlobeIcon} from '#/components/icons/Globe'
-import {Lock_Stroke2_Corner0_Rounded as LockIcon} from '#/components/icons/Lock'
 import {PlusLarge_Stroke2_Corner0_Rounded as PlusIcon} from '#/components/icons/Plus'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
 import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
@@ -227,6 +225,7 @@ export const ComposePost = ({
   const {closeComposer} = useComposerControls()
   const {_} = useLingui()
   const ax = useAnalytics()
+  const t = useTheme()
   const requireAltTextEnabled = useRequireAltTextEnabled()
   const langPrefs = useLanguagePrefs()
   const setLangPrefs = useLanguagePrefsApi()
@@ -256,7 +255,7 @@ export const ComposePost = ({
     string | null
   >(null)
 
-  const [isPrivate, setIsPrivate] = useState(true) // Default to Private
+  // Privacy is now controlled via ThreadgateBtn (Bluesky native interaction settings)
 
   /**
    * A temporary local reference to a language suggestion that the user has
@@ -861,7 +860,7 @@ export const ComposePost = ({
             replyTo: replyTo?.uri,
             onStateChange: setPublishingStage,
             langs: currentLanguages,
-            collection: isPrivate ? apilib.PARA_POST_COLLECTION : undefined,
+            collection: apilib.PARA_POST_COLLECTION,
           },
           {
             highResolutionImages: ax.features.enabled(
@@ -1087,8 +1086,6 @@ export const ComposePost = ({
     replyTo,
     setLangPrefs,
     queryClient,
-    navigation,
-    isPrivate,
     classificationPost,
     isOfficial,
     selectedFlairs,
@@ -1196,8 +1193,6 @@ export const ComposePost = ({
         setIsOfficial={setIsOfficial}
         postType={postType}
         setPostType={setPostType}
-        isPrivate={isPrivate}
-        setIsPrivate={setIsPrivate}
       />
       <ComposerFooter
         post={activePost}
@@ -1610,6 +1605,7 @@ function ComposerTopBar({
   draftsButton?: ReactNode
 }) {
   const pal = usePalette('default')
+  const t = useTheme()
   const {_} = useLingui()
   return (
     <Animated.View
@@ -1686,8 +1682,8 @@ function ComposerTopBar({
             color="primary"
             shape="default"
             size="small"
-            style={[a.rounded_full, a.py_sm, {backgroundColor: '#374151'}]}
-            hoverStyle={{backgroundColor: '#1F2937'}}
+            style={[a.rounded_full, a.py_sm, {backgroundColor: t.palette.primary_500}]}
+            hoverStyle={{backgroundColor: t.palette.primary_600}}
             onPress={onPublish}
             disabled={!canPost || isPublishQueued}>
             <ButtonText style={[a.text_md]} maxFontSizeMultiplier={2}>
@@ -1849,8 +1845,6 @@ function ComposerPills({
   setIsOfficial,
   postType,
   setPostType,
-  isPrivate,
-  setIsPrivate,
 }: {
   isReply: boolean
   thread: ThreadDraft
@@ -1861,8 +1855,6 @@ function ComposerPills({
   setSelectedFlairs: (flairs: ComposerFlair[]) => void
   isOfficial: boolean
   setIsOfficial: (val: boolean) => void
-  isPrivate: boolean
-  setIsPrivate: (val: boolean) => void
   postType: PostType | null
   setPostType: (type: PostType | null) => void
 }) {
@@ -1988,60 +1980,6 @@ function ComposerPills({
           {/* Advanced Flair & Verification Buttons (Split + Post Type) */}
           {!isReply && (
             <>
-              {/* Private / Public Toggle */}
-              <Pressable
-                onPress={async () => {
-                  setIsPrivate(!isPrivate)
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isPrivate ? _(msg`Post privately`) : _(msg`Post publicly`)
-                }
-                accessibilityHint={_(
-                  msg`Toggles between private to PARA and public on the network`,
-                )}
-                style={({pressed}) => [
-                  a.flex_row,
-                  a.align_center,
-                  a.gap_xs,
-                  {opacity: pressed ? 0.8 : 1},
-                ]}>
-                {/* Icon Circle */}
-                <View
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 17,
-                    backgroundColor: isPrivate ? '#F59E0B' : '#9ca3af',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  {isPrivate ? (
-                    <LockIcon style={{color: 'white'}} size="sm" />
-                  ) : (
-                    <GlobeIcon style={{color: 'white'}} size="sm" />
-                  )}
-                </View>
-
-                {/* Text Pill */}
-                <View
-                  style={[
-                    a.px_sm,
-                    a.py_xs,
-                    a.rounded_full,
-                    {
-                      backgroundColor: isPrivate ? '#F59E0B' : '#9ca3af',
-                      height: 34,
-                      justifyContent: 'center',
-                      minWidth: 50,
-                    },
-                  ]}>
-                  <Text style={[a.font_bold, {color: 'white', fontSize: 13}]}>
-                    <Trans>{isPrivate ? 'Private' : 'Public'}</Trans>
-                  </Text>
-                </View>
-              </Pressable>
-
               {/* Post Type (Meme, RAQ, etc.) */}
               <PostTypeBtn postType={postType} setPostType={setPostType} />
 
@@ -2065,7 +2003,9 @@ function ComposerPills({
                     width: 34,
                     height: 34,
                     borderRadius: 17,
-                    backgroundColor: isOfficial ? '#474652' : '#9ca3af',
+                    backgroundColor: isOfficial
+                      ? t.palette.primary_500
+                      : t.palette.contrast_300,
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
@@ -2080,7 +2020,7 @@ function ComposerPills({
                       a.py_xs,
                       a.rounded_full,
                       {
-                        backgroundColor: '#474652',
+                        backgroundColor: t.palette.primary_500,
                         height: 34,
                         justifyContent: 'center',
                         minWidth: 50,

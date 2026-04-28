@@ -3,7 +3,7 @@ import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
 import {type ComposerFlair, isPolicyFlair} from '#/lib/post-flairs'
-import {atoms as a} from '#/alf'
+import {atoms as a, useTheme} from '#/alf'
 import * as Dialog from '#/components/Dialog'
 import {FlairSelectionList} from '#/components/FlairSelectionList'
 import {Text} from '#/components/Typography'
@@ -19,6 +19,7 @@ export function FlairBtn({
 }) {
   const control = Dialog.useDialogControl()
   const {_} = useLingui()
+  const t = useTheme()
 
   // Filter selected flairs based on mode
   const relevantFlairs = selectedFlairs.filter(f => {
@@ -44,9 +45,6 @@ export function FlairBtn({
     alignItems: 'center',
   }
 
-  // Hardcoded Policy Color
-  const POLICY_COLOR = '#474652'
-
   return (
     <>
       <Pressable
@@ -62,21 +60,18 @@ export function FlairBtn({
             ? _(msg`Opens dialog to select a matter`)
             : _(msg`Opens dialog to select a policy`)
         }>
-        {({pressed: _pressed}) => (
+        {({pressed}) => (
           <>
             {/* Circle Icon */}
             <View
               style={[
                 iconStyle,
                 {
-                  backgroundColor:
-                    mode === 'policy'
-                      ? POLICY_COLOR
-                      : hasSelection
-                        ? _pressed
-                          ? '#1e293b' // Darker slate for pressed matter
-                          : '#6B7280' // Dark slate for selected matter
-                        : '#9ca3af', // Default gray for unselected matter
+                  backgroundColor: pressed
+                    ? t.palette.primary_600
+                    : hasSelection
+                      ? t.palette.primary_500
+                      : t.palette.contrast_300,
                 },
               ]}>
               <Text style={[a.font_bold, {color: 'white', fontSize: 12}]}>
@@ -92,12 +87,9 @@ export function FlairBtn({
                   a.py_xs,
                   a.rounded_full,
                   {
-                    backgroundColor:
-                      mode === 'policy'
-                        ? POLICY_COLOR
-                        : _pressed
-                          ? '#1e293b'
-                          : '#6B7280',
+                    backgroundColor: pressed
+                      ? t.palette.primary_600
+                      : t.palette.primary_500,
                     height: iconSize,
                     justifyContent: 'center',
                     minWidth: 50,

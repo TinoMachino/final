@@ -14,9 +14,14 @@ export default function (server: Server, ctx: AppContext) {
 
       // If this is a moderator/admin request, we allow fetching any account's actions
       // Otherwise, users can only fetch their own account's actions
-      const requesterDid = access.isModerator || access.isAdmin
-        ? params.account
-        : access.iss
+      let requesterDid: string | undefined
+      if (access.type === 'admin_token') {
+        requesterDid = params.account
+      } else if (access.type === 'standard') {
+        requesterDid = access.isModerator || access.isAdmin
+          ? params.account
+          : access.iss
+      }
 
       if (!requesterDid) {
         throw new InvalidRequestError('Account parameter is required')
@@ -26,7 +31,7 @@ export default function (server: Server, ctx: AppContext) {
         subject: requesterDid,
         limit,
         cursor,
-        sortDirection,
+        sortDirection: sortDirection === 'asc' ? 'asc' : 'desc',
         types: [...publishableEventTypes],
         includeAllUserRecords: true,
         addedLabels: [],
@@ -36,13 +41,11 @@ export default function (server: Server, ctx: AppContext) {
         collections: [],
       })
 
-      const automods = ctx.cfg.automod?.did ? [ctx.cfg.automod.did] : []
-
       return {
         encoding: 'application/json',
         body: {
           events: results.events
-            .map((event) => modEventToEventView(event, automods))
+            .map((event) => modEventToEventView(event))
             .filter((event): event is NonNullable<typeof event> => event !== null),
           cursor: results.cursor,
         },

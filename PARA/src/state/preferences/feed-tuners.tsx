@@ -53,6 +53,7 @@ export function useFeedTuners(
       feedTuners.push(FeedTuner.removeMutedThreads)
 
       // Base community filters should only affect the Base feed.
+      // When no filters are selected, show ALL posts (no filtering).
       const allFilters =
         opts?.applyBaseCommunityFilters && affiliation
           ? [...new Set([...activeFilters, affiliation])]
@@ -71,9 +72,11 @@ export function useFeedTuners(
               .map(slice => {
                 const filteredItems = slice.items.filter(item => {
                   const postFilters = getPostCommunityFilters(item.post.record)
+                  // Post has no community metadata → include it (show all indiscriminately)
                   if (postFilters.length === 0) {
-                    return false
+                    return true
                   }
+                  // Post has metadata → only include if it matches selected filters
                   return postFilters.some(filter =>
                     normalizedFilters.has(filter),
                   )

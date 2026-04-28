@@ -284,8 +284,8 @@ export function useGetPopularFeedsQuery(options?: GetPopularFeedsOptions) {
         }
       }
 
-      // inject PARA native feeds
-      if (!pageParam) {
+      // inject PARA native feeds (dev only until feed generator is live)
+      if (!pageParam && IS_LOCAL_DEV_MODE) {
         try {
           const paraFeedsRes = await agent.app.bsky.feed.getFeedGenerators({
             feeds: [

@@ -23,7 +23,7 @@ function getPhaseConfig(t: ReturnType<typeof useTheme>): Record<
   return {
     draft: {label: 'Borrador', color: t.palette.contrast_400, icon: '📝'},
     open: {label: 'Abierto', color: t.palette.primary_500, icon: '📖'},
-    deliberating: {label: 'Deliberando', color: t.palette.warning_500, icon: '🗣️'},
+    deliberating: {label: 'Deliberando', color: t.palette.yellow, icon: '🗣️'},
     voting: {label: 'Votación', color: t.palette.positive_500, icon: '🗳️'},
     resolved: {label: 'Resuelto', color: t.palette.primary_500, icon: '✅'},
   }
@@ -267,10 +267,10 @@ export function CabildeoListScreen() {
                         <View
                           style={[
                             styles.quadraticBadge,
-                            {backgroundColor: t.palette.warning_500 + '20'},
+                            {backgroundColor: t.palette.yellow + '20'},
                           ]}>
                           <Text
-                            style={[styles.quadraticText, {color: t.palette.warning_500}]}>
+                            style={[styles.quadraticText, {color: t.palette.yellow}]}>
                             √ Cuadrático
                           </Text>
                         </View>

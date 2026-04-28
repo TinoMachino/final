@@ -44,6 +44,9 @@ module.exports = function (_config) {
     process.env.GOOGLE_MAPS_API_KEY ||
     DEFAULT_GOOGLE_MAPS_API_KEY
 
+  const IS_TESTFLIGHT = process.env.EXPO_PUBLIC_ENV === 'testflight'
+  const IS_PRODUCTION = process.env.EXPO_PUBLIC_ENV === 'production'
+
   // MVP hardening: fail fast if placeholder key leaks into production builds.
   if (IS_PRODUCTION) {
     if (
@@ -55,9 +58,6 @@ module.exports = function (_config) {
       )
     }
   }
-
-  const IS_TESTFLIGHT = process.env.EXPO_PUBLIC_ENV === 'testflight'
-  const IS_PRODUCTION = process.env.EXPO_PUBLIC_ENV === 'production'
   // FIXED: was `!IS_TESTFLIGHT || !IS_PRODUCTION` which always evaluated to true.
   const IS_DEV = !IS_TESTFLIGHT && !IS_PRODUCTION
 

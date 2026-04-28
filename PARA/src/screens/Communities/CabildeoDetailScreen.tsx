@@ -36,7 +36,7 @@ function getPhaseMeta(t: ReturnType<typeof useTheme>): Record<
   return {
     draft: {label: 'Borrador', icon: '📝', color: t.palette.contrast_400},
     open: {label: 'Abierto', icon: '📖', color: t.palette.primary_500},
-    deliberating: {label: 'Deliberando', icon: '🗣️', color: t.palette.warning_500},
+    deliberating: {label: 'Deliberando', icon: '🗣️', color: t.palette.yellow},
     voting: {label: 'Votación', icon: '🗳️', color: t.palette.positive_500},
     resolved: {label: 'Resuelto', icon: '✅', color: t.palette.primary_500},
   }
@@ -46,7 +46,7 @@ function getStanceColors(t: ReturnType<typeof useTheme>): Record<string, {bg: st
   return {
     for: {bg: t.palette.positive_500 + '20', fg: t.palette.positive_500, label: 'A favor'},
     against: {bg: t.palette.negative_500 + '20', fg: t.palette.negative_500, label: 'En contra'},
-    amendment: {bg: t.palette.warning_500 + '20', fg: t.palette.warning_500, label: 'Enmienda'},
+    amendment: {bg: t.palette.yellow + '20', fg: t.palette.yellow, label: 'Enmienda'},
   }
 }
 
@@ -301,9 +301,9 @@ export function CabildeoDetailScreen({route}: Props) {
                 key={i}
                 style={[
                   styles.communityPill,
-                  {backgroundColor: t.palette.warning_500 + '20'},
+                  {backgroundColor: t.palette.yellow + '20'},
                 ]}>
-                <Text style={[styles.communityPillText, {color: t.palette.warning_500}]}>
+                <Text style={[styles.communityPillText, {color: t.palette.yellow}]}>
                   {c}
                 </Text>
               </View>

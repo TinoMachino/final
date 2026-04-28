@@ -238,7 +238,7 @@ export function isPolicyPostRecord(record: PostBadgeRecord) {
     []
 
   return flairTags.some(tag => {
-    const badge = resolveBadgeFromTag(tag, 'policy')
+    const badge = resolveBadgeFromTag(tag)
     return badge?.kind === 'policy'
   })
 }

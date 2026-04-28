@@ -23,7 +23,14 @@ export default function (server: Server, ctx: AppContext) {
 
       // Users can only view history for subjects they own
       // Moderators/admins can view any subject
-      if (!access.isModerator && !access.isAdmin && access.iss !== subjectDid) {
+      let isAuthorized = false
+      if (access.type === 'admin_token') {
+        isAuthorized = true
+      } else if (access.type === 'standard') {
+        isAuthorized = access.isModerator || access.isAdmin || access.iss === subjectDid
+      }
+
+      if (!isAuthorized) {
         throw new InvalidRequestError('Unauthorized')
       }
 
@@ -40,13 +47,11 @@ export default function (server: Server, ctx: AppContext) {
         collections: [],
       })
 
-      const automods = ctx.cfg.automod?.did ? [ctx.cfg.automod.did] : []
-
       return {
         encoding: 'application/json',
         body: {
           events: results.events
-            .map((event) => modEventToEventView(event, automods))
+            .map((event) => modEventToEventView(event))
             .filter((event): event is NonNullable<typeof event> => event !== null),
           cursor: results.cursor,
         },

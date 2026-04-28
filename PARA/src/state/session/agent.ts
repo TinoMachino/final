@@ -49,6 +49,7 @@ import {
 } from './moderation'
 import {type SessionAccount} from './types'
 import {isSessionExpired, isSignupQueued} from './util'
+import {registerParaLexicons} from '#/lib/api/para-lexicons-registration'
 
 export type ProxyHeaderValue = `${Did}#${AtprotoServiceType}`
 
@@ -466,6 +467,7 @@ class BskyAppAgent extends BskyAgent {
         }
       },
     })
+    registerParaLexicons(this)
   }
 
   async prepare({

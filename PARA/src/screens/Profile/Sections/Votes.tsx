@@ -28,7 +28,7 @@ export const ProfileVotesSection = forwardRef<SectionRef, Props>(
   ) {
     const t = useTheme()
     const {_} = useLingui()
-    const {data: votes = [], isLoading} = useProfileVotesQuery(did)
+    const {data: votes = [], isLoading} = useProfileVotesQuery(did || '')
 
     useImperativeHandle(ref, () => ({
       scrollToTop: () => {
@@ -54,7 +54,7 @@ export const ProfileVotesSection = forwardRef<SectionRef, Props>(
           : item.voteColor === 'negative'
             ? t.palette.negative_600
             : item.voteColor === 'warning'
-              ? t.palette.warning_600
+              ? t.palette.yellow
               : t.atoms.text_contrast_medium.color
 
       return (

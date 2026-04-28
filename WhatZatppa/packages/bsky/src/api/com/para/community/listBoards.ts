@@ -35,6 +35,23 @@ const listBoards = async ({
   params: QueryParams
   viewer?: string
 }) => {
+  const cache = ctx.paraCache
+  const cacheKey = cache?.boardsKey({
+    viewerDid: viewer ?? '',
+    sort: params.sort ?? '',
+    state: params.state ?? '',
+    participationKind: params.participationKind ?? '',
+    flairId: params.flairId ?? '',
+    quadrant: params.quadrant,
+    query: params.query ?? '',
+    limit: normalizeLimit(params.limit),
+    cursor: params.cursor ?? '',
+  })
+  if (cache && cacheKey) {
+    const cached = await cache.get(cacheKey, 'boards')
+    if (cached) return cached
+  }
+
   const res = await ctx.dataplane.getParaCommunityBoards({
     viewerDid: viewer ?? '',
     limit: normalizeLimit(params.limit),
@@ -47,7 +64,7 @@ const listBoards = async ({
     quadrant: params.quadrant,
   })
 
-  return {
+  const result = {
     boards: res.boards.map((board) => ({
       uri: board.uri,
       cid: board.cid,
@@ -93,6 +110,11 @@ const listBoards = async ({
     canCreateCommunity: true,
     cursor: parseString(res.cursor),
   }
+
+  if (cache && cacheKey) {
+    await cache.set(cacheKey, 'boards', result)
+  }
+  return result
 }
 
 const normalizeLimit = (limit: number | undefined) => {

@@ -33,6 +33,8 @@ import { loggerMiddleware } from './logger'
 import { authWithApiKey as rolodexAuth, createRolodexClient } from './rolodex'
 import { createStashClient } from './stash'
 import { Views } from './views'
+import { ParaCacheService } from './cache/para-cache'
+import { Redis } from './redis'
 import { VideoUriBuilder } from './views/util'
 
 export { ServerConfig } from './config'
@@ -202,6 +204,15 @@ export class BskyAppView {
 
     const kwsClient = config.kws ? createKwsClient(config.kws) : undefined
 
+    let paraCache: ParaCacheService | undefined
+    if (config.redis) {
+      const redis = new Redis({
+        host: config.redis.host,
+        password: config.redis.password,
+      })
+      paraCache = new ParaCacheService(redis)
+    }
+
     const entrywayJwtPublicKey = config.entrywayJwtPublicKeyHex
       ? createPublicKeyObject(config.entrywayJwtPublicKeyHex)
       : undefined
@@ -235,6 +246,7 @@ export class BskyAppView {
       featureGatesClient,
       blobDispatcher,
       kwsClient,
+      paraCache,
     })
 
     const server = createServer([], {

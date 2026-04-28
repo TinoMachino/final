@@ -85,13 +85,24 @@ const getAuthorFeed = async (inputs: { ctx: Context; params: Params }) => {
     return { feed: [] }
   }
 
+  const cache = ctx.paraCache
+  const cacheKey = cache?.authorFeedKey({
+    actorDid: did,
+    limit: params.limit,
+    cursor: params.cursor ?? '',
+  })
+  if (cache && cacheKey) {
+    const cached = await cache.get(cacheKey, 'authorFeed')
+    if (cached) return cached
+  }
+
   const res = await ctx.dataplane.getParaAuthorFeed({
     actorDid: did,
     limit: params.limit,
     cursor: params.cursor,
   })
 
-  return {
+  const result = {
     feed: res.items.map((item) => ({
       uri: item.uri,
       cid: item.cid,
@@ -107,12 +118,18 @@ const getAuthorFeed = async (inputs: { ctx: Context; params: Params }) => {
     })),
     cursor: parseString(res.cursor),
   }
+
+  if (cache && cacheKey) {
+    await cache.set(cacheKey, 'authorFeed', result)
+  }
+  return result
 }
 
 type Context = {
   hydrator: Hydrator
   dataplane: DataPlaneClient
   views: Views
+  paraCache?: import('../../../../cache/para-cache').ParaCacheService
 }
 
 type Params = QueryParams & {

@@ -16,6 +16,7 @@ import { KwsClient } from './kws'
 import { httpLogger as log } from './logger'
 import { RolodexClient } from './rolodex'
 import { StashClient } from './stash'
+import { ParaCacheService } from './cache/para-cache'
 import {
   ParsedLabelers,
   defaultLabelerHeader,
@@ -45,6 +46,7 @@ export class AppContext {
       featureGatesClient: FeatureGatesClient
       blobDispatcher: Dispatcher
       kwsClient: KwsClient | undefined
+      paraCache?: ParaCacheService
     },
   ) {}
 
@@ -126,6 +128,10 @@ export class AppContext {
 
   get kwsClient(): KwsClient | undefined {
     return this.opts.kwsClient
+  }
+
+  get paraCache(): ParaCacheService | undefined {
+    return this.opts.paraCache
   }
 
   reqLabelers(req: express.Request): ParsedLabelers {

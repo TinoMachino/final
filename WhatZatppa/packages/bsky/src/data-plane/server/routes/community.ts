@@ -528,19 +528,26 @@ const selectMembers = async (
 
   // Subquery-based sorts (participation) cannot use keyset cursors efficiently.
   // Fall back to offset with a hard cap to prevent deep-paging abuse.
+  // Replace correlated subquery with LEFT JOIN to pre-aggregated vote counts
+  // for O(n + m) hash join instead of O(n × m) correlated execution.
   if (opts.sort === 'participation') {
     const offset = Math.min(decodeOffsetCursor(opts.cursor), MAX_OFFSET)
-    const ordered = builder.orderBy(
-      (eb) =>
-        eb
-          .selectFrom('cabildeo_vote')
-          .whereRef('creator', '=', 'membership.creator')
-          .select(sql<number>`count(*)`.as('voteCount')),
-      'desc',
-    )
 
-    const rows = await ordered
+    const voteCountsSubquery = db.db
+      .selectFrom('cabildeo_vote')
+      .select(['creator', sql<number>`count(*)`.as('voteCount')])
+      .groupBy('creator')
+
+    builder = builder
+      .leftJoin(
+        voteCountsSubquery.as('vote_counts'),
+        'vote_counts.creator',
+        'membership.creator',
+      )
+      .orderBy(sql`coalesce("vote_counts"."voteCount", 0)`, 'desc')
       .orderBy('membership.cid', 'desc')
+
+    const rows = await builder
       .offset(offset)
       .limit(opts.limit + 1)
       .execute()

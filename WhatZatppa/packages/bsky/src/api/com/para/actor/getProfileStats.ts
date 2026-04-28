@@ -81,11 +81,18 @@ const getProfileStats = async (inputs: { ctx: Context; params: Params }) => {
     )
   }
 
+  const cache = ctx.paraCache
+  const cacheKey = cache?.profileStatsKey(did)
+  if (cache && cacheKey) {
+    const cached = await cache.get(cacheKey, 'profileStats')
+    if (cached) return cached
+  }
+
   const res = await ctx.dataplane.getParaProfileStats({ actorDid: did })
   const computedAt =
     parseString(res.stats?.computedAt) ?? new Date().toISOString()
 
-  return {
+  const result = {
     actor: did,
     stats: {
       influence: res.stats?.influence ?? 0,
@@ -108,12 +115,18 @@ const getProfileStats = async (inputs: { ctx: Context; params: Params }) => {
         }
       : undefined,
   }
+
+  if (cache && cacheKey) {
+    await cache.set(cacheKey, 'profileStats', result)
+  }
+  return result
 }
 
 type Context = {
   dataplane: DataPlaneClient
   hydrator: Hydrator
   views: Views
+  paraCache?: import('../../../../cache/para-cache').ParaCacheService
 }
 
 type Params = QueryParams & {

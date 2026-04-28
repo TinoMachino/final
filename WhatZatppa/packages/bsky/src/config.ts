@@ -111,6 +111,10 @@ export interface ServerConfigValues {
   debugFieldAllowedDids: Set<string>
   draftsLimit: number
   communityCreatorDids: string[]
+  redis?: {
+    host: string
+    password?: string
+  }
 }
 
 export class ServerConfig {
@@ -333,6 +337,9 @@ export class ServerConfig {
     const communityCreatorDids = envList(
       process.env.BSKY_PARA_COMMUNITY_CREATOR_DIDS,
     )
+    const redisHost = process.env.BSKY_REDIS_HOST || undefined
+    const redisPassword = process.env.BSKY_REDIS_PASSWORD || undefined
+    const redis = redisHost ? { host: redisHost, password: redisPassword } : undefined
 
     return new ServerConfig({
       version,
@@ -403,6 +410,7 @@ export class ServerConfig {
       debugFieldAllowedDids,
       draftsLimit,
       communityCreatorDids,
+      redis,
       ...noUndefinedVals(overrides ?? {}),
     })
   }
@@ -682,6 +690,10 @@ export class ServerConfig {
 
   get communityCreatorDids() {
     return this.cfg.communityCreatorDids
+  }
+
+  get redis() {
+    return this.cfg.redis
   }
 }
 

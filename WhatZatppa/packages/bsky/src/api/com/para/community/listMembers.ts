@@ -41,6 +41,22 @@ const listMembers = async ({
   viewer: string
   viewerIsAdmin: boolean
 }) => {
+  const cache = ctx.paraCache
+  const cacheKey = cache?.membersKey({
+    communityId: params.communityId,
+    membershipState: params.membershipState ?? '',
+    role: params.role ?? '',
+    sort: params.sort ?? '',
+    limit: normalizeLimit(params.limit),
+    cursor: params.cursor ?? '',
+    viewerDid: viewer,
+    viewerIsAdmin,
+  })
+  if (cache && cacheKey) {
+    const cached = await cache.get(cacheKey, 'members')
+    if (cached) return cached
+  }
+
   const res = await ctx.dataplane
     .getParaCommunityMembers({
       communityId: params.communityId,
@@ -62,7 +78,7 @@ const listMembers = async ({
       throw err
     })
 
-  return {
+  const result = {
     members: res.members.map((member) => ({
       did: member.did,
       handle: parseString(member.handle),
@@ -78,6 +94,11 @@ const listMembers = async ({
     })),
     cursor: parseString(res.cursor),
   }
+
+  if (cache && cacheKey) {
+    await cache.set(cacheKey, 'members', result)
+  }
+  return result
 }
 
 const normalizeLimit = (limit: number | undefined) => {

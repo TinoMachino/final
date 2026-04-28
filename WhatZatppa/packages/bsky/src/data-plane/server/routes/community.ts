@@ -22,7 +22,13 @@ import {
 import { Service } from '../../../proto/bsky_connect'
 import { Database } from '../db'
 import { countAll } from '../db/util'
-import { TimeCidKeyset, paginate } from '../db/pagination'
+import {
+  CreatedAtCidKeyset,
+  IndexedAtCidKeyset,
+  JoinedAtCidKeyset,
+  TimeCidKeyset,
+  paginate,
+} from '../db/pagination'
 
 type BoardRow = {
   uri: string
@@ -379,11 +385,10 @@ const selectBoards = async (
 
   // Cursor-based pagination for createdAt / indexedAt sorts
   const { ref } = db.db.dynamic
-  const timeCol = sort === 'activity' ? 'board.indexedAt' : 'board.createdAt'
-  const keyset = new TimeCidKeyset(
-    ref(timeCol),
-    ref('board.cid'),
-  )
+  const keyset =
+    sort === 'activity'
+      ? new IndexedAtCidKeyset(ref('board.indexedAt'), ref('board.cid'))
+      : new CreatedAtCidKeyset(ref('board.createdAt'), ref('board.cid'))
 
   // Gracefully degrade old offset cursors to first page
   const cursor = isOffsetCursor(opts.cursor) ? undefined : opts.cursor
@@ -632,7 +637,7 @@ const selectMembers = async (
 
   // Cursor-based pagination for joinedAt sort
   const { ref } = db.db.dynamic
-  const keyset = new TimeCidKeyset(
+  const keyset = new JoinedAtCidKeyset(
     ref('membership.joinedAt'),
     ref('membership.cid'),
   )

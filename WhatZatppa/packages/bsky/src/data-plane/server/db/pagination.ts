@@ -152,6 +152,33 @@ export class CreatedAtDidKeyset extends TimeCidKeyset<{
   }
 }
 
+export class CreatedAtCidKeyset extends TimeCidKeyset<{
+  createdAt: string
+  cid: string
+}> {
+  labelResult(result: { createdAt: string; cid: string }) {
+    return { primary: result.createdAt, secondary: result.cid }
+  }
+}
+
+export class IndexedAtCidKeyset extends TimeCidKeyset<{
+  indexedAt: string
+  cid: string
+}> {
+  labelResult(result: { indexedAt: string; cid: string }) {
+    return { primary: result.indexedAt, secondary: result.cid }
+  }
+}
+
+export class JoinedAtCidKeyset extends TimeCidKeyset<{
+  joinedAt: string
+  cid: string
+}> {
+  labelResult(result: { joinedAt: string; cid: string }) {
+    return { primary: result.joinedAt, secondary: result.cid }
+  }
+}
+
 export class IndexedAtDidKeyset extends TimeCidKeyset<{
   indexedAt: string
   did: string // dids are treated identically to cids in TimeCidKeyset

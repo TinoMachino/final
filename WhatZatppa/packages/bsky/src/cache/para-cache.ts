@@ -59,7 +59,7 @@ export class ParaCacheService {
     state: string
     participationKind: string
     flairId: string
-    quadrant?: number
+    quadrant?: string
     query: string
     limit: number
     cursor: string

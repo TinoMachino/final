@@ -1,4 +1,5 @@
 import { ServiceImpl } from '@connectrpc/connect'
+import { sql } from 'kysely'
 import { Service } from '../../../proto/bsky_connect'
 import {
   FeedType,
@@ -22,10 +23,18 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         'para_post.uri',
       )
       if (req.party) {
-        builder = builder.where('para_post_meta.party', '=', req.party)
+        builder = builder.where(
+          sql`"para_post_meta"."party"`,
+          '=',
+          req.party,
+        )
       }
       if (req.community) {
-        builder = builder.where('para_post_meta.community', '=', req.community)
+        builder = builder.where(
+          sql`"para_post_meta"."community"`,
+          '=',
+          req.community,
+        )
       }
     }
 
@@ -72,10 +81,18 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         'para_post.uri',
       )
       if (req.party) {
-        followQb = followQb.where('para_post_meta.party', '=', req.party)
+        followQb = followQb.where(
+          sql`"para_post_meta"."party"`,
+          '=',
+          req.party,
+        )
       }
       if (req.community) {
-        followQb = followQb.where('para_post_meta.community', '=', req.community)
+        followQb = followQb.where(
+          sql`"para_post_meta"."community"`,
+          '=',
+          req.community,
+        )
       }
     }
 
@@ -98,10 +115,18 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         'para_post.uri',
       )
       if (req.party) {
-        selfQb = selfQb.where('para_post_meta.party', '=', req.party)
+        selfQb = selfQb.where(
+          sql`"para_post_meta"."party"`,
+          '=',
+          req.party,
+        )
       }
       if (req.community) {
-        selfQb = selfQb.where('para_post_meta.community', '=', req.community)
+        selfQb = selfQb.where(
+          sql`"para_post_meta"."community"`,
+          '=',
+          req.community,
+        )
       }
     }
 

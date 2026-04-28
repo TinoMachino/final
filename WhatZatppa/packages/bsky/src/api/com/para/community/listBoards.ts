@@ -26,6 +26,45 @@ export default function (server: Server, ctx: AppContext) {
   })
 }
 
+type ListBoardsResult = {
+  boards: {
+    uri: string
+    cid: string
+    creatorDid: string
+    creatorHandle: string | undefined
+    creatorDisplayName: string | undefined
+    communityId: string
+    slug: string
+    name: string
+    description: string | undefined
+    quadrant: string
+    delegatesChatId: string
+    subdelegatesChatId: string
+    memberCount: number
+    viewerMembershipState:
+      | 'none'
+      | 'pending'
+      | 'active'
+      | 'left'
+      | 'removed'
+      | 'blocked'
+    viewerRoles: string[] | undefined
+    status: 'draft' | 'active' | undefined
+    founderStarterPackUri: string | undefined
+    createdAt: string
+    governanceSummary:
+      | {
+          moderatorCount: number
+          officialCount: number
+          deputyRoleCount: number
+          lastPublishedAt: string | undefined
+        }
+      | undefined
+  }[]
+  canCreateCommunity: boolean
+  cursor: string | undefined
+}
+
 const listBoards = async ({
   ctx,
   params,
@@ -34,7 +73,7 @@ const listBoards = async ({
   ctx: AppContext
   params: QueryParams
   viewer?: string
-}) => {
+}): Promise<ListBoardsResult> => {
   const cache = ctx.paraCache
   const cacheKey = cache?.boardsKey({
     viewerDid: viewer ?? '',
@@ -48,7 +87,7 @@ const listBoards = async ({
     cursor: params.cursor ?? '',
   })
   if (cache && cacheKey) {
-    const cached = await cache.get(cacheKey, 'boards')
+    const cached = await cache.get<ListBoardsResult>(cacheKey, 'boards')
     if (cached) return cached
   }
 

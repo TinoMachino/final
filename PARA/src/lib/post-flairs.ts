@@ -146,7 +146,31 @@ function resolveBadgeFromTag(
   }
 }
 
+function inferPostTypeFromTags(record: PostBadgeRecord): string | undefined {
+  if (record.postType && record.postType !== 'none') {
+    return record.postType
+  }
+
+  const tags = record.tags || []
+  if (tags.some(t => t === '|#!RAQ')) return 'raq'
+  if (tags.some(t => t === '|#?OpenQuestion')) return 'open_question'
+  if (tags.some(t => t === '#MEME')) return 'meme'
+  if (tags.some(t => t === '#META')) return 'meta'
+  if (tags.some(t => t === '#Competition')) return 'competition'
+  if (tags.some(t => t === '#FakeArticle')) return 'fake_article'
+
+  const flairTags = tags.filter(
+    tag => tag.startsWith('|#') || tag.startsWith('||#'),
+  )
+  if (flairTags.some(t => t.startsWith('||#'))) return 'policy'
+  if (flairTags.some(t => t.startsWith('|#'))) return 'matter'
+
+  return undefined
+}
+
 export function getPostBadges(record: PostBadgeRecord): PostBadge[] {
+  const inferredPostType = inferPostTypeFromTags(record)
+
   const badges: PostBadge[] = []
   const seen = new Set<string>()
   const flairTags =
@@ -155,8 +179,8 @@ export function getPostBadges(record: PostBadgeRecord): PostBadge[] {
     []
 
   const fallbackKind =
-    record.postType === 'policy' || record.postType === 'matter'
-      ? record.postType
+    inferredPostType === 'policy' || inferredPostType === 'matter'
+      ? inferredPostType
       : undefined
 
   for (const tag of flairTags) {
@@ -188,7 +212,7 @@ export function getPostBadges(record: PostBadgeRecord): PostBadge[] {
     })
   }
 
-  const postType = findPostTypeById(record.postType)
+  const postType = findPostTypeById(inferredPostType)
   if (postType) {
     badges.push({
       key: `postType:${postType.id}`,
@@ -203,7 +227,8 @@ export function getPostBadges(record: PostBadgeRecord): PostBadge[] {
 }
 
 export function isPolicyPostRecord(record: PostBadgeRecord) {
-  if (record.postType === 'policy') {
+  const inferredPostType = inferPostTypeFromTags(record)
+  if (inferredPostType === 'policy') {
     return true
   }
 

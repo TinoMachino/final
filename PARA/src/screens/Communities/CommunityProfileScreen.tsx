@@ -150,7 +150,12 @@ export function CommunityProfileScreen() {
   } = useSearchPostsQuery({query: communitySearchQuery, sort: 'latest'})
 
   const posts = useMemo(() => {
-    return data?.pages.flatMap(page => page.posts) || []
+    return (
+      data?.pages.flatMap(page => page.posts).filter(post => {
+        // Filter out posts from users with unresolved/invalid handles
+        return post.author.handle !== 'handle.invalid'
+      }) || []
+    )
   }, [data])
 
   const isDraft = board?.status === 'draft'

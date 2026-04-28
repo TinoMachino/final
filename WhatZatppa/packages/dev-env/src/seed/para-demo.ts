@@ -40,7 +40,153 @@ export default async (sc: SeedClient) => {
     {agent: eva, did: eva.assertDid, name: 'Eva'},
   ]
 
-  // ── COMUNIDADES ─────────────────────────────────────────────────────
+  // ── FOLLOWS (todos siguen a todos para que los posts aparezcan en timelines)
+  for (const follower of users) {
+    for (const followee of users) {
+      if (follower.did !== followee.did) {
+        await follower.agent.app.bsky.graph.follow.create(
+          {repo: follower.did},
+          {subject: followee.did, createdAt: createdAt()},
+        )
+      }
+    }
+  }
+
+  // ── PARTIDOS POLÍTICOS (community boards) ───────────────────────────
+  const partyDefs = [
+    {name: 'Morena', color: '#610200', creator: alice, official: alice, deputy: bob},
+    {name: 'PAN', color: '#004990', creator: bob, official: bob, deputy: carla},
+    {name: 'PRI', color: '#CE1126', creator: carla, official: carla, deputy: dan},
+    {name: 'PVEM', color: '#50B747', creator: dan, official: dan, deputy: eva},
+    {name: 'PT', color: '#D92027', creator: eva, official: eva, deputy: alice},
+    {name: 'MC', color: '#FF8300', creator: alice, official: alice, deputy: carla},
+  ]
+
+  const partyBoards: {
+    name: string
+    uri: string
+    cid: string
+    creatorDid: string
+    slug: string
+    rkey: string
+  }[] = []
+
+  for (const p of partyDefs) {
+    const board = await p.creator.com.para.community.createBoard({
+      name: p.name,
+      quadrant: 'national',
+      description: `Comunidad oficial del partido político ${p.name}. Espacio de deliberación, propuestas y coordinación ciudadana.`,
+    })
+
+    const uri = board.data.uri
+    const rkey = uri.split('/').pop()!
+    const slugBase = p.name
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    const slug = `${slugBase}-${rkey}`
+
+    partyBoards.push({
+      name: p.name,
+      uri,
+      cid: board.data.cid,
+      creatorDid: p.creator.assertDid,
+      slug,
+      rkey,
+    })
+  }
+
+  // Activate party boards (change status from draft to active)
+  for (const pb of partyBoards) {
+    const creatorAgent = users.find(u => u.did === pb.creatorDid)!.agent
+    const current = await creatorAgent.com.atproto.repo.getRecord({
+      repo: pb.creatorDid,
+      collection: 'com.para.community.board',
+      rkey: pb.rkey,
+    })
+    await creatorAgent.com.atproto.repo.putRecord({
+      repo: pb.creatorDid,
+      collection: 'com.para.community.board',
+      rkey: pb.rkey,
+      record: {
+        ...(current.data.value as any),
+        status: 'active',
+      },
+      swapRecord: current.data.cid,
+    })
+  }
+
+  // Make all users join every party
+  for (const user of users) {
+    for (const pb of partyBoards) {
+      if (user.did !== pb.creatorDid) {
+        await user.agent.com.para.community.join({communityUri: pb.uri})
+      }
+    }
+  }
+
+  // Update party governance with officials and deputies
+  for (let i = 0; i < partyDefs.length; i++) {
+    const p = partyDefs[i]
+    const pb = partyBoards[i]
+    const current = await p.creator.com.atproto.repo.getRecord({
+      repo: p.creator.assertDid,
+      collection: 'com.para.community.governance',
+      rkey: pb.slug,
+    })
+    const currentGov = current.data.value as any
+
+    await p.creator.com.atproto.repo.putRecord({
+      repo: p.creator.assertDid,
+      collection: 'com.para.community.governance',
+      rkey: pb.slug,
+      record: {
+        ...currentGov,
+        updatedAt: createdAt(),
+        officials: [
+          {
+            did: p.official.assertDid,
+            office: 'Representante Oficial',
+            mandate: `Mandato como representante oficial de ${p.name}`,
+          },
+        ],
+        deputies: [
+          {
+            tier: 'community',
+            role: 'Diputado Digital',
+            activeHolder: {
+              did: p.deputy.assertDid,
+              handle: (p.deputy as any).session?.handle || '',
+              displayName: users.find(u => u.did === p.deputy.assertDid)?.name || '',
+            },
+            votes: 1,
+            applicants: [],
+          },
+        ],
+        metadata: {
+          ...currentGov.metadata,
+          state: 'active',
+          lastPublishedAt: createdAt(),
+        },
+        editHistory: [
+          ...(currentGov.editHistory || []),
+          {
+            id: `seed-officials-${p.name.toLowerCase()}`,
+            action: 'set_official_representatives',
+            actorDid: p.creator.assertDid,
+            createdAt: createdAt(),
+            summary: `Seeded official representative and deputy for ${p.name}.`,
+          },
+        ],
+      },
+      swapRecord: current.data.cid,
+    })
+  }
+
+  // ── COMUNIDADES CÍVICAS ─────────────────────────────────────────────
   const community1 = await alice.com.para.community.createBoard({
     name: 'Presupuesto Participativo Centro',
     quadrant: 'centro',
@@ -66,7 +212,7 @@ export default async (sc: SeedClient) => {
     {uri: community3.data.uri, name: 'Educación y Cultura Sur'},
   ]
 
-  // ── MEMBERSHIPS (todos se unen a todas) ─────────────────────────────
+  // ── MEMBERSHIPS CÍVICAS (todos se unen a todas) ─────────────────────
   for (const user of users) {
     for (const comm of communities) {
       if (comm.uri !== community1.data.uri || user.did !== alice.assertDid) {
@@ -265,10 +411,12 @@ export default async (sc: SeedClient) => {
   await castVote(alice, alice.assertDid, cabildeos[3].uri, 1)
   await castVote(bob, bob.assertDid, cabildeos[3].uri, 0)
 
-  // ── POSTS PARA ──────────────────────────────────────────────────────
-  const posts = [
+  // ── POSTS ───────────────────────────────────────────────────────────
+  // Civic posts (associated with civic communities)
+  const civicPosts = [
     {
       agent: alice,
+      party: 'Morena',
       title: 'Informe de Avance: Techos Verdes',
       text: 'Tras 6 meses de implementación, los techos verdes en 3 edificios piloto han reducido la temperatura interior en 4°C promedio. Solicitamos ampliación a 15 edificios.',
       postType: 'matter',
@@ -277,6 +425,7 @@ export default async (sc: SeedClient) => {
     },
     {
       agent: bob,
+      party: 'PAN',
       title: 'Consulta Pública: Tarifas de Transporte',
       text: 'La Secretaría de Movilidad abre consulta pública sobre ajuste tarifario. ¿Consideras que el incremento propuesto del 8% es justificado por la inflación?',
       postType: 'open_question',
@@ -285,6 +434,7 @@ export default async (sc: SeedClient) => {
     },
     {
       agent: carla,
+      party: 'PRI',
       title: 'RAQ: Becas de Excelencia 2025',
       text: 'Aclaración respecto a las becas de excelencia: el requisito de promedio mínimo es 8.5, no 9.0 como circuló en redes. La convocatoria cierra el 30 de noviembre.',
       postType: 'raq',
@@ -293,6 +443,7 @@ export default async (sc: SeedClient) => {
     },
     {
       agent: dan,
+      party: 'PVEM',
       title: 'Propuesta: Banco de Alimentos Municipal',
       text: 'Creemos necesario establecer un banco de alimentos municipal para redistribuir excedentes de mercados y restaurantes hacia comedores comunitarios.',
       postType: 'policy',
@@ -301,6 +452,7 @@ export default async (sc: SeedClient) => {
     },
     {
       agent: eva,
+      party: 'PT',
       title: 'Meme: Cuando llega la cuenta de luz',
       text: 'Mi cara cuando veo que el aire acondicionado estuvo prendido todo el fin de semana... 💸⚡😭 #EnergiaSolarYa',
       postType: 'meme',
@@ -309,6 +461,7 @@ export default async (sc: SeedClient) => {
     },
     {
       agent: alice,
+      party: 'MC',
       title: 'Meta: Reunión de Coordinación',
       text: 'Recordatorio: mañana viernes 10:00 hrs reunión de coordinación de vocales en el Centro Cultural Centro. Agenda: asignación de mesas de trabajo.',
       postType: 'meta',
@@ -317,9 +470,130 @@ export default async (sc: SeedClient) => {
     },
   ]
 
-  const createdPosts: {uri: string; cid: string; agent: typeof alice}[] = []
-  for (const p of posts) {
-    const res = await p.agent.com.atproto.repo.createRecord({
+  // Party-specific posts (designed to show up in community profile search)
+  const partyPosts = [
+    // Morena
+    {
+      agent: alice,
+      party: 'Morena',
+      title: 'Reforma Energética Morena',
+      text: 'Desde Morena impulsamos la reforma energética para garantizar precios justos de electricidad a todas las familias mexicanas. La soberanía energética es prioridad nacional.',
+      postType: 'policy',
+      tags: ['Morena', '||#Policy', 'reforma', 'energia'],
+      flairs: ['||#Policy', '||#EmpresaPublicaDeAgua'],
+    },
+    {
+      agent: bob,
+      party: 'Morena',
+      title: 'Consulta Morena: Salario Mínimo',
+      text: 'Morena consulta a la base: ¿apoyas la propuesta de incrementar el salario mínimo a 12,000 pesos mensuales con prestaciones completas?',
+      postType: 'raq',
+      tags: ['Morena', '|#!RAQ', 'salario', 'trabajo'],
+      flairs: ['|#!RAQ'],
+    },
+    // PAN
+    {
+      agent: bob,
+      party: 'PAN',
+      title: 'Iniciativa Anticorrupción PAN',
+      text: 'El PAN presenta iniciativa de fortalecimiento institucional anticorrupción con fiscalía autónoma, rendición de cuentas y protección a denunciantes.',
+      postType: 'policy',
+      tags: ['PAN', '||#Policy', 'anticorrupcion', 'instituciones'],
+      flairs: ['||#Policy', '||#LimiteDeMandatos'],
+    },
+    {
+      agent: carla,
+      party: 'PAN',
+      title: 'PAN pregunta a ciudadanos',
+      text: 'PAN pregunta: ¿cuál es tu prioridad para el siguiente período legislativo? Seguridad, economía, salud o educación.',
+      postType: 'open_question',
+      tags: ['PAN', '|#?OpenQuestion', 'prioridades', 'legislativo'],
+      flairs: ['|#?OpenQuestion'],
+    },
+    // PRI
+    {
+      agent: carla,
+      party: 'PRI',
+      title: 'Modernización Energética PRI',
+      text: 'El PRI impulsa la modernización del sector energético con inversión privada participativa y transición sustentable hacia energías limpias.',
+      postType: 'policy',
+      tags: ['PRI', '||#Policy', 'energia', 'modernizacion'],
+      flairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
+    },
+    {
+      agent: dan,
+      party: 'PRI',
+      title: 'PRI consulta a militantes',
+      text: 'El PRI consulta a militantes: ¿estás de acuerdo con la alianza opositora para las elecciones de 2025? Tu opinión cuenta.',
+      postType: 'raq',
+      tags: ['PRI', '|#!RAQ', 'alianza', 'elecciones'],
+      flairs: ['|#!RAQ'],
+    },
+    // PVEM
+    {
+      agent: dan,
+      party: 'PVEM',
+      title: 'Ley de Cambio Climático PVEM',
+      text: 'PVEM propone ley integral de cambio climático con metas claras de reducción de emisiones para 2030 y fondo de adaptación ecológica.',
+      postType: 'policy',
+      tags: ['PVEM', '||#Policy', 'clima', 'emisiones'],
+      flairs: ['||#Policy', '||#FondoDeAdaptacionAlCambioClimatico'],
+    },
+    {
+      agent: eva,
+      party: 'PVEM',
+      title: 'Análisis PVEM: Calidad del Aire',
+      text: 'PVEM presenta análisis sobre calidad del aire en zonas metropolitanas. Se requieren acciones urgentes en 8 ciudades.',
+      postType: 'matter',
+      tags: ['PVEM', '|#Matter', 'aire', 'salud'],
+      flairs: ['|#Matter', '||#ServiciosPublicosDeSalud'],
+    },
+    // PT
+    {
+      agent: eva,
+      party: 'PT',
+      title: 'Incremento Salarial PT',
+      text: 'El PT exige incremento inmediato al salario mínimo y garantía de prestaciones laborales para todos los trabajadores del país.',
+      postType: 'policy',
+      tags: ['PT', '||#Policy', 'salario', 'trabajadores'],
+      flairs: ['||#Policy', '||#ComedoresEscolaresGratuitos'],
+    },
+    {
+      agent: alice,
+      party: 'PT',
+      title: 'PT consulta: Política Social',
+      text: 'El PT consulta a la ciudadanía: ¿qué política social debería ser prioridad nacional? Vivienda, salud, educación o alimentación.',
+      postType: 'open_question',
+      tags: ['PT', '|#?OpenQuestion', 'social', 'prioridad'],
+      flairs: ['|#?OpenQuestion'],
+    },
+    // MC
+    {
+      agent: alice,
+      party: 'MC',
+      title: 'Presupuesto Participativo MC',
+      text: 'Movimiento Ciudadano propone presupuesto participativo con votación digital ciudadana y transparencia total en el gasto público.',
+      postType: 'policy',
+      tags: ['MC', '||#Policy', 'presupuesto', 'digital'],
+      flairs: ['||#Policy', '||#PresupuestoParticipativo'],
+    },
+    {
+      agent: carla,
+      party: 'MC',
+      title: 'MC: Consulta Movilidad Urbana',
+      text: 'MC analiza resultados de la consulta ciudadana sobre movilidad urbana. El 78% apoya ampliación de transporte público.',
+      postType: 'matter',
+      tags: ['MC', '|#Matter', 'movilidad', 'urbana'],
+      flairs: ['|#Matter', '||#TransportePublico'],
+    },
+  ]
+
+  const allPosts = [...civicPosts, ...partyPosts]
+
+  const createdPosts: {uri: string; cid: string; agent: typeof alice; party: string; postType: string}[] = []
+  for (const p of allPosts) {
+    // 1. Create com.para.post record
+    const paraRes = await p.agent.com.atproto.repo.createRecord({
       repo: p.agent.assertDid,
       collection: 'com.para.post',
       record: {
@@ -332,7 +606,19 @@ export default async (sc: SeedClient) => {
         flairs: p.flairs,
       },
     })
-    createdPosts.push({uri: res.data.uri, cid: res.data.cid, agent: p.agent})
+    createdPosts.push({uri: paraRes.data.uri, cid: paraRes.data.cid, agent: p.agent, party: p.party, postType: p.postType})
+
+    // 2. Mirror to app.bsky.feed.post with party name in text and tags
+    //    so it appears in search, timeline, and community filters.
+    const bskyText = `[${p.party}] ${p.title}\n\n${p.text}`
+    await p.agent.app.bsky.feed.post.create(
+      {repo: p.agent.assertDid},
+      {
+        text: bskyText,
+        createdAt: createdAt(),
+        tags: p.tags,
+      },
+    )
   }
 
   // ── HIGHLIGHTS / ANOTACIONES ────────────────────────────────────────
@@ -420,6 +706,10 @@ export default async (sc: SeedClient) => {
     const p = createdPosts[i]
     const rkey = p.uri.split('/').pop()
     if (!rkey) continue
+
+    // Find the party board slug for this post's party
+    const partyBoard = partyBoards.find(pb => pb.name === p.party)
+
     await p.agent.com.atproto.repo.createRecord({
       repo: p.agent.assertDid,
       collection: 'com.para.social.postMeta',
@@ -427,7 +717,9 @@ export default async (sc: SeedClient) => {
       record: {
         $type: 'com.para.social.postMeta',
         post: p.uri,
-        postType: posts[i].postType,
+        postType: p.postType,
+        party: `p/${p.party}`,
+        community: partyBoard ? partyBoard.slug : undefined,
         official: i % 2 === 0,
         voteScore: 50 + Math.floor(Math.random() * 50),
         createdAt: createdAt(),
@@ -437,11 +729,13 @@ export default async (sc: SeedClient) => {
 
   await sc.network.processAll()
   console.log('✅ PARA demo seed complete')
-  console.log(`   Communities: ${communities.length}`)
+  console.log(`   Party boards: ${partyBoards.length}`)
+  console.log(`   Civic communities: ${communities.length}`)
   console.log(`   Cabildeos: ${cabildeos.length}`)
   console.log(`   Votes: 14`)
   console.log(`   Positions: 4`)
-  console.log(`   Posts: ${posts.length}`)
+  console.log(`   Posts: ${allPosts.length}`)
   console.log(`   Highlights: 3`)
   console.log(`   Delegations: 2`)
+  console.log(`   Parties covered: Morena, PAN, PRI, PVEM, PT, MC`)
 }

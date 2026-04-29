@@ -78,6 +78,19 @@ export const USER_FLAIRS = {
   AUTH_RIGHT: {id: 'auth_right', label: 'Auth Right', color: '#5856D6'},
 } as const
 
+// Map from political-affiliation ninth IDs to USER_FLAIRS entries
+export const NINTH_ID_TO_USER_FLAIR: Record<string, UserFlair> = {
+  'ninth-auth-left': USER_FLAIRS.AUTH_LEFT,
+  'ninth-auth-econocenter': USER_FLAIRS.AUTH_CENTER,
+  'ninth-auth-right': USER_FLAIRS.AUTH_RIGHT,
+  'ninth-center-left': USER_FLAIRS.CENTER_LEFT,
+  'ninth-center-econocenter': USER_FLAIRS.CENTRISM,
+  'ninth-center-right': USER_FLAIRS.CENTER_RIGHT,
+  'ninth-lib-left': USER_FLAIRS.LIB_LEFT,
+  'ninth-lib-econocenter': USER_FLAIRS.LIB_CENTER,
+  'ninth-lib-right': USER_FLAIRS.LIB_RIGHT,
+}
+
 // Organized Flair Groups
 export const POST_FLAIRS = {
   // --- POLICY FLAIRS ---

@@ -15,6 +15,7 @@ import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'DelegateVote'>
 
@@ -28,7 +29,7 @@ function calcQuadraticPower(delegationCount: number): number {
 
 export function DelegateVoteScreen({route, navigation}: Props) {
   const t = useTheme()
-  const {cabildeoUri} = route.params
+  const cabildeoUri = fromCabildeoRouteParam(route.params.cabildeoUri)
   const {
     data: cabildeo = null,
     isFetched,

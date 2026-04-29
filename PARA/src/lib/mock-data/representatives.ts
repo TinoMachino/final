@@ -12,6 +12,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 4681950,
   },
 
   // NATIONAL PARTY DIRECTION ORGANS (INE)
@@ -25,6 +26,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 2466956,
     description: 'Presidente nacional del Partido Acción Nacional.',
   },
   {
@@ -37,6 +39,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 56556,
     description: 'Secretaria nacional del Partido Acción Nacional.',
   },
   {
@@ -49,6 +52,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#CE1126',
     type: 'Party',
+    followersCount: 3153556,
     description:
       'Presidente nacional del Partido Revolucionario Institucional.',
   },
@@ -62,6 +66,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#CE1126',
     type: 'Party',
+    followersCount: 114196,
     description: 'Secretaria general del Partido Revolucionario Institucional.',
   },
   {
@@ -74,6 +79,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#00A651',
     type: 'Party',
+    followersCount: 108513,
     description: 'Secretaria ejecutiva del Partido Verde Ecologista de México.',
   },
   {
@@ -86,6 +92,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#00A651',
     type: 'Party',
+    followersCount: 86579,
     description: 'Secretaria técnica del Partido Verde Ecologista de México.',
   },
   {
@@ -98,6 +105,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#D90000',
     type: 'Party',
+    followersCount: 11717,
     description:
       'Integrante de la Comisión Coordinadora Nacional del Partido del Trabajo.',
   },
@@ -111,6 +119,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#D90000',
     type: 'Party',
+    followersCount: 227392,
     description: 'Secretario técnico del Partido del Trabajo.',
   },
   {
@@ -123,6 +132,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#FF8300',
     type: 'Party',
+    followersCount: 40741,
     description: 'Coordinador nacional de Movimiento Ciudadano.',
   },
   {
@@ -135,6 +145,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 2364647,
     description: 'Presidenta nacional de Morena registrada por el INE.',
   },
   {
@@ -147,6 +158,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 204794,
     description: 'Secretaria general de Morena registrada por el INE.',
   },
 
@@ -161,6 +173,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#FF8300',
     type: 'Party',
+    followersCount: 1384834,
   },
   {
     id: 'gov_nl_1',
@@ -172,6 +185,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#FF8300',
     type: 'Party',
+    followersCount: 566653,
   },
   {
     id: 'gov_cdmx_1',
@@ -183,6 +197,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 562489,
   },
   {
     id: 'gov_ver_1',
@@ -194,6 +209,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 696493,
   },
   {
     id: 'gov_yuc_1',
@@ -205,6 +221,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 958517,
   },
   {
     id: 'gov_bc_1',
@@ -216,6 +233,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 987925,
   },
   {
     id: 'gov_chi_1',
@@ -227,6 +245,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 1559806,
   },
   {
     id: 'gov_que_1',
@@ -238,6 +257,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 1762524,
   },
   {
     id: 'gov_coa_1',
@@ -249,6 +269,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#CE1126',
     type: 'Party',
+    followersCount: 555649,
   },
 
   // SENATORS
@@ -262,6 +283,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 788508,
   },
   {
     id: 'sen_2',
@@ -273,6 +295,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#D90000',
     type: 'Party',
+    followersCount: 408496,
   },
   {
     id: 'sen_3',
@@ -284,6 +307,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#CE1126',
     type: 'Party',
+    followersCount: 771412,
   },
   {
     id: 'sen_4',
@@ -295,6 +319,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 639898,
   },
   {
     id: 'sen_5',
@@ -306,6 +331,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#FF8300',
     type: 'Party',
+    followersCount: 431148,
   },
   {
     id: 'sen_6',
@@ -317,6 +343,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 671029,
   },
 
   // DEPUTIES (Federal)
@@ -330,6 +357,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 408944,
   },
   {
     id: 'dep_2',
@@ -341,6 +369,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Benito Juárez',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 245852,
   },
   {
     id: 'dep_3',
@@ -352,6 +381,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#FF8300',
     type: 'Party',
+    followersCount: 103407,
   },
 
   // LOCAL / MAYORS
@@ -411,6 +441,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Guadalajara',
     avatarColor: '#34C759',
     type: 'Community',
+    followersCount: 15463,
   },
   {
     id: 'com_2',
@@ -422,6 +453,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'State',
     avatarColor: '#5AC8FA',
     type: 'Community',
+    followersCount: 65392,
   },
   {
     id: 'com_3',
@@ -433,6 +465,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Monterrey',
     avatarColor: '#007AFF',
     type: 'Community',
+    followersCount: 54597,
   },
 
   // DIGITAL REPRESENTATIVES (The 9 Quadrants)
@@ -446,6 +479,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#F93A3A',
     type: 'Community',
+    followersCount: 23210,
   },
   {
     id: 'dig_ll_1',
@@ -457,6 +491,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#34C759',
     type: 'Community',
+    followersCount: 50379,
   },
   {
     id: 'dig_lr_1',
@@ -468,6 +503,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#AF52DE',
     type: 'Community',
+    followersCount: 58221,
   },
   {
     id: 'dig_ar_1',
@@ -479,6 +515,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#5856D6',
     type: 'Community',
+    followersCount: 27059,
   },
   {
     id: 'dig_cl_1',
@@ -490,6 +527,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#5AC8FA',
     type: 'Community',
+    followersCount: 43396,
   },
   {
     id: 'dig_cr_1',
@@ -501,6 +539,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#007AFF',
     type: 'Community',
+    followersCount: 42156,
   },
   {
     id: 'dig_lc_1',
@@ -512,6 +551,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#FF80FF',
     type: 'Community',
+    followersCount: 29898,
   },
   {
     id: 'dig_ae_1',
@@ -523,6 +563,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#FF3B30',
     type: 'Community',
+    followersCount: 42676,
   },
   {
     id: 'dig_le_1',
@@ -534,6 +575,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'Global',
     avatarColor: '#30B0C7',
     type: 'Community',
+    followersCount: 77052,
   },
   {
     id: 'fed_exec_2',
@@ -545,6 +587,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 27541,
   },
   {
     id: 'seed_alice_1',
@@ -556,6 +599,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#610200',
     type: 'Party',
+    followersCount: 44565,
   },
   {
     id: 'seed_bob_1',
@@ -567,6 +611,7 @@ export const REPRESENTATIVES: RepresentativeItem[] = [
     municipality: 'National',
     avatarColor: '#004990',
     type: 'Party',
+    followersCount: 22335,
   },
 ]
 

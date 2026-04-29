@@ -89,10 +89,12 @@ const STANCE_META: Record<
   amendment: {label: 'Amendment', color: '#9A3412', background: '#FFEDD5'},
 }
 
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
+
 export function PolicyDetailsScreen({route, navigation}: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
-  const cabildeoUri = route.params?.cabildeoUri
+  const cabildeoUri = route.params?.cabildeoUri ? fromCabildeoRouteParam(route.params.cabildeoUri) : undefined
   const legacyItem = route.params?.item as PolicyItem | undefined
   const {currentAccount} = useSession()
 

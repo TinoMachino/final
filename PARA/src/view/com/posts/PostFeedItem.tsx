@@ -16,8 +16,8 @@ import {type ReasonFeedSource} from '#/lib/api/feed/types'
 import {MAX_POST_LINES} from '#/lib/constants'
 import {
   createDisplayRichText,
-  extractPartyShield,
-} from '#/lib/party-shields'
+  extractPartyInsignia,
+} from '#/lib/civic-insignias'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {getPostBadges, isPolicyPostRecord} from '#/lib/post-flairs'
@@ -36,7 +36,7 @@ import {
 } from '#/state/session'
 import {useShowPartyShields} from '#/state/preferences'
 import {useMergedThreadgateHiddenReplies} from '#/state/threadgate-hidden-replies'
-import {type PartyShieldInfo} from '#/lib/party-shields'
+import {type CivicInsigniaInfo} from '#/lib/civic-insignias'
 import {
   buildPostSourceKey,
   setUnstablePostSource,
@@ -115,7 +115,7 @@ export function PostFeedItem({
       }),
     [record],
   )
-  const {shield: partyShield} = extractPartyShield(record.text)
+  const {insignia: partyShield} = extractPartyInsignia(record.text)
   const displayRichText = useMemo(() => {
     const {richText: rt} = createDisplayRichText(richText)
     return rt
@@ -174,7 +174,7 @@ let FeedItemInner = ({
   onShowLess,
 }: FeedItemProps & {
   richText: RichTextAPI
-  partyShield?: PartyShieldInfo
+  partyShield?: CivicInsigniaInfo
   post: Shadow<AppBskyFeedDefs.PostView>
   rootPost: AppBskyFeedDefs.PostView
   onShowLess?: (interaction: AppBskyFeedDefs.Interaction) => void

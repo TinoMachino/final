@@ -23,6 +23,7 @@ import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'CreatePosition'>
 
@@ -32,7 +33,8 @@ export function CreatePositionScreen(_props: Props) {
   const route = useRoute<Props['route']>()
   const agent = useAgent()
 
-  const {cabildeoUri, optionIndex} = route.params
+  const {optionIndex} = route.params
+  const cabildeoUri = fromCabildeoRouteParam(route.params.cabildeoUri)
 
   const [stance, setStance] = useState<CabildeoPositionRecord['stance']>('for')
   const [text, setText] = useState('')

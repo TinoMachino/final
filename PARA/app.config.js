@@ -70,7 +70,8 @@ module.exports = function (_config) {
     ...(IS_DEV || IS_TESTFLIGHT ? [] : []),
   ]
 
-  const UPDATES_ENABLED = IS_TESTFLIGHT || IS_PRODUCTION
+  // OTA updates disabled — self-hosted server is post-launch P0
+  const UPDATES_ENABLED = false
 
   const USE_SENTRY = Boolean(process.env.SENTRY_AUTH_TOKEN)
 
@@ -263,19 +264,10 @@ module.exports = function (_config) {
         favicon: './assets/favicon.png',
       },
       updates: {
-        // TODO: replace with your own update server before production
-        url: 'https://updates.bsky.app/manifest',
-        enabled: UPDATES_ENABLED,
-        fallbackToCacheTimeout: 30000,
-        codeSigningCertificate: UPDATES_ENABLED
-          ? './code-signing/certificate.pem'
-          : undefined,
-        codeSigningMetadata: UPDATES_ENABLED
-          ? {
-              keyid: 'main',
-              alg: 'rsa-v1_5-sha256',
-            }
-          : undefined,
+        // Disabled for PARA — self-hosted OTA server is post-launch P0
+        // Original: https://updates.bsky.app/manifest
+        enabled: false,
+        url: '',
         checkAutomatically: 'NEVER',
       },
       plugins: [
@@ -286,11 +278,13 @@ module.exports = function (_config) {
           'react-native-edge-to-edge',
           {android: {enforceNavigationBarContrast: false}},
         ],
-        USE_SENTRY && [
+        USE_SENTRY &&        [
           '@sentry/react-native/expo',
           {
-            organization: 'blueskyweb',
-            project: 'app',
+            // Disabled for PARA — set up own Sentry org post-launch
+            enabled: false,
+            organization: 'pararepo',
+            project: 'para-app',
             url: 'https://sentry.io',
           },
         ],

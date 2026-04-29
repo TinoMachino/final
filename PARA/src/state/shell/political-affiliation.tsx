@@ -17,7 +17,7 @@ import {
   type PoliticalAffiliationType,
   upsertPoliticalAffiliation,
 } from '#/lib/political-affiliations'
-import {USER_FLAIRS, type UserFlair} from '#/lib/tags'
+import {USER_FLAIRS, NINTH_ID_TO_USER_FLAIR, type UserFlair} from '#/lib/tags'
 
 const STORAGE_KEY = 'para_political_affiliation'
 const COOLDOWN_KEY = 'para_affiliation_cooldowns'
@@ -239,14 +239,7 @@ export function PoliticalAffiliationProvider({
   const activeFlair = useMemo((): UserFlair | null => {
     const ninth = affiliations.find(a => a.type === 'ninth')
     if (!ninth) return null
-
-    // Map 9th name to USER_FLAIRS key
-    const flairKey = Object.keys(USER_FLAIRS).find(key => {
-      const flair = USER_FLAIRS[key as keyof typeof USER_FLAIRS]
-      return flair.label.toLowerCase() === ninth.name.toLowerCase()
-    })
-
-    return flairKey ? USER_FLAIRS[flairKey as keyof typeof USER_FLAIRS] : null
+    return NINTH_ID_TO_USER_FLAIR[ninth.id] || null
   }, [affiliations])
 
   const value = useMemo(

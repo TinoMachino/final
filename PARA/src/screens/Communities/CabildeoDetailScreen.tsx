@@ -19,6 +19,7 @@ import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'CabildeoDetail'>
 
@@ -147,7 +148,7 @@ function getStanceColors(t: ReturnType<typeof useTheme>): Record<string, {bg: st
 export function CabildeoDetailScreen({route}: Props) {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
-  const {cabildeoUri} = route.params
+  const cabildeoUri = fromCabildeoRouteParam(route.params.cabildeoUri)
   const {
     data: cabildeo = null,
     isFetched: isCabildeoFetched,

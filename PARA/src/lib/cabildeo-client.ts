@@ -196,7 +196,11 @@ export function findCabildeoByUri(
 }
 
 export function toCabildeoRouteParams(cabildeo: Pick<CabildeoView, 'uri'>) {
-  return {cabildeoUri: cabildeo.uri}
+  return {cabildeoUri: encodeURIComponent(cabildeo.uri)}
+}
+
+export function fromCabildeoRouteParam(encodedUri: string) {
+  return decodeURIComponent(encodedUri)
 }
 
 function isCabildeoReadView(

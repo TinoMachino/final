@@ -26,7 +26,7 @@ import {
   isGeographicGroupCommunity,
 } from '#/lib/strings/community-names'
 import {cleanError} from '#/lib/strings/errors'
-import {getCommunityEstandarte} from '#/lib/community-estandartes'
+import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {
   useAcceptDraftInviteMutation,
   useCommunityBoardQuery,
@@ -47,7 +47,7 @@ import {Message_Stroke2_Corner0_Rounded as ChatIcon} from '#/components/icons/Me
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
 import * as Layout from '#/components/Layout'
-import {CommunityEstandarte} from '#/components/CommunityEstandarte'
+import {CivicInsignia} from '#/components/CivicInsignia'
 import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
 import {ProfileHoverCard} from '#/components/ProfileHoverCard'
 
@@ -1014,8 +1014,9 @@ export function CommunityProfileScreen() {
                     </Text>
                   </TouchableOpacity>
                   {showEstandarte && (
-                    <CommunityEstandarte
-                      colors={getCommunityEstandarte(resolvedCommunityName)}
+                    <CivicInsignia
+                      variant="banner"
+                      colors={getCommunityInsignia(resolvedCommunityName)}
                       height={8}
                       style={{marginBottom: 12}}
                     />

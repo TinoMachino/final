@@ -20,10 +20,13 @@ import {
 } from '#/state/queries/data-tab'
 import {useBaseFilter} from '#/state/shell/base-filter'
 import {Text} from '#/view/com/util/text/Text'
-import {useTheme} from '#/alf'
+import {atoms as a, useTheme} from '#/alf'
 import {ActiveFiltersStackButton} from '#/components/BaseFilterControls'
 import {SearchInput} from '#/components/forms/SearchInput'
 import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
+import {ArrowsDiagonalIn_Stroke2_Corner0_Rounded as SortIcon} from '#/components/icons/ArrowsDiagonal'
+import {Person_Stroke2_Corner0_Rounded as UsersIcon} from '#/components/icons/Person'
+import {Globe_Stroke2_Corner0_Rounded as BuildingIcon} from '#/components/icons/Globe'
 import * as Layout from '#/components/Layout'
 
 const CATEGORIES = [
@@ -39,6 +42,8 @@ const CATEGORIES = [
   'Activist',
 ]
 
+type SortMode = 'followers' | 'name'
+
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'Representatives'>
 
 export function RepresentativesScreen({route}: Props) {
@@ -50,6 +55,7 @@ export function RepresentativesScreen({route}: Props) {
     route.params?.category || 'All',
   )
   const [searchQuery, setSearchQuery] = useState(route.params?.q || '')
+  const [sortMode, setSortMode] = useState<SortMode>('followers')
   const {activeFilters} = useBaseFilter()
 
   // V2: Query Hook
@@ -60,27 +66,44 @@ export function RepresentativesScreen({route}: Props) {
 
   const reps = data?.pages.flatMap(page => page.items) || []
 
-  // Client-side filtering
-  // Client-side filtering
-  const filteredReps = reps.filter(rep => {
-    // Base Filter (Compass)
-    if (activeFilters.length > 0) {
-      // Show rep if they match ANY of the selected filters (State or Community)
-      const matchesFilter = activeFilters.some(
-        filter => filter === rep.affiliate || filter === rep.state,
-      )
-      if (!matchesFilter) return false
+  // Client-side filtering + sorting
+  const filteredReps = useMemo(() => {
+    let result = reps.filter(rep => {
+      // Base Filter (Compass)
+      if (activeFilters.length > 0) {
+        const matchesFilter = activeFilters.some(
+          filter => filter === rep.affiliate || filter === rep.state,
+        )
+        if (!matchesFilter) return false
+      }
+      return true
+    })
+
+    // Sort
+    if (sortMode === 'followers') {
+      result = [...result].sort((a, b) => {
+        const aCount = a.followersCount ?? 0
+        const bCount = b.followersCount ?? 0
+        return bCount - aCount
+      })
+    } else {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name))
     }
 
-    // Verified Only is now implicit / removed as user requested,
-    // but if we want to keep the filter logic for potential future use:
-    // User said: "if they are representatives they should be already verified"
-    // So we skip any "verified only" check or make it always true.
-    return true
-  })
+    return result
+  }, [reps, activeFilters, sortMode])
 
   const partyReps = filteredReps.filter(r => r.type === 'Party')
   const communityReps = filteredReps.filter(r => r.type === 'Community')
+
+  // Stats
+  const totalCount = filteredReps.length
+  const partyCount = partyReps.length
+  const communityCount = communityReps.length
+  const totalFollowers = filteredReps.reduce(
+    (sum, r) => sum + (r.followersCount ?? 0),
+    0,
+  )
 
   const onPressRep = (rep: RepresentativeItem) => {
     navigation.navigate('Profile', {name: rep.handle})
@@ -107,6 +130,12 @@ export function RepresentativesScreen({route}: Props) {
     },
     [],
   )
+
+  const formatCount = (n: number) => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+    return `${n}`
+  }
 
   return (
     <Layout.Screen testID="representativesScreen">
@@ -138,9 +167,6 @@ export function RepresentativesScreen({route}: Props) {
               style={styles.enhancedSearchBar}
             />
           </View>
-
-          {/* Location & Verified Filters Removed per user request */}
-          <View style={{height: 12}} />
 
           {/* Categories Horizontal Scroll */}
           <View style={styles.categoriesRow}>
@@ -181,6 +207,105 @@ export function RepresentativesScreen({route}: Props) {
             </ScrollView>
           </View>
 
+          {/* Stats Bar */}
+          {!isLoading && !error && filteredReps.length > 0 && (
+            <View style={[styles.statsBar, t.atoms.bg_contrast_25]}>
+              <View style={styles.statItem}>
+                <UsersIcon size="sm" style={[t.atoms.text_contrast_medium]} />
+                <Text style={[styles.statValue, t.atoms.text]}>
+                  {formatCount(totalFollowers)}
+                </Text>
+                <Text style={[styles.statLabel, t.atoms.text_contrast_medium]}>
+                  Total Reach
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <BuildingIcon size="sm" style={[t.atoms.text_contrast_medium]} />
+                <Text style={[styles.statValue, t.atoms.text]}>
+                  {partyCount}
+                </Text>
+                <Text style={[styles.statLabel, t.atoms.text_contrast_medium]}>
+                  Official
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, t.atoms.text]}>
+                  {communityCount}
+                </Text>
+                <Text style={[styles.statLabel, t.atoms.text_contrast_medium]}>
+                  Community
+                </Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, t.atoms.text]}>
+                  {totalCount}
+                </Text>
+                <Text style={[styles.statLabel, t.atoms.text_contrast_medium]}>
+                  Total
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Sort Toggle */}
+          {!isLoading && !error && filteredReps.length > 0 && (
+            <View style={styles.sortRow}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={[
+                  styles.sortBtn,
+                  sortMode === 'followers'
+                    ? {backgroundColor: t.palette.primary_500}
+                    : t.atoms.bg_contrast_25,
+                ]}
+                onPress={() => setSortMode('followers')}>
+                <SortIcon
+                  size="xs"
+                  style={{
+                    color: sortMode === 'followers' ? 'white' : t.palette.contrast_400,
+                  }}
+                />
+                <Text
+                  style={[
+                    styles.sortBtnText,
+                    sortMode === 'followers'
+                      ? {color: 'white'}
+                      : t.atoms.text_contrast_medium,
+                  ]}>
+                  Followers
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={[
+                  styles.sortBtn,
+                  sortMode === 'name'
+                    ? {backgroundColor: t.palette.primary_500}
+                    : t.atoms.bg_contrast_25,
+                ]}
+                onPress={() => setSortMode('name')}>
+                <SortIcon
+                  size="xs"
+                  style={{
+                    color: sortMode === 'name' ? 'white' : t.palette.contrast_400,
+                  }}
+                />
+                <Text
+                  style={[
+                    styles.sortBtnText,
+                    sortMode === 'name'
+                      ? {color: 'white'}
+                      : t.atoms.text_contrast_medium,
+                  ]}>
+                  Name A-Z
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {isLoading && (
             <View style={styles.emptyState}>
               <ActivityIndicator size="large" color={t.palette.primary_500} />
@@ -203,98 +328,13 @@ export function RepresentativesScreen({route}: Props) {
                     Official Parties
                   </Text>
                   {partyReps.map(rep => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
+                    <RepCard
                       key={rep.id}
+                      rep={rep}
+                      badges={getRepresentativeBadges(rep)}
                       onPress={() => onPressRep(rep)}
-                      activeOpacity={0.8}
-                      style={[
-                        styles.repCard,
-                        t.atoms.bg_contrast_25,
-                        t.atoms.shadow_sm,
-                      ]}>
-                      <LinearGradient
-                        colors={[
-                          rep.avatarColor || t.palette.primary_500,
-                          (rep.avatarColor || t.palette.primary_500) + '20',
-                        ]}
-                        start={{x: 0, y: 0}}
-                        end={{x: 1, y: 0}}
-                        style={styles.cardGradientBorder}
-                      />
-                      <View
-                        style={[
-                          styles.avatar,
-                          {backgroundColor: rep.avatarColor},
-                        ]}
-                      />
-                      <View style={styles.repInfo}>
-                        <Text style={[styles.repName, t.atoms.text]}>
-                          {rep.name}
-                        </Text>
-                        <View style={styles.badgesRow}>
-                          {getRepresentativeBadges(rep).map(badge => (
-                            <View
-                              key={`${rep.id}-${badge.label}`}
-                              style={[
-                                styles.badgePill,
-                                badge.tone === 'verified'
-                                  ? {backgroundColor: t.palette.primary_25}
-                                  : badge.tone === 'official'
-                                    ? {backgroundColor: 'rgba(52, 199, 89, 0.14)'}
-                                    : {backgroundColor: t.palette.contrast_25},
-                              ]}>
-                              {badge.tone === 'verified' ? (
-                                <VerifiedIcon
-                                  size="xs"
-                                  style={{color: t.palette.primary_600}}
-                                />
-                              ) : null}
-                              <Text
-                                style={[
-                                  styles.badgeText,
-                                  badge.tone === 'verified'
-                                    ? {color: t.palette.primary_700}
-                                    : badge.tone === 'official'
-                                      ? {color: '#34C759'}
-                                      : t.atoms.text_contrast_medium,
-                                ]}>
-                                {badge.label}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                        <Text
-                          style={[
-                            styles.repHandle,
-                            t.atoms.text_contrast_medium,
-                          ]}>
-                          {rep.handle} • {rep.category}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.repAffiliate,
-                            t.atoms.text_contrast_low,
-                            {fontSize: 12, fontWeight: '600'},
-                          ]}>
-                          {rep.affiliate}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.viewProfileBtn,
-                          {backgroundColor: t.palette.primary_500},
-                        ]}>
-                        <Text
-                          style={{
-                            color: 'white',
-                            fontWeight: '700',
-                            fontSize: 12,
-                          }}>
-                          View
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                      formatCount={formatCount}
+                    />
                   ))}
                 </View>
               )}
@@ -305,89 +345,14 @@ export function RepresentativesScreen({route}: Props) {
                     Communities
                   </Text>
                   {communityReps.map(rep => (
-                    <TouchableOpacity
-                      accessibilityRole="button"
+                    <RepCard
                       key={rep.id}
+                      rep={rep}
+                      badges={getRepresentativeBadges(rep)}
                       onPress={() => onPressRep(rep)}
-                      activeOpacity={0.8}
-                      style={[
-                        styles.repCard,
-                        t.atoms.bg_contrast_25,
-                        t.atoms.shadow_sm,
-                      ]}>
-                      <View
-                        style={[
-                          styles.avatar,
-                          {backgroundColor: rep.avatarColor},
-                        ]}
-                      />
-                      <View style={styles.repInfo}>
-                        <Text style={[styles.repName, t.atoms.text]}>
-                          {rep.name}
-                        </Text>
-                        <View style={styles.badgesRow}>
-                          {getRepresentativeBadges(rep).map(badge => (
-                            <View
-                              key={`${rep.id}-${badge.label}`}
-                              style={[
-                                styles.badgePill,
-                                badge.tone === 'verified'
-                                  ? {backgroundColor: t.palette.primary_25}
-                                  : badge.tone === 'official'
-                                    ? {backgroundColor: 'rgba(52, 199, 89, 0.14)'}
-                                    : {backgroundColor: t.palette.contrast_25},
-                              ]}>
-                              {badge.tone === 'verified' ? (
-                                <VerifiedIcon
-                                  size="xs"
-                                  style={{color: t.palette.primary_600}}
-                                />
-                              ) : null}
-                              <Text
-                                style={[
-                                  styles.badgeText,
-                                  badge.tone === 'verified'
-                                    ? {color: t.palette.primary_700}
-                                    : badge.tone === 'official'
-                                      ? {color: '#34C759'}
-                                      : t.atoms.text_contrast_medium,
-                                ]}>
-                                {badge.label}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                        <Text
-                          style={[
-                            styles.repHandle,
-                            t.atoms.text_contrast_medium,
-                          ]}>
-                          {rep.handle} • {rep.category}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.repAffiliate,
-                            t.atoms.text_contrast_low,
-                            {fontSize: 12},
-                          ]}>
-                          {rep.affiliate}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.viewProfileBtn,
-                          {borderColor: t.palette.primary_500, borderWidth: 1},
-                        ]}>
-                        <Text
-                          style={{
-                            color: t.palette.primary_500,
-                            fontWeight: '600',
-                            fontSize: 12,
-                          }}>
-                          View
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                      formatCount={formatCount}
+                      variant="community"
+                    />
                   ))}
                 </View>
               )}
@@ -408,6 +373,132 @@ export function RepresentativesScreen({route}: Props) {
     </Layout.Screen>
   )
 }
+
+// ── RepCard component ──
+
+function RepCard({
+  rep,
+  badges,
+  onPress,
+  formatCount,
+  variant = 'party',
+}: {
+  rep: RepresentativeItem
+  badges: Array<{label: string; tone: 'verified' | 'official' | 'state' | 'community'}>
+  onPress: () => void
+  formatCount: (n: number) => string
+  variant?: 'party' | 'community'
+}) {
+  const t = useTheme()
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={[
+        styles.repCard,
+        t.atoms.bg_contrast_25,
+        t.atoms.shadow_sm,
+      ]}>
+      {variant === 'party' && (
+        <LinearGradient
+          colors={[
+            rep.avatarColor || t.palette.primary_500,
+            (rep.avatarColor || t.palette.primary_500) + '20',
+          ]}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 0}}
+          style={styles.cardGradientBorder}
+        />
+      )}
+      <View
+        style={[
+          styles.avatar,
+          {backgroundColor: rep.avatarColor},
+        ]}
+      />
+      <View style={styles.repInfo}>
+        <Text style={[styles.repName, t.atoms.text]}>
+          {rep.name}
+        </Text>
+        <View style={styles.badgesRow}>
+          {badges.map(badge => (
+            <View
+              key={`${rep.id}-${badge.label}`}
+              style={[
+                styles.badgePill,
+                badge.tone === 'verified'
+                  ? {backgroundColor: t.palette.primary_25}
+                  : badge.tone === 'official'
+                    ? {backgroundColor: 'rgba(52, 199, 89, 0.14)'}
+                    : {backgroundColor: t.palette.contrast_25},
+              ]}>
+              {badge.tone === 'verified' ? (
+                <VerifiedIcon
+                  size="xs"
+                  style={{color: t.palette.primary_600}}
+                />
+              ) : null}
+              <Text
+                style={[
+                  styles.badgeText,
+                  badge.tone === 'verified'
+                    ? {color: t.palette.primary_700}
+                    : badge.tone === 'official'
+                      ? {color: '#34C759'}
+                      : t.atoms.text_contrast_medium,
+                ]}>
+                {badge.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <Text
+          style={[
+            styles.repHandle,
+            t.atoms.text_contrast_medium,
+          ]}>
+          {rep.handle} • {rep.category}
+        </Text>
+        <Text
+          style={[
+            styles.repAffiliate,
+            t.atoms.text_contrast_low,
+            {fontSize: 12, fontWeight: '600'},
+          ]}>
+          {rep.affiliate}
+        </Text>
+        {rep.followersCount !== undefined && (
+          <Text
+            style={[
+              styles.followerCount,
+              t.atoms.text_contrast_medium,
+            ]}>
+            {formatCount(rep.followersCount)} followers
+          </Text>
+        )}
+      </View>
+      <View
+        style={[
+          styles.viewProfileBtn,
+          variant === 'party'
+            ? {backgroundColor: t.palette.primary_500}
+            : {borderColor: t.palette.primary_500, borderWidth: 1},
+        ]}>
+        <Text
+          style={{
+            color: variant === 'party' ? 'white' : t.palette.primary_500,
+            fontWeight: variant === 'party' ? '700' : '600',
+            fontSize: 12,
+          }}>
+          View
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -429,7 +520,7 @@ const styles = StyleSheet.create({
   categoryPill: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 30, // Fully rounded
+    borderRadius: 30,
     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -438,28 +529,52 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-  controlsRow: {
+  // Stats bar
+  statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 16,
   },
-  controlBtn: {
+  statItem: {
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  // Sort
+  sortRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  sortBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    height: 48,
-  },
-  locationFilterRow: {
-    marginBottom: 20,
-  },
-  locationBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
   },
+  sortBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  // Section
   section: {
     marginBottom: 24,
   },
@@ -469,13 +584,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     letterSpacing: -0.5,
   },
+  // Card
   repCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 20,
     marginBottom: 12,
-    borderWidth: 0, // Reliance on shadow/bg
+    borderWidth: 0,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -491,7 +607,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 16,
-    marginLeft: 6, // account for gradient width if present
+    marginLeft: 6,
   },
   repInfo: {
     flex: 1,
@@ -527,6 +643,10 @@ const styles = StyleSheet.create({
   repAffiliate: {
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  followerCount: {
+    fontSize: 12,
+    marginTop: 2,
   },
   viewProfileBtn: {
     paddingHorizontal: 16,

@@ -33,6 +33,7 @@ import {Message_Stroke2_Corner0_Rounded as MessageIcon} from '#/components/icons
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {Pencil_Stroke2_Corner0_Rounded as PencilIcon} from '#/components/icons/Pencil'
 import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/Person'
+import {RaisingHand4Finger_Stroke2_Corner0_Rounded as RaisingHandIcon} from '#/components/icons/RaisingHand'
 import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
 import * as Layout from '#/components/Layout'
 import {IS_WEB} from '#/env'
@@ -509,7 +510,17 @@ export function BaseScreen() {
                     }
                     cardBgColor={cardBgColor}
                   />
-                  <EmptyDataCard cardBgColor={cardBgColor} />
+                  <DataCard
+                    title="Cabildeo"
+                    onPress={() => navigation.navigate('CabildeoList')}
+                    icon={
+                      <RaisingHandIcon
+                        width={48}
+                        style={{color: t.palette.primary_500}}
+                      />
+                    }
+                    cardBgColor={cardBgColor}
+                  />
                 </View>
               </View>
 

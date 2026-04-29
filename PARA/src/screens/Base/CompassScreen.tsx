@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -15,11 +16,22 @@ import {Trans} from '@lingui/react/macro'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
 import {
+  type PartyCompassProfile,
+  PARTY_COMPASS_PROFILES,
+  PARTY_COMPASS_PROFILE_BY_ID,
+  formatNinthPartyBreakdown,
+} from '#/lib/compass/party-distributions'
+import {
   SIXTY_NINTHS_BY_ID,
   SIXTY_NINTHS_IDEOLOGIES,
   type SixtyNinthsIdeology,
 } from '#/lib/compass/sixtyNinths'
+import {
+  NINTH_NAME_TO_COMPASS_ID,
+  POLITICAL_AFFILIATION_OPTIONS,
+} from '#/lib/political-affiliations'
 import {type CommonNavigatorParams} from '#/lib/routes/types'
+import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
 import {ColorPalette_Stroke2_Corner0_Rounded as PaletteIcon} from '#/components/icons/ColorPalette'
 import {Header, Screen} from '#/components/Layout'
@@ -362,14 +374,20 @@ const INITIAL_SCALE = 1
 const MIN_SCALE = 0.5
 const MAX_SCALE = 3
 
-export function CompassScreen({navigation: _}: Props) {
+export function CompassScreen({navigation, route}: Props) {
   const {_: translate} = useLingui()
   const t = useTheme()
   const insets = useSafeAreaInsets()
   const {gtMobile} = useBreakpoints()
   const ideologyPromptControl = Prompt.usePromptControl()
+  const {affiliations, setAffiliations} = usePoliticalAffiliation()
   const [paletteIndex, setPaletteIndex] = useState(0)
   const [show69ths, setShow69ths] = useState(false)
+
+  // Affiliation mode: when accessed from MyBase to help user find their position
+  const isAffiliateMode = route.params?.mode === 'affiliate'
+  const [previewPartyId, setPreviewPartyId] = useState<string | null>(null)
+  const [pendingNinthId, setPendingNinthId] = useState<string | null>(null)
 
   // Custom darker background for cards to match user preference
   // Assuming hex colors for palette, adding alpha for transparency
@@ -437,6 +455,77 @@ export function CompassScreen({navigation: _}: Props) {
       scale.removeListener(listenerId)
     }
   }, [scale])
+
+  // Process route params on mount to zoom/highlight user's position
+  const hasProcessedParams = useRef(false)
+  useEffect(() => {
+    if (hasProcessedParams.current) return
+    const params = route.params
+    if (!params) return
+    hasProcessedParams.current = true
+
+    let targetIs25ths = is25ths
+    let targetShow69ths = show69ths
+
+    if (params.initialZoom === '25ths') {
+      targetIs25ths = true
+      targetShow69ths = false
+      setIs25ths(true)
+      setShow69ths(false)
+    } else if (params.initialZoom === '69ths') {
+      targetIs25ths = false
+      targetShow69ths = true
+      setShow69ths(true)
+      setIs25ths(false)
+    } else if (params.initialZoom === '9ths') {
+      targetIs25ths = false
+      targetShow69ths = false
+      setIs25ths(false)
+      setShow69ths(false)
+    }
+
+    const targetGridDimension = targetShow69ths
+      ? 9
+      : targetIs25ths
+        ? 5
+        : 3
+    const targetQuadrants = targetShow69ths
+      ? quadrants69
+      : targetIs25ths
+        ? quadrants25
+        : quadrants9
+
+    if (params.highlightNinth) {
+      const quadrant = targetQuadrants.find(q => q.id === params.highlightNinth)
+      if (quadrant) {
+        setSelectedQuadrant(quadrant)
+        setSelectedQuadrantStats(buildQuadrantStats(quadrant))
+        if (isAffiliateMode) {
+          setPendingNinthId(params.highlightNinth)
+        }
+
+        const {width: w} = Dimensions.get('window')
+        const gridSize = Math.min(w - 40, 350)
+        const cellSize = gridSize / targetGridDimension
+        const centerCol = (targetGridDimension - 1) / 2
+        const centerRow = (targetGridDimension - 1) / 2
+        const centerX = (centerCol - quadrant.col) * cellSize
+        const centerY = (centerRow - quadrant.row) * cellSize
+
+        Animated.parallel([
+          Animated.spring(pan, {
+            toValue: {x: centerX, y: centerY},
+            useNativeDriver: false,
+          }),
+          Animated.spring(scale, {
+            toValue: targetShow69ths ? 3 : targetIs25ths ? 2.5 : 2,
+            useNativeDriver: false,
+          }),
+        ]).start()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params, quadrants9, quadrants25, quadrants69, pan, scale])
 
   const panResponder = useMemo(
     () =>
@@ -514,6 +603,23 @@ export function CompassScreen({navigation: _}: Props) {
     ideologyPromptControl.open()
   }
 
+  const handleSaveAffiliation = async () => {
+    if (!pendingNinthId) return
+    const ninthName = Object.entries(NINTH_NAME_TO_COMPASS_ID).find(
+      ([, id]) => id === pendingNinthId,
+    )?.[0]
+    if (!ninthName) return
+    const ninthOption = POLITICAL_AFFILIATION_OPTIONS.ninth.find(
+      n => n.name === ninthName,
+    )
+    if (!ninthOption) return
+    // Preserve existing affiliations (party, etc.) — only replace the ninth
+    const next = affiliations.filter(a => a.type !== 'ninth')
+    next.push(ninthOption)
+    await setAffiliations(next)
+    navigation.goBack()
+  }
+
   const webLeftMargin = {
     marginLeft: 'calc(50% - 300px)',
     minHeight: '100%',
@@ -533,54 +639,87 @@ export function CompassScreen({navigation: _}: Props) {
         <Header.BackButton />
         <Header.Content>
           <Header.TitleText>
-            {translate(msg`Political Compass`)}
+            {isAffiliateMode
+              ? translate(msg`Find your position`)
+              : translate(msg`Political Compass`)}
           </Header.TitleText>
         </Header.Content>
-        <Header.Slot />
+        {isAffiliateMode ? (
+          <Header.Slot>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={translate(msg`Save position`)}
+              disabled={!pendingNinthId}
+              onPress={handleSaveAffiliation}
+              style={[
+                a.px_md,
+                a.py_sm,
+                a.rounded_md,
+                {
+                  backgroundColor: pendingNinthId
+                    ? t.palette.primary_500
+                    : t.palette.contrast_200,
+                  opacity: pendingNinthId ? 1 : 0.5,
+                },
+              ]}>
+              <Text
+                style={[
+                  a.font_bold,
+                  {color: pendingNinthId ? '#fff' : t.palette.contrast_400},
+                ]}>
+                <Trans>Save</Trans>
+              </Text>
+            </TouchableOpacity>
+          </Header.Slot>
+        ) : (
+          <Header.Slot />
+        )}
       </Header.Outer>
 
       <View style={[a.flex_1, gtMobile && web(webLeftMargin)]}>
         <View style={[a.flex_1, a.relative, a.overflow_hidden]}>
-          {/* Toggle Button */}
-          <View
-            style={[
-              a.absolute,
-              {left: 20, top: 20, zIndex: 10},
-              gtMobile && {left: 80},
-            ]}>
-            <View style={[a.gap_sm]}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => {
-                  setIs25ths(!is25ths)
-                  setShow69ths(false)
-                  setSelectedQuadrant(null)
-                  setSelectedIdeology(null)
-                  ideologyPromptControl.close()
-                  handleRecenter()
-                }}
-                style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
-                <Text style={[a.font_bold, t.atoms.text]}>
-                  {is25ths ? <Trans>9ths</Trans> : <Trans>25ths</Trans>}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => {
-                  setShow69ths(current => !current)
-                  setSelectedQuadrant(null)
-                  setSelectedQuadrantStats(null)
-                  setSelectedIdeology(null)
-                  ideologyPromptControl.close()
-                  handleRecenter()
-                }}
-                style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
-                <Text style={[a.font_bold, t.atoms.text]}>
-                  69ths: {show69ths ? translate(msg`On`) : translate(msg`Off`)}
-                </Text>
-              </TouchableOpacity>
+          {/* Toggle Button (hidden in affiliate mode — keep 9ths only) */}
+          {!isAffiliateMode && (
+            <View
+              style={[
+                a.absolute,
+                {left: 20, top: 20, zIndex: 10},
+                gtMobile && {left: 80},
+              ]}>
+              <View style={[a.gap_sm]}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setIs25ths(!is25ths)
+                    setShow69ths(false)
+                    setSelectedQuadrant(null)
+                    setSelectedIdeology(null)
+                    ideologyPromptControl.close()
+                    handleRecenter()
+                  }}
+                  style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
+                  <Text style={[a.font_bold, t.atoms.text]}>
+                    {is25ths ? <Trans>9ths</Trans> : <Trans>25ths</Trans>}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setShow69ths(current => !current)
+                    setSelectedQuadrant(null)
+                    setSelectedQuadrantStats(null)
+                    setSelectedIdeology(null)
+                    ideologyPromptControl.close()
+                    handleRecenter()
+                  }}
+                  style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
+                  <Text style={[a.font_bold, t.atoms.text]}>
+                    69ths: {show69ths ? translate(msg`On`) : translate(msg`Off`)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           {!show69ths ? (
             <>
@@ -807,7 +946,15 @@ export function CompassScreen({navigation: _}: Props) {
                       },
                     ]}
                     activeOpacity={0.8}
-                    onPress={() => handleQuadrantPress(quadrant)}>
+                    onPress={() => {
+                      if (isAffiliateMode) {
+                        setPendingNinthId(quadrant.id)
+                        setSelectedQuadrant(quadrant)
+                        setSelectedQuadrantStats(buildQuadrantStats(quadrant))
+                      } else {
+                        handleQuadrantPress(quadrant)
+                      }
+                    }}>
                     {quadrant.gradientColors ? (
                       <LinearGradient
                         colors={quadrant.gradientColors as unknown as readonly [string, string, ...string[]]}
@@ -848,6 +995,36 @@ export function CompassScreen({navigation: _}: Props) {
                           </Text>
                         ) : null}
                       </View>
+                    )}
+                    {/* Party heatmap overlay in affiliate mode */}
+                    {isAffiliateMode && previewPartyId && (
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.cellFill,
+                          {
+                            backgroundColor: '#000',
+                            opacity:
+                              (PARTY_COMPASS_PROFILE_BY_ID[previewPartyId]
+                                ?.ninthDistribution[quadrant.id] || 0) /
+                              100 *
+                              0.65,
+                          },
+                        ]}
+                      />
+                    )}
+                    {/* Pending selection ring in affiliate mode */}
+                    {isAffiliateMode && pendingNinthId === quadrant.id && (
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.cellFill,
+                          {
+                            borderWidth: 3,
+                            borderColor: t.palette.primary_500,
+                          },
+                        ]}
+                      />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -957,20 +1134,130 @@ export function CompassScreen({navigation: _}: Props) {
             </View>
           </View>
 
+          {/* Party selection panel (affiliate mode only) */}
+          {isAffiliateMode && (
+            <View
+              style={[
+                a.absolute,
+                {
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 20,
+                },
+              ]}>
+              {/* Hint text */}
+              {!previewPartyId && !pendingNinthId && (
+                <View
+                  style={[
+                    a.align_center,
+                    a.py_sm,
+                    {backgroundColor: t.palette.primary_500 + 'e0'},
+                  ]}>
+                  <Text style={[a.text_sm, a.font_bold, {color: '#fff'}]}>
+                    <Trans>
+                      Tap a party to see where its members cluster, or tap a cell
+                      to select your position
+                    </Trans>
+                  </Text>
+                </View>
+              )}
+              {/* Party list */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  a.gap_sm,
+                  a.px_md,
+                  a.py_md,
+                  t.atoms.bg,
+                  {
+                    borderTopWidth: 1,
+                    borderTopColor: t.palette.contrast_100,
+                  },
+                ]}>
+                {PARTY_COMPASS_PROFILES.map(party => {
+                  const isActive = previewPartyId === party.id
+                  return (
+                    <TouchableOpacity
+                      key={party.id}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        setPreviewPartyId(isActive ? null : party.id)
+                      }
+                      style={[
+                        a.px_md,
+                        a.py_sm,
+                        a.rounded_md,
+                        a.gap_xs,
+                        {
+                          backgroundColor: isActive
+                            ? party.color + '25'
+                            : t.palette.contrast_50,
+                          borderWidth: isActive ? 2 : 0,
+                          borderColor: party.color,
+                          minWidth: 110,
+                        },
+                      ]}>
+                      <View style={[a.flex_row, a.align_center, a.gap_sm]}>
+                        <View
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: party.color,
+                          }}
+                        />
+                        <Text
+                          style={[
+                            a.font_bold,
+                            a.text_sm,
+                            t.atoms.text,
+                          ]}>
+                          {party.name}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          a.text_xs,
+                          t.atoms.text_contrast_medium,
+                        ]}>
+                        {party.totalMembers.toLocaleString()} members
+                      </Text>
+                      {isActive && (
+                        <Text
+                          style={[
+                            a.text_xs,
+                            {color: party.color},
+                            a.font_bold,
+                          ]}>
+                          {party.descriptors.slice(0, 2).join(' • ')}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  )
+                })}
+              </ScrollView>
+            </View>
+          )}
+
           {/* Selected Quadrant Overlay */}
           {selectedQuadrant && !show69ths && (
             <View
               style={[
                 a.absolute,
-                {bottom: gtMobile ? 40 : 60 + insets.bottom, left: 20},
+                {
+                  bottom: isAffiliateMode
+                    ? 140 + insets.bottom
+                    : gtMobile
+                      ? 40
+                      : 60 + insets.bottom,
+                  left: 20,
+                },
                 gtMobile && {left: 40, width: 350},
                 !gtMobile && {right: 20},
                 a.p_lg,
                 a.rounded_xl,
-                t.atoms.bg_contrast_25, // Fallback? No, replace with cardBgColor?
-                // Wait, in previous step I did NOT apply cardBgColor to Overlay!
-                // Line 393 shows `t.atoms.bg_contrast_25`.
-                // I need to replace it with cardBgColor AND remove border.
                 cardBgColor,
                 web({backdropFilter: 'blur(12px)'}),
                 a.shadow_lg,
@@ -1007,49 +1294,134 @@ export function CompassScreen({navigation: _}: Props) {
                 </TouchableOpacity>
               </View>
 
-              <Text style={[a.text_md, t.atoms.text_contrast_high, a.mb_sm]}>
-                <Trans>Top Parties:</Trans>{' '}
-                <Text style={[a.font_bold]}>
-                  PAN, PRI, Movimiento Ciudadano
-                </Text>
-              </Text>
-              <Text style={[a.text_md, t.atoms.text_contrast_high, a.mb_sm]}>
-                <Trans>Top Communities:</Trans>{' '}
-                <Text style={[a.font_bold]}>r/Libertarios, r/CentroMX</Text>
-              </Text>
-
-              <View style={[a.flex_row, a.gap_sm, a.mt_sm]}>
-                <View
-                  style={[
-                    a.flex_1,
-                    a.p_sm,
-                    t.atoms.bg_contrast_100,
-                    a.rounded_md,
-                    a.align_center,
-                  ]}>
-                  <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>
-                    {selectedQuadrantStats?.users}%
+              {isAffiliateMode ? (
+                <>
+                  {/* Party breakdown for this quadrant */}
+                  <View style={[a.gap_xs, a.mb_md]}>
+                    {formatNinthPartyBreakdown(selectedQuadrant.id)
+                      .slice(0, 4)
+                      .map(({party, share}) => (
+                        <View
+                          key={party.id}
+                          style={[
+                            a.flex_row,
+                            a.align_center,
+                            a.gap_sm,
+                          ]}>
+                          <View
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: party.color,
+                            }}
+                          />
+                          <Text
+                            style={[
+                              a.text_sm,
+                              t.atoms.text,
+                              a.flex_1,
+                            ]}>
+                            {party.name}
+                          </Text>
+                          <Text
+                            style={[
+                              a.text_sm,
+                              a.font_bold,
+                              t.atoms.text_contrast_medium,
+                            ]}>
+                            {share}%
+                          </Text>
+                        </View>
+                      ))}
+                  </View>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setPendingNinthId(selectedQuadrant.id)
+                    }}
+                    style={[
+                      a.py_sm,
+                      a.px_md,
+                      a.rounded_md,
+                      a.align_center,
+                      {
+                        backgroundColor:
+                          pendingNinthId === selectedQuadrant.id
+                            ? t.palette.primary_500
+                            : t.palette.contrast_100,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        a.font_bold,
+                        a.text_sm,
+                        {
+                          color:
+                            pendingNinthId === selectedQuadrant.id
+                              ? '#fff'
+                              : undefined,
+                        },
+                      ]}>
+                      {pendingNinthId === selectedQuadrant.id ? (
+                        <Trans>✓ Selected</Trans>
+                      ) : (
+                        <Trans>Set as my position</Trans>
+                      )}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text
+                    style={[
+                      a.text_xs,
+                      a.font_bold,
+                      t.atoms.text_contrast_medium,
+                      a.mb_sm,
+                    ]}>
+                    <Trans>Estimated party distribution</Trans>
                   </Text>
-                  <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
-                    <Trans>of Users</Trans>
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    a.flex_1,
-                    a.p_sm,
-                    t.atoms.bg_contrast_100,
-                    a.rounded_md,
-                    a.align_center,
-                  ]}>
-                  <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>
-                    {selectedQuadrantStats?.active}
-                  </Text>
-                  <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
-                    <Trans>Active</Trans>
-                  </Text>
-                </View>
-              </View>
+                  <View style={[a.gap_xs, a.mb_md]}>
+                    {formatNinthPartyBreakdown(selectedQuadrant.id)
+                      .slice(0, 4)
+                      .map(({party, share}) => (
+                        <View
+                          key={party.id}
+                          style={[
+                            a.flex_row,
+                            a.align_center,
+                            a.gap_sm,
+                          ]}>
+                          <View
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: party.color,
+                            }}
+                          />
+                          <Text
+                            style={[
+                              a.text_sm,
+                              t.atoms.text,
+                              a.flex_1,
+                            ]}>
+                            {party.name}
+                          </Text>
+                          <Text
+                            style={[
+                              a.text_sm,
+                              a.font_bold,
+                              t.atoms.text_contrast_medium,
+                            ]}>
+                            {share}%
+                          </Text>
+                        </View>
+                      ))}
+                  </View>
+                </>
+              )}
             </View>
           )}
 

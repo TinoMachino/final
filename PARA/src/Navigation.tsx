@@ -80,6 +80,7 @@ import {CompassScreen} from '#/screens/Base/CompassScreen'
 import {CreatePostScreen} from '#/screens/Base/CreatePostScreen'
 // Lazy loaded below
 import {MyBaseScreen} from '#/screens/Base/MyBaseScreen'
+import {MyAffiliationsScreen} from '#/screens/Base/MyAffiliationsScreen'
 import {BookmarksScreen} from '#/screens/Bookmarks'
 import {CabildeoDetailScreen} from '#/screens/Communities/CabildeoDetailScreen'
 import {CabildeoListScreen} from '#/screens/Communities/CabildeoListScreen'
@@ -1006,6 +1007,11 @@ function BaseTabNavigator() {
         options={{title: 'My Base'}}
       />
       <BaseTab.Screen
+        name="MyAffiliations"
+        getComponent={() => MyAffiliationsScreen}
+        options={{title: 'My Affiliations'}}
+      />
+      <BaseTab.Screen
         name="Communities"
         getComponent={() => CommunitiesScreen}
         options={{title: 'Communities'}}
@@ -1088,6 +1094,11 @@ const FlatNavigator = ({
         name="MyBase"
         getComponent={() => MyBaseScreen}
         options={{title: title(msg`My Base`)}}
+      />
+      <Flat.Screen
+        name="MyAffiliations"
+        getComponent={() => MyAffiliationsScreen}
+        options={{title: title(msg`My Affiliations`)}}
       />
       <Flat.Screen
         name="Communities"

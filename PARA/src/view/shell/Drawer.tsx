@@ -176,6 +176,7 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
     currentRoute.name === 'DelegateVote' ||
     currentRoute.name === 'CreateCabildeo' ||
     currentRoute.name === 'CreatePosition'
+  const isAtMyBase = currentRoute.name === 'MyBase'
   const {hasSession, currentAccount} = useSession()
 
   // events
@@ -314,6 +315,11 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
     }
   }, [navigation, setDrawerOpen])
 
+  const onPressMyBase = useCallback(() => {
+    setDrawerOpen(false)
+    navigation.navigate('MyBase')
+  }, [navigation, setDrawerOpen])
+
   const onPressFeedback = useCallback(() => {
     Linking.openURL(
       FEEDBACK_FORM_URL({
@@ -370,6 +376,10 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
             />
             <FeedsMenuItem isActive={isAtFeeds} onPress={onPressMyFeeds} />
             <BaseMenuItem isActive={isAtBase} onPress={onPressBase} />
+            <MyBaseMenuItem
+              isActive={isAtMyBase}
+              onPress={onPressMyBase}
+            />
             <CommunitiesMenuItem
               isActive={isAtCommunities}
               onPress={onPressCommunities}
@@ -770,6 +780,32 @@ let BaseMenuItem = ({
   )
 }
 BaseMenuItem = memo(BaseMenuItem)
+
+let MyBaseMenuItem = ({
+  isActive,
+  onPress,
+}: {
+  isActive: boolean
+  onPress: () => void
+}): React.ReactNode => {
+  const t = useTheme()
+  const {_} = useLingui()
+  return (
+    <MenuItem
+      icon={
+        isActive ? (
+          <UserCircleFilled style={[t.atoms.text]} width={iconWidth} />
+        ) : (
+          <UserCircle style={[t.atoms.text]} width={iconWidth} />
+        )
+      }
+      label={_(msg`My Base`)}
+      bold={isActive}
+      onPress={onPress}
+    />
+  )
+}
+MyBaseMenuItem = memo(MyBaseMenuItem)
 
 function MenuItem({icon, label, count, bold, onPress}: MenuItemProps) {
   const t = useTheme()

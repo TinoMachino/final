@@ -54,6 +54,9 @@ export interface RepresentativeItem {
   // Adding optional fields that might be used in UI
   avatar?: string
   description?: string
+  followersCount?: number
+  followingCount?: number
+  postsCount?: number
 }
 
 // --- Policies / Feed Items ---

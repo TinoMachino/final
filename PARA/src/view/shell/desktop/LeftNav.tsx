@@ -621,6 +621,27 @@ function BaseNavItem() {
   )
 }
 
+function MyBaseNavItem() {
+  const pal = usePalette('default')
+
+  return (
+    <NavItem
+      href="/my-base"
+      icon={
+        <UserCircle style={pal.text} aria-hidden={true} width={NAV_ICON_WIDTH} />
+      }
+      iconFilled={
+        <UserCircleFilled
+          style={pal.text}
+          aria-hidden={true}
+          width={NAV_ICON_WIDTH}
+        />
+      }
+      label="My Base"
+    />
+  )
+}
+
 function MessagesNavItem() {
   const pal = usePalette('default')
   const {_} = useLingui()
@@ -786,6 +807,7 @@ export function DesktopLeftNav() {
             label={_(msg`Notifications`)}
           />
           <BaseNavItem />
+          <MyBaseNavItem />
           <MessagesNavItem />
           <CommunitiesNavItem />
           <CabildeoNavItem />

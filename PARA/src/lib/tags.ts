@@ -60,6 +60,12 @@ export const POST_TYPES = {
 export type PostType = (typeof POST_TYPES)[keyof typeof POST_TYPES]
 export type PostFlair = (typeof POST_FLAIRS)[keyof typeof POST_FLAIRS]
 
+export type UserFlair = {
+  id: string
+  label: string
+  color: string
+}
+
 export const USER_FLAIRS = {
   CENTRISM: {id: 'centrism', label: 'Centrism', color: '#FFCC00'},
   AUTH_LEFT: {id: 'auth_left', label: 'Auth Left', color: '#F93A3A'},

@@ -124,7 +124,7 @@ export type CommonNavigatorParams = {
   Highlights: undefined
   SeeHighlightDetails: {highlightId: string}
   Map: undefined
-  Compass: undefined
+  Compass: {initialZoom?: '9ths' | '25ths' | '69ths'; highlightNinth?: string; mode?: 'explore' | 'affiliate'} | undefined
   CabildeoList: {communityId?: string; communityName?: string} | undefined
   CabildeoDetail: {cabildeoUri: string}
   DelegateVote: {cabildeoUri: string}
@@ -160,6 +160,7 @@ export type MyProfileTabNavigatorParams = CommonNavigatorParams & {
 export type BaseTabNavigatorParams = CommonNavigatorParams & {
   Base: undefined
   MyBase: undefined
+  MyAffiliations: undefined
   CommunityProfile: {communityId: string; communityName: string}
   CommunityBadges: {communityId: string; communityName: string}
   PoliciesDashboard: {
@@ -187,6 +188,7 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   Base: undefined
   CreatePost: undefined
   MyBase: undefined
+  MyAffiliations: undefined
   MemesAndDocuments: {mode?: 'Memes' | 'Documents'; view?: 'board' | 'deck'}
   RAQ: undefined
   ProposedRAQList: undefined
@@ -214,6 +216,7 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   BaseTab: undefined
   Base: undefined
   MyBase: undefined
+  MyAffiliations: undefined
   CreatePost: undefined
   CommunityProfile: {communityId: string; communityName: string}
   CommunityBadges: {communityId: string; communityName: string}

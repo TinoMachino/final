@@ -29,6 +29,23 @@ const NINTHS_COLORS = {
   'Lib Right': '#AF52DE',
 } as const
 
+export const NINTH_NAME_TO_COMPASS_ID: Record<string, string> = {
+  'Auth Left': 'auth-left',
+  'Auth Econocenter': 'auth-center',
+  'Auth Right': 'auth-right',
+  'Center Left': 'center-left',
+  'Center Econocenter': 'center',
+  'Center Right': 'center-right',
+  'Lib Left': 'lib-left',
+  'Lib Econocenter': 'lib-center',
+  'Lib Right': 'lib-right',
+}
+
+export const COMPASS_ID_TO_NINTH_NAME: Record<string, string> =
+  Object.fromEntries(
+    Object.entries(NINTH_NAME_TO_COMPASS_ID).map(([name, id]) => [id, name]),
+  )
+
 const NINTH_AFFILIATIONS: PoliticalAffiliation[] = Object.entries(
   NINTHS_COLORS,
 ).map(([name, color]) => ({

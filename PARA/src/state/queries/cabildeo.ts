@@ -14,6 +14,8 @@ import {
   mapCabildeoReadViewToView,
   mapCabildeosToView,
 } from '#/lib/cabildeo-client'
+import {MOCK_CABILDEO_VIEWS} from '#/lib/mock-data/cabildeos'
+import {USE_MOCK_DATA} from '#/lib/services/config'
 import {STALE} from '#/state/queries'
 import {useAgent} from '#/state/session'
 
@@ -42,12 +44,29 @@ export function useCabildeosQuery() {
     queryFn: async () => {
       try {
         const records = await fetchCabildeos(agent)
-        return mapCabildeosToView(records)
+        const views = mapCabildeosToView(records)
+        // In dev mode, if the backend returns empty (migrations missing,
+        // seed not run, etc.) inject mock data so the screen never shows a
+        // blank slate during active development.
+        if (USE_MOCK_DATA && views.length === 0) {
+          console.warn(
+            '[useCabildeosQuery] Backend returned empty — serving mock cabildeos for dev preview.',
+          )
+          return MOCK_CABILDEO_VIEWS
+        }
+        return views
       } catch (err: any) {
-        // Graceful fallback: if the civic endpoint is unavailable (e.g. dev
-        // env without para dataplane), return empty instead of crashing UI.
-        console.warn('Cabildeos fetch failed, returning empty:', err?.message)
-        return []
+        // In dev mode, serve mocks so UI work can continue even when the
+        // backend isn't fully wired. In production, let the error propagate
+        // so React Query's isError state is surfaced to the user.
+        if (USE_MOCK_DATA) {
+          console.warn(
+            '[useCabildeosQuery] Fetch failed — serving mock cabildeos for dev preview. Error:',
+            err?.message,
+          )
+          return MOCK_CABILDEO_VIEWS
+        }
+        throw err
       }
     },
   })
@@ -62,8 +81,21 @@ export function useCabildeoQuery(cabildeoUri: string | undefined) {
     placeholderData: previous => previous,
     queryFn: async () => {
       if (!cabildeoUri) return null
-      const cabildeo = await fetchCabildeo(agent, cabildeoUri)
-      return cabildeo ? mapCabildeoReadViewToView(cabildeo) : null
+      try {
+        const cabildeo = await fetchCabildeo(agent, cabildeoUri)
+        return cabildeo ? mapCabildeoReadViewToView(cabildeo) : null
+      } catch (err: any) {
+        if (USE_MOCK_DATA) {
+          const mock = MOCK_CABILDEO_VIEWS.find(c => c.uri === cabildeoUri)
+          if (mock) {
+            console.warn(
+              '[useCabildeoQuery] Fetch failed — serving mock cabildeo for dev preview.',
+            )
+            return mock
+          }
+        }
+        throw err
+      }
     },
   })
 }

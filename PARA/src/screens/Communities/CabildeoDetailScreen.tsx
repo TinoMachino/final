@@ -12,6 +12,7 @@ import {
 import {
   useCabildeoPositionsQuery,
   useCabildeoQuery,
+  useCabildeosQuery,
   useVoteMutation,
 } from '#/state/queries/cabildeo'
 import {useTheme} from '#/alf'
@@ -20,6 +21,99 @@ import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'CabildeoDetail'>
+
+function RelatedCabildeos({
+  currentUri,
+  community,
+}: {
+  currentUri: string
+  community: string
+}) {
+  const t = useTheme()
+  const navigation = useNavigation<NavigationProp>()
+  const {data: allCabildeos = []} = useCabildeosQuery()
+
+  const related = allCabildeos.filter(
+    c => c.uri !== currentUri && c.community === community,
+  )
+
+  if (related.length === 0) return null
+
+  return (
+    <View style={{marginTop: 24, marginBottom: 16}}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          t.atoms.text,
+          {marginBottom: 12, fontSize: 16},
+        ]}>
+        Más en {community}
+      </Text>
+      <View style={{gap: 10}}>
+        {related.slice(0, 3).map(c => {
+          const phaseMeta =
+            {
+              draft: {label: 'Borrador', color: '#6B7280'},
+              open: {label: 'Abierto', color: '#0EA5E9'},
+              deliberating: {label: 'Deliberando', color: '#F59E0B'},
+              voting: {label: 'Votación', color: '#22C55E'},
+              resolved: {label: 'Resuelto', color: '#8B5CF6'},
+            }[c.phase] || {label: c.phase, color: '#6B7280'}
+
+          return (
+            <TouchableOpacity
+              accessibilityRole="button"
+              key={c.uri}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate('CabildeoDetail', {cabildeoUri: c.uri})
+              }
+              style={[
+                {
+                  padding: 14,
+                  borderRadius: 14,
+                  borderLeftWidth: 3,
+                  borderLeftColor: phaseMeta.color,
+                },
+                t.atoms.bg_contrast_25,
+              ]}>
+              <Text style={[t.atoms.text, {fontSize: 14, fontWeight: '700'}]}>
+                {c.title}
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginTop: 6,
+                }}>
+                <View
+                  style={{
+                    backgroundColor: phaseMeta.color + '18',
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                  }}>
+                  <Text
+                    style={{
+                      color: phaseMeta.color,
+                      fontSize: 10,
+                      fontWeight: '800',
+                    }}>
+                    {phaseMeta.label}
+                  </Text>
+                </View>
+                <Text style={[t.atoms.text_contrast_medium, {fontSize: 11}]}>
+                  🗳️ {c.voteTotals.total} · 🗣️ {c.positionCounts.total}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+    </View>
+  )
+}
 
 const PHASE_ORDER: CabildeoPhase[] = [
   'draft',
@@ -283,7 +377,15 @@ export function CabildeoDetailScreen({route}: Props) {
 
           {/* ─── Community Tags ─── */}
           <View style={styles.communityRow}>
-            <View
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate('CommunityProfile', {
+                  communityId: cabildeo.community,
+                  communityName: cabildeo.community,
+                })
+              }
               style={[
                 styles.communityPill,
                 {backgroundColor: t.palette.primary_500 + '20'},
@@ -293,9 +395,9 @@ export function CabildeoDetailScreen({route}: Props) {
                   styles.communityPillText,
                   {color: t.palette.primary_500},
                 ]}>
-                {cabildeo.community}
+                {cabildeo.community} →
               </Text>
-            </View>
+            </TouchableOpacity>
             {cabildeo.communities?.map((c, i) => (
               <View
                 key={i}
@@ -1007,6 +1109,12 @@ export function CabildeoDetailScreen({route}: Props) {
               })
             )}
           </View>
+
+          {/* ─── Related Cabildeos ─── */}
+          <RelatedCabildeos
+            currentUri={cabildeo.uri}
+            community={cabildeo.community}
+          />
         </Layout.Center>
       </ScrollView>
     </Layout.Screen>

@@ -30,6 +30,50 @@ import * as Layout from '#/components/Layout'
 import {WebScrollControls} from '#/components/WebScrollControls'
 import {type PolicyItem} from './types'
 
+const PHASE_META: Record<string, {label: string; color: string}> = {
+  draft: {label: 'Borrador', color: '#6B7280'},
+  open: {label: 'Abierto', color: '#0EA5E9'},
+  deliberating: {label: 'Deliberando', color: '#F59E0B'},
+  voting: {label: 'Votación', color: '#22C55E'},
+  resolved: {label: 'Resuelto', color: '#8B5CF6'},
+}
+
+function PhasePill({phase}: {phase?: string}) {
+  const meta = PHASE_META[phase || ''] || PHASE_META.draft
+  return (
+    <View
+      style={{
+        backgroundColor: meta.color + '18',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        marginTop: 8,
+      }}>
+      <Text style={{color: meta.color, fontSize: 10, fontWeight: '800'}}>
+        {meta.label}
+      </Text>
+    </View>
+  )
+}
+
+function VoteStats({item}: {item: PolicyItem}) {
+  return (
+    <View style={{flexDirection: 'row', gap: 12, marginTop: 10, alignItems: 'center'}}>
+      {typeof item.voteCount === 'number' && (
+        <Text style={{fontSize: 12, fontWeight: '700', opacity: 0.7}}>
+          🗳️ {item.voteCount} {item.voteCount === 1 ? 'voto' : 'votos'}
+        </Text>
+      )}
+      {typeof item.participantCount === 'number' && (
+        <Text style={{fontSize: 12, fontWeight: '700', opacity: 0.7}}>
+          🗣️ {item.participantCount} {item.participantCount === 1 ? 'posición' : 'posiciones'}
+        </Text>
+      )}
+    </View>
+  )
+}
+
 export function PoliciesDashboard({route}: {route: any}) {
   const t = useTheme()
   useLingui()
@@ -330,10 +374,23 @@ export function PoliciesDashboard({route}: {route: any}) {
                               ]}>
                               {item.title}
                             </Text>
-                            <View style={styles.featuredBadge}>
-                              <Text style={styles.featuredBadgeText}>
-                                Featured
-                              </Text>
+                            <View style={{flexDirection: 'row', gap: 6, marginTop: 6}}>
+                              <View style={styles.featuredBadge}>
+                                <Text style={styles.featuredBadgeText}>
+                                  Featured
+                                </Text>
+                              </View>
+                              {item.phase && (
+                                <View
+                                  style={[
+                                    styles.featuredBadge,
+                                    {backgroundColor: 'rgba(255,255,255,0.25)'},
+                                  ]}>
+                                  <Text style={styles.featuredBadgeText}>
+                                    {PHASE_META[item.phase]?.label || item.phase}
+                                  </Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         </View>
@@ -400,9 +457,8 @@ export function PoliciesDashboard({route}: {route: any}) {
                         <Text style={[styles.policyTitle, t.atoms.text]}>
                           {item.title}
                         </Text>
-                      </View>
-                      <View style={{alignItems: 'flex-end'}}>
-                        {/* Stats removed for cleaner look, moved to Details */}
+                        <PhasePill phase={item.phase} />
+                        <VoteStats item={item} />
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -466,9 +522,8 @@ export function PoliciesDashboard({route}: {route: any}) {
                         <Text style={[styles.policyTitle, t.atoms.text]}>
                           {item.title}
                         </Text>
-                      </View>
-                      <View style={{alignItems: 'flex-end'}}>
-                        {/* Stats removed */}
+                        <PhasePill phase={item.phase} />
+                        <VoteStats item={item} />
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -514,6 +569,8 @@ export function PoliciesDashboard({route}: {route: any}) {
                         <Text style={[styles.policyTitle, t.atoms.text]}>
                           {item.title}
                         </Text>
+                        <PhasePill phase={item.phase} />
+                        <VoteStats item={item} />
                       </View>
                     </View>
                   </TouchableOpacity>

@@ -164,6 +164,7 @@ export function CommunityProfileScreen() {
   const displayedTab = isDraft ? 'about' : activeTab
   const [joinOverride, setJoinOverride] = useState<boolean | null>(null)
   const [isPTR, setIsPTR] = useState(false)
+  const [showEstandarte, setShowEstandarte] = useState(true)
   const isJoined = joinOverride ?? (board?.viewerMembershipState === 'active')
   const acceptInviteMutation = useAcceptDraftInviteMutation()
   const joinMutation = useJoinCommunityMutation()
@@ -335,17 +336,12 @@ export function CommunityProfileScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
         <Layout.Center>
-          {/* Enhanced Hero Banner Section */}
+          {/* Hero Banner Section */}
           <View
             style={[
               styles.heroBanner,
-              {backgroundColor: t.palette.primary_500},
+              {backgroundColor: t.atoms.bg.backgroundColor},
             ]}>
-            <CommunityEstandarte
-              colors={getCommunityEstandarte(resolvedCommunityName)}
-              height={6}
-              style={{borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}
-            />
             <View style={styles.heroContent}>
               {/* Community Avatar and Name Row */}
               <View style={styles.heroTopRow}>
@@ -997,6 +993,34 @@ export function CommunityProfileScreen() {
                   <Text style={[styles.aboutTitle, pal.text]}>
                     <Trans>About this Community</Trans>
                   </Text>
+
+                  {/* Estandarte toggle */}
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => setShowEstandarte(v => !v)}
+                    style={[
+                      styles.estandarteToggle,
+                      {borderColor: t.palette.contrast_100},
+                    ]}>
+                    <Text style={[styles.estandarteToggleText, pal.text]}>
+                      {showEstandarte ? 'Hide estandarte' : 'Show estandarte'}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: t.palette.primary_500,
+                      }}>
+                      {showEstandarte ? '▲' : '▼'}
+                    </Text>
+                  </TouchableOpacity>
+                  {showEstandarte && (
+                    <CommunityEstandarte
+                      colors={getCommunityEstandarte(resolvedCommunityName)}
+                      height={8}
+                      style={{marginBottom: 12}}
+                    />
+                  )}
+
                   <View style={styles.badgesSection}>
                     <View style={styles.badgesSectionHeader}>
                       <Text style={[styles.badgesSectionTitle, pal.text]}>
@@ -1333,12 +1357,11 @@ const styles = StyleSheet.create({
   communityNameCompact: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
   },
   communitySubtitle: {
     fontSize: 13,
     lineHeight: 18,
-    color: 'rgba(255, 255, 255, 0.82)',
+    opacity: 0.7,
     maxWidth: 280,
   },
   followButton: {
@@ -1355,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   memberStatsText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
+    opacity: 0.8,
   },
   voterStatsRow: {
     flexDirection: 'row',
@@ -1367,7 +1390,6 @@ const styles = StyleSheet.create({
   voterStatsText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
   },
   documentsButton: {
     flexDirection: 'row',
@@ -1687,6 +1709,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
+  },
+  estandarteToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  estandarteToggleText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   aboutText: {
     fontSize: 14,

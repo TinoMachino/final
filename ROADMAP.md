@@ -45,6 +45,31 @@ This roadmap outlines the planned development phases for the Veintiuno platform 
 - [x] **Readiness probe** (`/_ready`) — DB + Redis health checks
 - [x] **Redis resilience** — retry strategy, timeouts, reconnect logging
 
+### Cabildeo & Navigation (Day 6)
+- [x] **Cabildeo in Drawer/LeftNav** — promoted to first-class navigation
+- [x] **BackButton fallback** — custom escape routes (Communities → Base)
+- [x] **Advanced demo seeding** — 20 users, 20 cabildeos, 200+ votes, 80+ posts
+- [x] **Mock data fallback** — `USE_MOCK_DATA` for dev mode
+- [x] **Phase badges on Policy cards** — vote counts + position counts
+- [x] **Community link in detail** — navigable community pill
+- [x] **Related cabildeos** — same-community suggestions
+- [x] **Optimistic vote updates** — instant UI feedback with rollback
+- [x] **Position invalidation** — tab stays fresh after voting
+- [x] **Race condition fix** — state reset keyed by URI
+
+### Political Identity & MyBase Redesign (Day 7)
+- [x] **MyBase tabbed layout** — PagerWithHeader with Resumen | Votos | Comunidades
+- [x] **MyBase in Drawer/LeftNav** — direct access from main navigation
+- [x] **CompassMini widget** — 3×3 grid with party dots + position label
+- [x] **Political affiliation flow** — party selection + compass position
+- [x] **Party→Ninth auto-sync** — changing party updates compass automatically
+- [x] **Single party restriction** — only one party at a time
+- [x] **Manual vs Suggested indicator** — badge/chip showing ninth origin
+- [x] **Flair persistence** — stored in AsyncStorage, restored on launch
+- [x] **VoteAnalysis empty state CTA** — actionable "Browse policies to vote →"
+- [x] **CompassScreen honest stats** — party distribution breakdown, no fake numbers
+- [x] **AffiliationChangeModal** — confirmation dialog for position changes
+
 ---
 
 ## Phase 1: Post-MVP Performance & Scalability

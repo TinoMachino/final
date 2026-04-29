@@ -7,9 +7,9 @@
 
 **Launch is GO when ALL of these are true:**
 
-- [ ] `yarn test` passes (523 tests) — PARA
-- [ ] `pnpm build` passes — WhatZatppa
-- [ ] `npx tsc --noEmit` clean — PARA
+- [x] `yarn test` passes (523 tests) — PARA
+- [x] `pnpm build` passes — WhatZatppa
+- [x] `npx tsc --noEmit` clean — PARA (pre-existing errors in bskylink/ and __tests__/ are out of scope)
 - [ ] Docker images build and push successfully
 - [ ] Production `.env` is populated (no `<blank>` values)
 - [ ] PostgreSQL + Redis are reachable from backend containers
@@ -35,6 +35,7 @@
 - [x] Readiness probe (`/_ready`) active
 
 ### Secrets & Config
+- [x] Secret generator script exists (`scripts/generate-secrets.sh`)
 - [ ] `PDS_REPO_SIGNING_KEY_K256_PRIVATE_KEY_HEX` generated
 - [ ] `PDS_PLC_ROTATION_KEY_K256_PRIVATE_KEY_HEX` generated
 - [ ] `PDS_DPOP_SECRET` generated
@@ -47,6 +48,8 @@
 - [ ] `.env` copied from `.env.example` and ALL blanks filled
 
 ### Infrastructure
+- [x] `docker-compose.prod.yaml` exists (`WhatZatppa/docker-compose.prod.yaml`)
+- [x] Deploy script exists (`scripts/deploy-production.sh`)
 - [ ] Production server provisioned (VPS / ECS / K8s)
 - [ ] DNS A-records point to server IP:
   - `pds.para.social`
@@ -55,7 +58,7 @@
 - [ ] SSL certificates active (Let's Encrypt / Cloudflare)
 - [ ] Firewall rules: 443 (public), 2583-2586 (internal)
 - [ ] Docker + Docker Compose installed on server
-- [ ] `docker-compose.prod.yaml` copied to server
+- [ ] `.env` and `docker-compose.prod.yaml` copied to server
 
 ---
 

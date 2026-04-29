@@ -167,6 +167,40 @@ La pantalla `MyBase` ya estaba registrada en ambos navigators:
 
 ---
 
+## PARTE 4: POLISH CÍVICO FINAL (5 ítems)
+
+Tras el rediseño principal, se ejecutó una ronda de polish enfocada en transparencia, persistencia, y estados vacíos accionables.
+
+### 4.1 Flair Persistente (`MyBaseScreen`)
+**Problema:** El flair seleccionado se reseteaba al valor default (`CENTRISM`) cada vez que la app reiniciaba.
+**Solución:** `useEffect` carga `para_selected_flair` desde `AsyncStorage` al montar. Otro `useEffect` persiste el `id` del flair seleccionado cada vez que cambia.
+**Archivo:** `src/screens/Base/MyBaseScreen.tsx`
+
+### 4.2 VoteAnalysis Empty State con CTA (`MyBaseScreen`)
+**Problema:** La tarjeta de análisis de votos mostraba texto plano "No votes yet" sin acción posible.
+**Solución:** Empty state ahora incluye botón **"Browse policies to vote →"** que navega a `CabildeoList`. El `PieChart` usa `showLegend={false}` para evitar duplicación de leyenda.
+**Archivos:** `src/screens/Base/MyBaseScreen.tsx`, `src/components/PieChart.tsx`
+
+### 4.3 CompassMini Label (`MyBaseScreen` header)
+**Problema:** El mini compass en el header no indicaba qué posición política representaba.
+**Solución:** Modo compacto ahora muestra una label legible debajo del grid: `"Center Left • Morena"`, `"Center Left"`, `"Morena"`, o `"Set position"` según los datos disponibles.
+**Archivo:** `src/components/CompassMini.tsx`
+
+### 4.4 Manual vs Suggested Ninth Indicator (`MyAffiliationsScreen`)
+**Problema:** El usuario no sabía si su posición en el compass fue elegida manualmente o sugerida automáticamente por su partido.
+**Solución:** Se añade estado `isNinthManual` (local a la pantalla). La tarjeta "Current Position Detail" muestra:
+- **Badge "Manual"** (azul primario) si el usuario tocó un ninth pill directamente
+- **Chip "Suggested by [Party]"** (color del partido) si el ninth se sincronizó del party seleccionado
+Al cambiar de party, `isNinthManual` se resetea a `false`. Al entrar a la pantalla, se determina por la existencia de un `type: 'ninth'` explícito en stored state.
+**Archivo:** `src/screens/Base/MyAffiliationsScreen.tsx`
+
+### 4.5 CompassScreen Stats Transparentes
+**Problema:** El overlay del compass mostraba números falsos (usuarios falsos, stats inventadas) en los quadrantes no afiliados.
+**Solución:** Eliminada la función `buildQuadrantStats` del path de renderizado. Ahora el overlay muestra el **breakdown real de distribución por partido** para la celda seleccionada (datos de `party-distributions.ts`), con subtítulo honesto: *"Estimated distribution based on member data"*.
+**Archivo:** `src/screens/Base/CompassScreen.tsx`
+
+---
+
 ## PRÓXIMAS TAREAS (DÍA 8+)
 
 - [ ] Seeding quality: remover nombres de partido del texto de posts en `para-demo.ts` (dejar solo en metadata)

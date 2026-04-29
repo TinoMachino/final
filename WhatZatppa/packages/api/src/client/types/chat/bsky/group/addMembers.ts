@@ -11,7 +11,6 @@ import {
   type OmitKey,
 } from '../../../../util'
 import type * as ChatBskyConvoDefs from '../convo/defs.js'
-import type * as ChatBskyActorDefs from '../actor/defs.js'
 
 const is$typed = _is$typed,
   validate = _validate
@@ -26,7 +25,6 @@ export interface InputSchema {
 
 export interface OutputSchema {
   convo: ChatBskyConvoDefs.ConvoView
-  addedMembers?: ChatBskyActorDefs.ProfileViewBasic[]
 }
 
 export interface CallOptions {

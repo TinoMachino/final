@@ -33,10 +33,6 @@
           "type": "ref",
           "ref": "#statusView"
         },
-        "cabildeoLive": {
-          "type": "ref",
-          "ref": "com.para.civic.defs#cabildeoLive"
-        },
         "debug": {
           "type": "unknown",
           "description": "Debug information for internal development"
@@ -79,10 +75,6 @@
         "status": {
           "type": "ref",
           "ref": "#statusView"
-        },
-        "cabildeoLive": {
-          "type": "ref",
-          "ref": "com.para.civic.defs#cabildeoLive"
         },
         "debug": {
           "type": "unknown",
@@ -139,10 +131,6 @@
         "status": {
           "type": "ref",
           "ref": "#statusView"
-        },
-        "cabildeoLive": {
-          "type": "ref",
-          "ref": "com.para.civic.defs#cabildeoLive"
         },
         "debug": {
           "type": "unknown",

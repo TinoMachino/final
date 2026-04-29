@@ -5,19 +5,9 @@ import { keyBy } from '@atproto/common'
 import { parseJsonBytes } from '../../../hydration/util'
 import { app, chat } from '../../../lexicons/index.js'
 import { Service } from '../../../proto/bsky_connect'
-import {
-  ParaContributions,
-  ParaCabildeoLive,
-  ParaProfileStats,
-  ParaStatusView,
-  VerificationMeta,
-} from '../../../proto/bsky_pb'
+import { VerificationMeta } from '../../../proto/bsky_pb'
 import { Database } from '../db'
 import { Verification } from '../db/tables/verification'
-import {
-  activeHostPresenceExistsSql,
-  mapActorCabildeoLive,
-} from '../cabildeo-live'
 import { getRecords } from './records'
 
 type VerifiedBy = {
@@ -49,11 +39,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       (did) => `at://${did}/com.germnetwork.declaration/self`,
     )
     const { ref } = db.db.dynamic
-    const now = new Date()
     const [
       handlesRes,
       verificationsReceived,
-      cabildeoLiveRows,
       profiles,
       statuses,
       chatDeclarations,
@@ -82,37 +70,6 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         .where('actor.trustedVerifier', '=', true)
         .orderBy('sortedAt', 'asc')
         .execute(),
-      db.db
-        .selectFrom('cabildeo_live_presence')
-        .innerJoin(
-          'cabildeo_live_session',
-          'cabildeo_live_session.cabildeo',
-          'cabildeo_live_presence.cabildeo',
-        )
-        .innerJoin(
-          'cabildeo_cabildeo',
-          'cabildeo_cabildeo.uri',
-          'cabildeo_live_presence.cabildeo',
-        )
-        .where('cabildeo_live_presence.actorDid', 'in', dids)
-        .where('cabildeo_live_presence.expiresAt', '>', now.toISOString())
-        .where('cabildeo_live_session.endedAt', 'is', null)
-        .where(activeHostPresenceExistsSql('cabildeo_live_session', now))
-        .where('cabildeo_cabildeo.phase', 'in', [
-          'open',
-          'deliberating',
-          'voting',
-        ])
-        .select([
-          'cabildeo_live_presence.actorDid as actorDid',
-          'cabildeo_live_presence.cabildeo as cabildeo',
-          'cabildeo_cabildeo.community as community',
-          'cabildeo_cabildeo.phase as phase',
-          'cabildeo_live_presence.expiresAt as expiresAt',
-          'cabildeo_live_session.liveUri as liveUri',
-        ])
-        .orderBy('cabildeo_live_presence.expiresAt', 'desc')
-        .execute(),
       getRecords(db)({ uris: profileUris }),
       getRecords(db)({ uris: statusUris }),
       getRecords(db)({ uris: chatDeclarationUris }),
@@ -129,12 +86,6 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       },
       new Map<string, Selectable<Verification>[]>(),
     )
-    const cabildeoLiveByActorDid = cabildeoLiveRows.reduce((acc, cur) => {
-      if (!acc.has(cur.actorDid)) {
-        acc.set(cur.actorDid, new ParaCabildeoLive(mapActorCabildeoLive(cur)))
-      }
-      return acc
-    }, new Map<string, ParaCabildeoLive>())
 
     const byDid = keyBy(handlesRes, 'did')
     const actors = dids.map((did, i) => {
@@ -232,7 +183,6 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         trustedVerifier: row?.trustedVerifier ?? false,
         verifiedBy,
         statusRecord: status,
-        cabildeoLive: cabildeoLiveByActorDid.get(did),
         germRecord: germDeclaration,
         tags: [],
         profileTags: [],
@@ -266,46 +216,5 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .set({ upstreamStatus })
       .where('did', '=', actorDid)
       .execute()
-  },
-
-  async getParaProfileStats(req) {
-    const [stats, status] = await Promise.all([
-      db.db
-        .selectFrom('para_profile_stats')
-        .selectAll()
-        .where('did', '=', req.actorDid)
-        .executeTakeFirst(),
-      db.db
-        .selectFrom('para_status')
-        .selectAll()
-        .where('did', '=', req.actorDid)
-        .executeTakeFirst(),
-    ])
-
-    return {
-      actorDid: req.actorDid,
-      stats: stats
-        ? new ParaProfileStats({
-            influence: stats.influence,
-            votesReceivedAllTime: stats.votesReceivedAllTime,
-            votesCastAllTime: stats.votesCastAllTime,
-            contributions: new ParaContributions({
-              policies: stats.policies,
-              matters: stats.matters,
-              comments: stats.comments,
-            }),
-            activeIn: stats.activeIn ?? [],
-            computedAt: stats.computedAt,
-          })
-        : undefined,
-      status: status
-        ? new ParaStatusView({
-            status: status.status,
-            party: status.party ?? undefined,
-            community: status.community ?? undefined,
-            createdAt: status.createdAt,
-          })
-        : undefined,
-    }
   },
 })

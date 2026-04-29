@@ -379,44 +379,7 @@ export class Views {
         : undefined,
       verification: this.verification(did, state),
       status: this.status(did, state),
-      cabildeoLive: this.profileCabildeoLive(did, state),
       debug: state.ctx?.includeDebugField ? actor.debug : undefined,
-    }
-  }
-
-  profileCabildeoLive(did: DidString, state: HydrationState) {
-    const actor = state.actors?.get(did)
-    if (!actor?.cabildeoLive) return undefined
-
-    const status = actor.status
-    if (status && !status.takedownRef) {
-      const { record, sortedAt } = status
-      const minDuration = 5 * MINUTE
-      const maxDuration = 4 * HOUR
-      const expiresAtMs = record.durationMinutes
-        ? sortedAt.getTime() +
-          Math.max(
-            Math.min(record.durationMinutes * MINUTE, maxDuration),
-            minDuration,
-          )
-        : undefined
-      const statusIsActive = expiresAtMs ? expiresAtMs > Date.now() : true
-      const embed = record.embed
-      if (statusIsActive && embed && isExternalEmbedType(embed)) {
-        if (embed.external.uri !== actor.cabildeoLive.liveUri) {
-          return undefined
-        }
-      } else if (statusIsActive && embed) {
-        return undefined
-      }
-    }
-
-    return {
-      $type: 'com.para.civic.defs#cabildeoLive' as const,
-      cabildeoUri: actor.cabildeoLive.cabildeoUri as AtUriString,
-      community: actor.cabildeoLive.community,
-      phase: actor.cabildeoLive.phase as any,
-      expiresAt: actor.cabildeoLive.expiresAt as DatetimeString,
     }
   }
 

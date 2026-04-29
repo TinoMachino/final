@@ -906,4 +906,3 @@ export class PingResponse extends Message<PingResponse> {
     return proto3.util.equals(PingResponse, a, b);
   }
 }
-

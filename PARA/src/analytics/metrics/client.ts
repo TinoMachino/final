@@ -10,7 +10,9 @@ type Event<M extends Record<string, any>> = {
   metadata: Record<string, any>
 }
 
-const TRACKING_ENDPOINT = env.METRICS_API_HOST + '/t'
+// Privacy-first: default to local Umami, never Bluesky
+const UMAMI_HOST = env.METRICS_API_HOST || 'http://localhost:3001'
+const UMAMI_WEBSITE_ID = 'para-app'
 const logger = Logger.create(Logger.Context.Metric, {})
 
 export class MetricsClient<M extends Record<string, any>> {
@@ -19,7 +21,7 @@ export class MetricsClient<M extends Record<string, any>> {
   private started: boolean = false
   private queue: Event<M>[] = []
   private failedQueue: Event<M>[] = []
-  private flushInterval: NodeJS.Timeout | null = null
+  private flushInterval: ReturnType<typeof setInterval> | null = null
 
   start() {
     if (this.started) return
@@ -65,46 +67,45 @@ export class MetricsClient<M extends Record<string, any>> {
   }
 
   private async sendBatch(events: Event<M>[], isRetry: boolean = false) {
-    logger.debug(`sendBatch: ${events.length}`, {
-      isRetry,
-    })
+    logger.debug(`sendBatch: ${events.length}`, {isRetry})
 
-    try {
-      const body = JSON.stringify({events})
-      if (env.IS_WEB && 'navigator' in globalThis && navigator.sendBeacon) {
-        const success = navigator.sendBeacon(
-          TRACKING_ENDPOINT,
-          new Blob([body], {type: 'application/json'}),
-        )
-        if (!success) {
-          // construct a "network error" for `isNetworkError` to work
-          throw new Error(`Failed to fetch: sendBeacon returned false`)
-        }
-      } else {
-        const res = await fetch(TRACKING_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+    // Send each event individually to local Umami (privacy-first, no third parties)
+    for (const e of events) {
+      try {
+        const body = JSON.stringify({
+          type: 'event',
+          payload: {
+            website: UMAMI_WEBSITE_ID,
+            hostname: 'para.local',
+            url: e.metadata?.screen || '/',
+            referrer: '',
+            name: String(e.event),
+            data: {
+              ...e.payload,
+              ...e.metadata,
+              time: e.time,
+            },
           },
-          body: JSON.stringify({events}),
-          keepalive: true,
         })
 
-        if (!res.ok) {
-          const error = await res.text().catch(() => 'Unknown error')
-          // construct a "network error" for `isNetworkError` to work
-          throw new Error(`${res.status} Failed to fetch — ${error}`)
+        if (env.IS_WEB && 'navigator' in globalThis && navigator.sendBeacon) {
+          navigator.sendBeacon(
+            `${UMAMI_HOST}/api/collect`,
+            new Blob([body], {type: 'application/json'}),
+          )
+        } else {
+          await fetch(`${UMAMI_HOST}/api/collect`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body,
+            keepalive: true,
+          })
+        }
+      } catch (err: any) {
+        if (isNetworkError(err)) {
+          if (!isRetry) this.failedQueue.push(e)
         }
       }
-    } catch (e: any) {
-      if (isNetworkError(e)) {
-        if (isRetry) return // retry once
-        this.failedQueue.push(...events)
-        return
-      }
-      logger.error(`Failed to send metrics`, {
-        safeMessage: e.toString(),
-      })
     }
   }
 

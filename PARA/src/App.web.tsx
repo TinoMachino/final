@@ -1,4 +1,3 @@
-import '#/logger/sentry/setup' // must be near top
 import '#/view/icons'
 import './style.css'
 
@@ -6,7 +5,7 @@ import {Fragment, useEffect, useState} from 'react'
 import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
-import * as Sentry from '@sentry/react-native'
+
 
 import {QueryProvider} from '#/lib/react-query'
 import {ThemeProvider} from '#/lib/ThemeContext'
@@ -241,4 +240,4 @@ function App() {
   )
 }
 
-export default Sentry.wrap(App)
+export default App

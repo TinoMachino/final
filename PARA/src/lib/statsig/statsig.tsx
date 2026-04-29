@@ -1,22 +1,19 @@
-import {type Gate} from './gates'
-
 /**
- * @deprecated use `logger.metric()` instead
+ * Statsig integration — STRIPPED.
+ *
+ * All third-party analytics have been removed for privacy.
+ * This file remains as a no-op shim so existing imports don't break.
+ * The real analytics flow goes through `useAnalytics()` → local Umami.
  */
+
 export function logEvent(
   _eventName: string,
-  _rawMetadata: any,
-  _options: {
-    /**
-     * Send to our data lake only, not to StatSig
-     */
-    lake?: boolean
-  } = {lake: false},
+  _rawMetadata?: any,
+  _options?: {lake?: boolean},
 ) {}
 
-const fn = () => false
-export function useGate(): (_gateName: Gate, _options?: any) => boolean {
-  return fn
+export function useGate(): (_gateName: string, _options?: any) => boolean {
+  return () => false
 }
 
 export function Provider({children}: {children: React.ReactNode}) {

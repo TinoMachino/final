@@ -88,7 +88,7 @@ export const CHAT_PROXY_DID: Did =
  * Metrics API host
  */
 export const METRICS_API_HOST: string =
-  process.env.EXPO_PUBLIC_METRICS_API_HOST || 'https://events.bsky.app'
+  process.env.EXPO_PUBLIC_METRICS_API_HOST || ''
 
 /**
  * Growthbook API host

@@ -33,6 +33,7 @@ import {
 import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {ColorPalette_Stroke2_Corner0_Rounded as PaletteIcon} from '#/components/icons/ColorPalette'
 import {Header, Screen} from '#/components/Layout'
 import * as Prompt from '#/components/Prompt'
@@ -219,6 +220,31 @@ const buildQuadrantStats = (quadrant: Quadrant) => {
   }
 }
 
+const POLICY_CATEGORIES = [
+  {id: 'public-services', label: 'Public Services'},
+  {id: 'hacienda', label: 'Hacienda'},
+  {id: 'economia', label: 'Economía'},
+  {id: 'social-affairs', label: 'Social Affairs'},
+  {id: 'external-affairs', label: 'External Affairs'},
+  {id: 'internal-affairs', label: 'Internal Affairs'},
+] as const
+
+const buildPolicyBreakdown = (quadrantId: string) => {
+  const seed = quadrantId.split('').reduce((total, char, index) => {
+    return total + char.charCodeAt(0) * (index + 7)
+  }, 0)
+  // Generate 6 percentages that sum to 100
+  const raw = POLICY_CATEGORIES.map((cat, i) => {
+    const value = ((seed * (i + 13)) % 47) + 8 // 8–54 range
+    return {category: cat, value}
+  })
+  const total = raw.reduce((sum, r) => sum + r.value, 0)
+  return raw.map(r => ({
+    ...r.category,
+    share: Math.round((r.value / total) * 100),
+  }))
+}
+
 const buildQuadrants9 = (palette: Palette): Quadrant[] => {
   return BASE_QUADRANTS.map(definition => {
     const gradient = CROSS_GRADIENTS[definition.id]
@@ -342,7 +368,7 @@ const buildQuadrants69 = (palette: Palette): Quadrant[] => {
       } else if (ideology) {
         const isMainBoard = ideology.kind === 'main'
         const color = isMainBoard
-          ? getInterpolatedColor(palette, row, col, 8)
+          ? getInterpolatedColor(palette, row, col, 9)
           : '#f6f4ef'
         quadrants.push({
           id: ideology.id,
@@ -443,6 +469,31 @@ export function CompassScreen({navigation, route}: Props) {
   // Animated values stay stable for the lifetime of the screen.
   const pan = useMemo(() => new Animated.ValueXY(), [])
   const scale = useMemo(() => new Animated.Value(INITIAL_SCALE), [])
+  const highlightPulse = useMemo(() => new Animated.Value(0), [])
+
+  // Subtle light pulse for selected cell highlight
+  useEffect(() => {
+    if (!selectedQuadrant) {
+      highlightPulse.setValue(0)
+      return
+    }
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(highlightPulse, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(highlightPulse, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: false,
+        }),
+      ]),
+    )
+    pulse.start()
+    return () => pulse.stop()
+  }, [selectedQuadrant, highlightPulse])
 
   // Track current scale for gesture calculations
   const currentScale = useRef(INITIAL_SCALE)
@@ -504,24 +555,7 @@ export function CompassScreen({navigation, route}: Props) {
           setPendingNinthId(params.highlightNinth)
         }
 
-        const {width: w} = Dimensions.get('window')
-        const gridSize = Math.min(w - 40, 350)
-        const cellSize = gridSize / targetGridDimension
-        const centerCol = (targetGridDimension - 1) / 2
-        const centerRow = (targetGridDimension - 1) / 2
-        const centerX = (centerCol - quadrant.col) * cellSize
-        const centerY = (centerRow - quadrant.row) * cellSize
-
-        Animated.parallel([
-          Animated.spring(pan, {
-            toValue: {x: centerX, y: centerY},
-            useNativeDriver: false,
-          }),
-          Animated.spring(scale, {
-            toValue: targetShow69ths ? 3 : targetIs25ths ? 2.5 : 2,
-            useNativeDriver: false,
-          }),
-        ]).start()
+        // Highlight without movement — selection state triggers visual feedback
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -575,25 +609,8 @@ export function CompassScreen({navigation, route}: Props) {
     setSelectedQuadrant(quadrant)
     setSelectedQuadrantStats(buildQuadrantStats(quadrant))
 
-    // Zoom to the selected quadrant
-    const {width} = Dimensions.get('window')
-    const gridSize = Math.min(width - 40, 350)
-    const cellSize = gridSize / gridDimension
-    const centerCol = (gridDimension - 1) / 2
-    const centerRow = (gridDimension - 1) / 2
-    const centerX = (centerCol - quadrant.col) * cellSize
-    const centerY = (centerRow - quadrant.row) * cellSize
-
-    Animated.parallel([
-      Animated.spring(pan, {
-        toValue: {x: centerX, y: centerY},
-        useNativeDriver: false,
-      }),
-      Animated.spring(scale, {
-        toValue: show69ths ? 3 : is25ths ? 2.5 : 2,
-        useNativeDriver: false,
-      }),
-    ]).start()
+    // Selection is now indicated by a subtle light highlight on the cell
+    // No pan/scale animation — the grid stays still
   }
 
   const handleSixtyNinthsPress = (id: string) => {
@@ -646,30 +663,17 @@ export function CompassScreen({navigation, route}: Props) {
         </Header.Content>
         {isAffiliateMode ? (
           <Header.Slot>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel={translate(msg`Save position`)}
+            <Button
+              label={translate(msg`Save position`)}
               disabled={!pendingNinthId}
               onPress={handleSaveAffiliation}
-              style={[
-                a.px_md,
-                a.py_sm,
-                a.rounded_md,
-                {
-                  backgroundColor: pendingNinthId
-                    ? t.palette.primary_500
-                    : t.palette.contrast_200,
-                  opacity: pendingNinthId ? 1 : 0.5,
-                },
-              ]}>
-              <Text
-                style={[
-                  a.font_bold,
-                  {color: pendingNinthId ? '#fff' : t.palette.contrast_400},
-                ]}>
+              color="primary"
+              size="small"
+              shape="round">
+              <ButtonText>
                 <Trans>Save</Trans>
-              </Text>
-            </TouchableOpacity>
+              </ButtonText>
+            </Button>
           </Header.Slot>
         ) : (
           <Header.Slot />
@@ -1026,6 +1030,34 @@ export function CompassScreen({navigation, route}: Props) {
                         ]}
                       />
                     )}
+                    {/* Subtle light highlight on selected quadrant */}
+                    {!isAffiliateMode && selectedQuadrant?.id === quadrant.id && (
+                      <Animated.View
+                        pointerEvents="none"
+                        style={[
+                          styles.cellFill,
+                          {
+                            borderWidth: 2,
+                            borderColor: highlightPulse.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.85)'],
+                            }),
+                            backgroundColor: highlightPulse.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.18)'],
+                            }),
+                            shadowColor: '#fff',
+                            shadowOffset: {width: 0, height: 0},
+                            shadowOpacity: highlightPulse.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0, 0.4],
+                            }),
+                            shadowRadius: 8,
+                            elevation: 4,
+                          },
+                        ]}
+                      />
+                    )}
                   </TouchableOpacity>
                 ))}
 
@@ -1335,41 +1367,26 @@ export function CompassScreen({navigation, route}: Props) {
                         </View>
                       ))}
                   </View>
-                  <TouchableOpacity
-                    accessibilityRole="button"
+                  <Button
+                    label={translate(msg`Set as my position`)}
                     onPress={() => {
                       setPendingNinthId(selectedQuadrant.id)
                     }}
-                    style={[
-                      a.py_sm,
-                      a.px_md,
-                      a.rounded_md,
-                      a.align_center,
-                      {
-                        backgroundColor:
-                          pendingNinthId === selectedQuadrant.id
-                            ? t.palette.primary_500
-                            : t.palette.contrast_100,
-                      },
-                    ]}>
-                    <Text
-                      style={[
-                        a.font_bold,
-                        a.text_sm,
-                        {
-                          color:
-                            pendingNinthId === selectedQuadrant.id
-                              ? '#fff'
-                              : undefined,
-                        },
-                      ]}>
+                    color={
+                      pendingNinthId === selectedQuadrant.id
+                        ? 'primary'
+                        : 'secondary'
+                    }
+                    size="small"
+                    shape="round">
+                    <ButtonText>
                       {pendingNinthId === selectedQuadrant.id ? (
                         <Trans>✓ Selected</Trans>
                       ) : (
                         <Trans>Set as my position</Trans>
                       )}
-                    </Text>
-                  </TouchableOpacity>
+                    </ButtonText>
+                  </Button>
                 </>
               ) : (
                 <>
@@ -1419,6 +1436,57 @@ export function CompassScreen({navigation, route}: Props) {
                           </Text>
                         </View>
                       ))}
+                  </View>
+
+                  {/* Policy domain breakdown */}
+                  <Text
+                    style={[
+                      a.text_xs,
+                      a.font_bold,
+                      t.atoms.text_contrast_medium,
+                      a.mb_sm,
+                      a.mt_sm,
+                    ]}>
+                    <Trans>Policy priorities</Trans>
+                  </Text>
+                  <View style={[a.gap_xs, a.mb_sm]}>
+                    {buildPolicyBreakdown(selectedQuadrant.id).map(
+                      ({id, label, share}) => (
+                        <View
+                          key={id}
+                          style={[
+                            a.flex_row,
+                            a.align_center,
+                            a.gap_sm,
+                          ]}>
+                          <View
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 2,
+                              backgroundColor:
+                                selectedQuadrant.color + 'cc',
+                            }}
+                          />
+                          <Text
+                            style={[
+                              a.text_sm,
+                              t.atoms.text,
+                              a.flex_1,
+                            ]}>
+                            {label}
+                          </Text>
+                          <Text
+                            style={[
+                              a.text_sm,
+                              a.font_bold,
+                              t.atoms.text_contrast_medium,
+                            ]}>
+                            {share}%
+                          </Text>
+                        </View>
+                      ),
+                    )}
                   </View>
                 </>
               )}

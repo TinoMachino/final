@@ -528,6 +528,7 @@ PostContent = memo(PostContent)
 
 const styles = StyleSheet.create({
   outer: {
+    paddingTop: 8,
     paddingLeft: 10,
     paddingRight: 15,
     cursor: 'pointer',

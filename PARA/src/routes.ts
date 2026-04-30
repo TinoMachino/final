@@ -132,7 +132,7 @@ export const router = new Router<AllNavigatableRoutes>({
   RAQResults: '/raq/results',
   CommunityRAQ: '/communities/:communityId/raq',
   CommunityVoters: '/communities/:communityId/voters',
-  CommunityBadges: '/communities/:communityId/badges',
+  CommunityRoles: '/communities/:communityId/roles',
   Highlights: '/highlights',
   SeeHighlightDetails: '/highlights/:highlightId',
   DistrictProfile: '/districts/:districtId',

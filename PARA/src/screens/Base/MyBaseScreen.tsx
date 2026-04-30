@@ -37,6 +37,7 @@ import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/component
 import {
   CommunityIcon_Stroke as CommunityIcon,
 } from '#/components/icons/Community'
+import {ArrowLeft_Stroke2_Corner0_Rounded as BackIcon} from '#/components/icons/Arrow'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
 import * as Layout from '#/components/Layout'
@@ -78,6 +79,8 @@ function MyBaseHeader({
   onPressSettings,
   onPressCommunities,
   onPressCompass,
+  onPressPoliticalAffiliation,
+  onPressBack,
 }: {
   profile: any
   influenceScore: number
@@ -88,6 +91,8 @@ function MyBaseHeader({
   onPressSettings: () => void
   onPressCommunities: () => void
   onPressCompass: () => void
+  onPressPoliticalAffiliation: () => void
+  onPressBack: () => void
 }) {
   const t = useTheme()
   const {i18n} = useLingui()
@@ -106,6 +111,12 @@ function MyBaseHeader({
           styles.headerTopBar,
           {backgroundColor: t.palette.primary_500},
         ]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={onPressBack}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <BackIcon size="md" style={{color: 'white'}} />
+        </TouchableOpacity>
         <View style={{flex: 1}} />
         <TouchableOpacity
           accessibilityRole="button"
@@ -151,7 +162,7 @@ function MyBaseHeader({
                     styles.flairBadge,
                     {backgroundColor: activeFlair.color + '20'},
                   ]}
-                  onPress={() => navigation.navigate('PoliticalAffiliation')}>
+                  onPress={onPressPoliticalAffiliation}>
                   <View
                     style={[
                       styles.flairDot,
@@ -174,7 +185,7 @@ function MyBaseHeader({
                     styles.flairBadge,
                     {backgroundColor: t.palette.contrast_300 + '30'},
                   ]}
-                  onPress={() => navigation.navigate('PoliticalAffiliation')}>
+                  onPress={onPressPoliticalAffiliation}>
                   <View
                     style={[
                       styles.flairDot,
@@ -485,7 +496,7 @@ function MyBaseSummaryTab({
       {/* ── VIEW PROFILE LINK ── */}
       <TouchableOpacity
         accessibilityRole="button"
-        style={[styles.viewProfileLink, t.atoms.bg_contrast_25]}
+        style={[styles.viewProfileLink, {backgroundColor: '#e8e8e8'}]}
         onPress={onPressViewProfile}>
         <Text style={[styles.viewProfileText, {color: t.palette.primary_500}]}>
           <Trans>Ver perfil público →</Trans>
@@ -844,6 +855,12 @@ export function MyBaseScreen() {
         onPressSettings={() => navigation.navigate('AccountSettings')}
         onPressCommunities={() => navigation.navigate('Communities')}
         onPressCompass={() => navigation.navigate('MyAffiliations')}
+        onPressPoliticalAffiliation={() => navigation.navigate('PoliticalAffiliation')}
+        onPressBack={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack()
+          }
+        }}
       />
       <MyBaseSummaryTab
         cabildeos={cabildeos}

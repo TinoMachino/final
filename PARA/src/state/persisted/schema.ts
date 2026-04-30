@@ -132,6 +132,7 @@ const schema = z.object({
   raqAnswers: z.record(z.string(), z.number()).optional(),
   raqResults: z.array(z.any()).optional(),
   showPartyShields: z.boolean().optional(),
+  recentCommunities: z.array(z.any()).optional(),
 })
 export type Schema = z.infer<typeof schema>
 
@@ -182,6 +183,7 @@ export const defaults: Schema = {
   raqAnswers: {},
   raqResults: [],
   showPartyShields: true,
+  recentCommunities: [],
 }
 
 export function tryParse(rawData: string): Schema | undefined {

@@ -56,6 +56,10 @@ export function normalizeData(data: Schema) {
       ) || undefined,
   }
 
+  if (next.recentCommunities) {
+    next.recentCommunities = next.recentCommunities.slice(0, 20)
+  }
+
   return next
 }
 

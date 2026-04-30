@@ -35,6 +35,10 @@ import {
 } from '#/components/icons/Bell'
 import {Bookmark, BookmarkFilled} from '#/components/icons/Bookmark'
 import {
+  Library_Filled_Corner0_Rounded as LibraryFilled,
+  Library_Stroke2_Corner0_Rounded as Library,
+} from '#/components/icons/Library'
+import {
   BulletList_Stroke2_Corner0_Rounded as List,
   BulletList_Filled_Corner0_Rounded as ListFilled,
 } from '#/components/icons/BulletList'
@@ -743,9 +747,9 @@ let CabildeoMenuItem = ({
     <MenuItem
       icon={
         isActive ? (
-          <ListFilled style={[t.atoms.text]} width={iconWidth} />
+          <LibraryFilled style={[t.atoms.text]} width={iconWidth} />
         ) : (
-          <List style={[t.atoms.text]} width={iconWidth} />
+          <Library style={[t.atoms.text]} width={iconWidth} />
         )
       }
       label={_(msg`Cabildeo`)}

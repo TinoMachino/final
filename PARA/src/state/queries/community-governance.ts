@@ -165,6 +165,35 @@ export function publishOfficialRepresentative(
   }
 }
 
+export function applyForDeputyRole(
+  governance: CommunityGovernanceView,
+  roleKey: string,
+  applicant: CommunityGovernanceApplicant,
+  actorDid: string,
+  actorHandle?: string,
+) {
+  return {
+    ...governance,
+    deputies: governance.deputies.map(role => {
+      if (role.key !== roleKey) return role
+      // Avoid duplicate applications
+      if (role.applicants.some(existing => applicantIdentity(existing) === applicantIdentity(applicant))) {
+        return role
+      }
+      return {
+        ...role,
+        applicants: [...role.applicants, applicant],
+      }
+    }),
+    editHistory: appendGovernanceHistoryEntry(governance.editHistory, {
+      action: 'role_application',
+      actorDid,
+      actorHandle,
+      summary: `Submitted an application for ${roleKey}.`,
+    }),
+  }
+}
+
 async function fetchGovernanceFromXrpc({
   agent,
   communityName,

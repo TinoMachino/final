@@ -21,7 +21,6 @@ import {
   getModeratorCapabilities,
   isCommunityModerator,
 } from '#/lib/community-governance'
-import {getPostBadges, type PostBadge} from '#/lib/post-flairs'
 import {type NavigationProp} from '#/lib/routes/types'
 import {
   buildCommunitySearchQuery,
@@ -31,36 +30,26 @@ import {cleanError} from '#/lib/strings/errors'
 import {
   publishDeputySelection,
   publishOfficialRepresentative,
+  applyForDeputyRole,
   useCommunityGovernanceMutation,
   useCommunityGovernanceQuery,
 } from '#/state/queries/community-governance'
-import {useSearchPostsQuery} from '#/state/queries/search-posts'
 import {useSession} from '#/state/session'
 import {Text} from '#/view/com/util/text/Text'
-import {PreviewableUserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useTheme} from '#/alf'
-import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/Person'
-import {Shield_Stroke2_Corner0_Rounded as ShieldIcon} from '#/components/icons/Shield'
-import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
-import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
+import {LinearGradient} from 'expo-linear-gradient'
+import {getCommunityInsignia} from '#/lib/civic-insignias'
 import * as Layout from '#/components/Layout'
 import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
+import {Shield_Stroke2_Corner0_Rounded as ShieldIcon} from '#/components/icons/Shield'
+import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
+import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/Person'
+import {Group3_Stroke2_Corner0_Rounded as GroupIcon} from '#/components/icons/Group'
+import {At_Stroke2_Corner0_Rounded as AtIcon} from '#/components/icons/At'
 
-type CommunityBadgeParams = {
+type CommunityRolesParams = {
   communityId: string
   communityName: string
-}
-
-type BadgeHolder = {
-  author: AppBskyFeedDefs.PostView['author']
-  count: number
-  latestIndexedAt: string
-}
-
-type BadgeSection = {
-  badge: PostBadge
-  description: string
-  holders: BadgeHolder[]
 }
 
 const EMPTY_GOVERNANCE: CommunityGovernanceView = {
@@ -77,46 +66,15 @@ const EMPTY_GOVERNANCE: CommunityGovernanceView = {
   editHistory: [],
 }
 
-function describeBadge(badge: PostBadge) {
-  if (badge.kind === 'policy') {
-    return badge.isOfficial
-      ? 'Marks authors currently posting official policy positions for this community.'
-      : 'Marks authors currently posting community policy proposals or discussion points.'
-  }
-
-  if (badge.kind === 'matter') {
-    return badge.isOfficial
-      ? 'Marks authors currently posting official matters tracked by this community.'
-      : 'Marks authors currently posting community matters, incidents, or local cases.'
-  }
-
-  switch (badge.key.replace('postType:', '')) {
-    case 'meme':
-      return 'Used for satirical or remix-style posts that still belong to the community conversation.'
-    case 'raq':
-      return 'Used for RAQ-style framing posts that append or clarify a position.'
-    case 'open_question':
-      return 'Used for open questions that invite structured community responses.'
-    case 'meta':
-      return 'Used for posts about the community itself, moderation, or process.'
-    case 'competition':
-      return 'Used for submissions to a community contest or challenge.'
-    case 'fake_article':
-      return 'Used for fictional article, tweet, or text simulations shared in-context.'
-    default:
-      return 'Used for a distinct post format currently active in this community.'
-  }
-}
-
-export function CommunityBadgesScreen() {
+export function CommunityRolesScreen() {
   const t = useTheme()
   const {_} = useLingui()
   const navigation = useNavigation<NavigationProp>()
   const {currentAccount} = useSession()
   const route = useRoute<{
     key: string
-    name: 'CommunityBadges'
-    params: CommunityBadgeParams
+    name: 'CommunityRoles'
+    params: CommunityRolesParams
   }>()
   const {communityName = 'Community', communityId} = route.params || {}
   const formattedCommunity = useMemo(
@@ -153,11 +111,6 @@ export function CommunityBadgesScreen() {
     communityId,
   })
   const governance = fetchedGovernance || EMPTY_GOVERNANCE
-  const communitySearchQuery = useMemo(
-    () =>
-      buildCommunitySearchQuery(communityName, fetchedGovernance?.community),
-    [communityName, fetchedGovernance?.community],
-  )
   const governanceCommunity = fetchedGovernance?.community
   const displayCommunityName = governanceCommunity
     ? formatCommunityName(governanceCommunity).displayName
@@ -168,96 +121,15 @@ export function CommunityBadgesScreen() {
   const canEditGovernance = canManageGovernance(governance, viewerDid)
   const moderatorCapabilities = getModeratorCapabilities(governance, viewerDid)
 
-  const {
-    data,
-    isFetched,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-  } = useSearchPostsQuery({query: communitySearchQuery, sort: 'latest'})
-
-  const posts = useMemo(
-    () => data?.pages.flatMap(page => page.posts) || [],
-    [data],
-  )
-
-  const badgeSections = useMemo<BadgeSection[]>(() => {
-    const sections = new Map<
-      string,
-      {
-        badge: PostBadge
-        holders: Map<string, BadgeHolder>
-      }
-    >()
-
-    for (const post of posts) {
-      const badges = getPostBadges(post.record as any)
-      for (const badge of badges) {
-        let section = sections.get(badge.key)
-        if (!section) {
-          section = {
-            badge,
-            holders: new Map(),
-          }
-          sections.set(badge.key, section)
-        }
-
-        const existingHolder = section.holders.get(post.author.did)
-        if (!existingHolder) {
-          section.holders.set(post.author.did, {
-            author: post.author,
-            count: 1,
-            latestIndexedAt: post.indexedAt,
-          })
-          continue
-        }
-
-        existingHolder.count += 1
-        if (
-          new Date(post.indexedAt).getTime() >
-          new Date(existingHolder.latestIndexedAt).getTime()
-        ) {
-          existingHolder.latestIndexedAt = post.indexedAt
-        }
-      }
-    }
-
-    return Array.from(sections.values())
-      .map(section => ({
-        badge: section.badge,
-        description: describeBadge(section.badge),
-        holders: Array.from(section.holders.values()).sort((left, right) => {
-          if (right.count !== left.count) {
-            return right.count - left.count
-          }
-          return (
-            new Date(right.latestIndexedAt).getTime() -
-            new Date(left.latestIndexedAt).getTime()
-          )
-        }),
-      }))
-      .sort((left, right) => {
-        const kindOrder = {policy: 0, matter: 1, postType: 2}
-        if (kindOrder[left.badge.kind] !== kindOrder[right.badge.kind]) {
-          return kindOrder[left.badge.kind] - kindOrder[right.badge.kind]
-        }
-        return right.holders.length - left.holders.length
-      })
-  }, [posts])
-
-  const holderCount = useMemo(() => {
-    const dids = new Set<string>()
-    for (const section of badgeSections) {
-      for (const holder of section.holders) {
-        dids.add(holder.author.did)
-      }
-    }
-    return dids.size
-  }, [badgeSections])
+  const resolvedCommunityName = governanceCommunity || communityName
+  const insigniaColors = getCommunityInsignia(resolvedCommunityName)
+  const brandColor = insigniaColors[0] || '#6366f1'
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r},${g},${b},${alpha})`
+  }
 
   const governanceStats = {
     moderators: governance.moderators.length,
@@ -274,26 +146,13 @@ export function CommunityBadgesScreen() {
 
   const onRefresh = useCallback(async () => {
     setIsPTR(true)
-    await Promise.all([refetch(), refetchGovernance()])
+    await refetchGovernance()
     setIsPTR(false)
-  }, [refetch, refetchGovernance])
+  }, [refetchGovernance])
+  
   const onPullToRefresh = useCallback(() => {
     void onRefresh()
   }, [onRefresh])
-
-  const onMaybeLoadMore = useCallback(
-    ({layoutMeasurement, contentOffset, contentSize}: NativeScrollEvent) => {
-      if (
-        isFetchingNextPage ||
-        !hasNextPage ||
-        layoutMeasurement.height + contentOffset.y < contentSize.height - 120
-      ) {
-        return
-      }
-      void fetchNextPage()
-    },
-    [fetchNextPage, hasNextPage, isFetchingNextPage],
-  )
 
   const onStartEditingRole = (
     role: CommunityGovernanceView['deputies'][number],
@@ -407,6 +266,23 @@ export function CommunityBadgesScreen() {
       ),
     )
   }
+  const onApplyForRole = async (roleKey: string) => {
+    if (!currentAccount) return
+    await governanceMutation.mutateAsync(current =>
+      applyForDeputyRole(
+        current,
+        roleKey,
+        {
+          did: currentAccount.did,
+          handle: currentAccount.handle,
+          status: 'applied',
+          appliedAt: new Date().toISOString(),
+        } as any,
+        viewerDid || '',
+        viewerHandle,
+      ),
+    )
+  }
 
   return (
     <Layout.Screen testID="communityBadgesScreen" style={t.atoms.bg}>
@@ -414,20 +290,20 @@ export function CommunityBadgesScreen() {
         <Layout.Header.BackButton />
         <Layout.Header.Content>
           <Layout.Header.TitleText>
-            <Trans>Community Badges</Trans>
+            <Trans>Community Roles</Trans>
           </Layout.Header.TitleText>
         </Layout.Header.Content>
         <Layout.Header.Slot />
       </Layout.Header.Outer>
 
-      {!badgeSections.length && (isLoading || !isFetched || isError) ? (
+      {isGovernanceLoading ? (
         <ListMaybePlaceholder
-          isLoading={isLoading || !isFetched}
-          isError={isError}
-          onRetry={() => refetch()}
+          isLoading={isGovernanceLoading}
+          isError={isGovernanceError}
+          onRetry={() => refetchGovernance()}
           emptyType="results"
           emptyMessage={_(
-            msg`We couldn't find badge-bearing posts for this community yet.`,
+            msg`We couldn't load the community governance record.`,
           )}
         />
       ) : (
@@ -440,131 +316,56 @@ export function CommunityBadgesScreen() {
               tintColor={t.palette.primary_500}
             />
           }
-          onScroll={({nativeEvent}) => onMaybeLoadMore(nativeEvent)}
           scrollEventThrottle={400}>
-          <View
-            style={[
-              styles.summaryCard,
-              t.atoms.bg_contrast_25,
-              t.atoms.border_contrast_low,
-            ]}>
-            <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>
-              {displayCommunityName}
-            </Text>
-            <Text style={[a.text_sm, a.mt_xs, t.atoms.text_contrast_medium]}>
-              {badgeSections.length} badge types, {holderCount} visible holders
-            </Text>
-            <Text style={[a.text_sm, a.mt_sm, t.atoms.text_contrast_medium]}>
-              Governance is now read from the community governance record when
-              available, and badge holders are still derived from indexed
-              community posts.
-            </Text>
-            <View style={[a.mt_md, a.gap_sm]}>
-              <View
-                style={[
-                  styles.statusCard,
-                  t.atoms.bg,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                  {isGovernanceLoading
-                    ? 'Loading governance'
-                    : fetchedGovernance
-                      ? 'Published governance'
-                      : 'No governance record'}
-                </Text>
-                <Text
-                  style={[a.text_sm, a.mt_2xs, t.atoms.text_contrast_medium]}>
-                  {isGovernanceLoading
-                    ? 'Fetching the current governance record from the network.'
-                    : isGovernanceError
-                      ? 'Governance could not be loaded right now.'
-                      : fetchedGovernance
-                        ? `Authority record loaded${governance.repoDid ? ` from ${governance.repoDid}` : ''}.`
-                        : 'This community has not published a governance record yet.'}
-                </Text>
-                {isGovernanceError ? (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => void refetchGovernance()}
-                    style={[
-                      styles.inlineAction,
-                      {backgroundColor: t.palette.primary_25},
-                    ]}>
-                    <Text
-                      style={[
-                        styles.inlineActionText,
-                        {color: t.palette.primary_700},
-                      ]}>
-                      Retry governance
-                    </Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-              <View
-                style={[
-                  styles.statusCard,
-                  t.atoms.bg,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                  {isModerator ? 'Moderator access detected' : 'Read-only view'}
-                </Text>
-                <Text
-                  style={[a.text_sm, a.mt_2xs, t.atoms.text_contrast_medium]}>
-                  {isModerator
-                    ? canEditGovernance
-                      ? 'Your DID is present in the moderator roster, so governance tools are unlocked.'
-                      : 'Your DID is present in the moderator roster, but writes are locked because this record is published from a different repo.'
-                    : 'Moderator controls appear only when the fetched governance roster contains your DID.'}
-                </Text>
+          <LinearGradient
+            colors={
+              t.scheme === 'dark'
+                ? [hexToRgba(brandColor, 0.22), hexToRgba(brandColor, 0.06), 'transparent']
+                : [hexToRgba(brandColor, 0.14), hexToRgba(brandColor, 0.04), 'transparent']
+            }
+            start={{x: 0, y: 0}}
+            end={{x: 0, y: 1}}
+            style={styles.heroBanner}>
+            <View style={styles.heroContent}>
+              <Text style={[a.text_3xl, a.font_bold, t.atoms.text]}>
+                {displayCommunityName}
+              </Text>
+              <Text style={[a.text_md, a.mt_xs, t.atoms.text_contrast_medium]}>
+                Governance & Community Directory
+              </Text>
+
+              {/* Top Stats Grid */}
+              <View style={styles.topStatsRow}>
+                <View
+                  style={[
+                    styles.topStatCard,
+                    {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.12) : hexToRgba(brandColor, 0.10)},
+                  ]}>
+                  <Text style={[styles.topStatCount, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
+                    {governanceStats.moderators + governanceStats.officials}
+                  </Text>
+                  <Text
+                    style={[styles.topStatLabel, {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.6)}]}>
+                    Executives
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.topStatCard,
+                    {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.12) : hexToRgba(brandColor, 0.10)},
+                  ]}>
+                  <Text style={[styles.topStatCount, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
+                    {governanceStats.moderators + governanceStats.officials + governanceStats.deputyRoles}
+                  </Text>
+                  <Text
+                    style={[styles.topStatLabel, {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.6)}]}>
+                    Executives & Deputies
+                  </Text>
+                </View>
+
               </View>
             </View>
-            <View style={styles.topStatsRow}>
-              <View
-                style={[
-                  styles.topStatCard,
-                  t.atoms.bg,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <Text style={[styles.topStatCount, t.atoms.text]}>
-                  {governanceStats.moderators}
-                </Text>
-                <Text
-                  style={[styles.topStatLabel, t.atoms.text_contrast_medium]}>
-                  moderators
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.topStatCard,
-                  t.atoms.bg,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <Text style={[styles.topStatCount, t.atoms.text]}>
-                  {governanceStats.officials}
-                </Text>
-                <Text
-                  style={[styles.topStatLabel, t.atoms.text_contrast_medium]}>
-                  official reps
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.topStatCard,
-                  t.atoms.bg,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <Text style={[styles.topStatCount, t.atoms.text]}>
-                  {governanceStats.deputyApplicants}
-                </Text>
-                <Text
-                  style={[styles.topStatLabel, t.atoms.text_contrast_medium]}>
-                  deputy applicants
-                </Text>
-              </View>
-            </View>
-          </View>
+          </LinearGradient>
 
           <View
             style={[
@@ -579,21 +380,27 @@ export function CommunityBadgesScreen() {
                   t.atoms.bg_contrast_25,
                   t.atoms.border_contrast_low,
                 ]}>
-                <ShieldIcon size="md" style={t.atoms.text} />
+                <GroupIcon size="md" style={{color: t.palette.primary_600}} />
               </View>
               <View style={[a.flex_1]}>
                 <Text style={[a.text_lg, a.font_bold, t.atoms.text]}>
-                  <Trans>Moderation Badges</Trans>
+                  <Trans>Community Roles</Trans>
                 </Text>
                 <Text
                   style={[a.text_sm, a.mt_2xs, t.atoms.text_contrast_medium]}>
-                  The people currently steering moderation, case review, and
-                  process integrity for this community.
+                  The specialized experts, executive officials, and elected
+                  deputies driving this community forward.
                 </Text>
               </View>
             </View>
 
-            <View style={[a.gap_sm]}>
+            <View style={[a.mt_md]}>
+              <View style={[a.flex_row, a.align_center, a.gap_sm, a.mb_sm]}>
+                <ShieldIcon size="sm" style={t.atoms.text_contrast_medium} />
+                <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+                  TIER 1: MODERATORS
+                </Text>
+              </View>
               {governance.moderators.map(member => (
                 <View
                   key={member.did || member.handle || member.displayName}
@@ -656,38 +463,13 @@ export function CommunityBadgesScreen() {
                 </View>
               ))}
             </View>
-          </View>
 
-          <View
-            style={[
-              styles.sectionCard,
-              t.atoms.bg,
-              t.atoms.border_contrast_low,
-            ]}>
-            <View style={styles.sectionHeader}>
-              <View
-                style={[
-                  styles.sectionIconBadge,
-                  t.atoms.bg_contrast_25,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <VerifiedIcon
-                  size="md"
-                  style={{color: t.palette.primary_600}}
-                />
-              </View>
-              <View style={[a.flex_1]}>
-                <Text style={[a.text_lg, a.font_bold, t.atoms.text]}>
-                  <Trans>Official Representatives</Trans>
-                </Text>
-                <Text
-                  style={[a.text_sm, a.mt_2xs, t.atoms.text_contrast_medium]}>
-                  Verified officials and desks that currently speak for the
-                  community in formal policy and matter channels.
-                </Text>
-              </View>
+            <View style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
+              <VerifiedIcon size="sm" style={{color: t.palette.primary_600}} />
+              <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+                TIER 2: EXECUTIVE OFFICIALS
+              </Text>
             </View>
-
             <View style={[a.gap_sm]}>
               {governance.officials.map(rep => (
                 <TouchableOpacity
@@ -749,35 +531,13 @@ export function CommunityBadgesScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
 
-          <View
-            style={[
-              styles.sectionCard,
-              t.atoms.bg,
-              t.atoms.border_contrast_low,
-            ]}>
-            <View style={styles.sectionHeader}>
-              <View
-                style={[
-                  styles.sectionIconBadge,
-                  t.atoms.bg_contrast_25,
-                  t.atoms.border_contrast_low,
-                ]}>
-                <TreeIcon size="md" style={{color: t.palette.primary_600}} />
-              </View>
-              <View style={[a.flex_1]}>
-                <Text style={[a.text_lg, a.font_bold, t.atoms.text]}>
-                  <Trans>Digital Deputies</Trans>
-                </Text>
-                <Text
-                  style={[a.text_sm, a.mt_2xs, t.atoms.text_contrast_medium]}>
-                  Hierarchy, active role support, and open applicants across the
-                  digital organization.
-                </Text>
-              </View>
+            <View style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
+              <AtIcon size="sm" style={{color: t.palette.primary_600}} />
+              <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+                TIER 3: DEPUTIES
+              </Text>
             </View>
-
             <View style={[a.gap_md]}>
               {governance.deputies.map(role => (
                 <View
@@ -792,7 +552,7 @@ export function CommunityBadgesScreen() {
                       <Text
                         style={[
                           styles.deputyTier,
-                          t.atoms.text_contrast_medium,
+                          {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.7)},
                         ]}>
                         {role.tier}
                       </Text>
@@ -803,12 +563,12 @@ export function CommunityBadgesScreen() {
                     <View
                       style={[
                         styles.roleBadge,
-                        {backgroundColor: t.palette.primary_25},
+                        {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.15) : hexToRgba(brandColor, 0.1)},
                       ]}>
                       <Text
                         style={[
                           styles.roleBadgeText,
-                          {color: t.palette.primary_700},
+                          {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
                         ]}>
                         Active role
                       </Text>
@@ -819,8 +579,7 @@ export function CommunityBadgesScreen() {
                     <View
                       style={[
                         styles.metricCard,
-                        t.atoms.bg,
-                        t.atoms.border_contrast_low,
+                        {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.03)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_100},
                       ]}>
                       <Text
                         style={[
@@ -830,14 +589,15 @@ export function CommunityBadgesScreen() {
                         holder
                       </Text>
                       <Text style={[styles.metricValue, t.atoms.text]}>
-                        {communityGovernanceHandleLabel(role.activeHolder)}
+                        {role.role.toLowerCase().includes('agent') || role.role.toLowerCase().includes('delegate') 
+                          ? 'AI Agent (Predefined)' 
+                          : communityGovernanceHandleLabel(role.activeHolder)}
                       </Text>
                     </View>
                     <View
                       style={[
                         styles.metricCard,
-                        t.atoms.bg,
-                        t.atoms.border_contrast_low,
+                        {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.03)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_100},
                       ]}>
                       <Text
                         style={[
@@ -865,8 +625,7 @@ export function CommunityBadgesScreen() {
                         key={capability}
                         style={[
                           styles.capabilityChip,
-                          t.atoms.bg,
-                          t.atoms.border_contrast_low,
+                          {borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.1)' : t.palette.contrast_100},
                         ]}>
                         <Text
                           style={[a.text_sm, a.font_semi_bold, t.atoms.text]}>
@@ -878,7 +637,7 @@ export function CommunityBadgesScreen() {
 
                   <Text
                     style={[styles.metricLabel, t.atoms.text_contrast_medium]}>
-                    applicants
+                    applicants ({role.applicants.length})
                   </Text>
                   <View style={styles.applicantRow}>
                     {role.applicants.map((applicant, index) => (
@@ -886,8 +645,7 @@ export function CommunityBadgesScreen() {
                         key={`${role.key}-${applicant.did || applicant.handle || applicant.displayName}-${index}`}
                         style={[
                           styles.applicantChip,
-                          t.atoms.bg,
-                          t.atoms.border_contrast_low,
+                          {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.1)' : t.palette.contrast_100},
                         ]}>
                         <PersonIcon
                           size="xs"
@@ -909,12 +667,12 @@ export function CommunityBadgesScreen() {
                             }
                             style={[
                               styles.inlineAction,
-                              {backgroundColor: t.palette.primary_25},
+                              {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.2) : hexToRgba(brandColor, 0.1)},
                             ]}>
                             <Text
                               style={[
                                 styles.inlineActionText,
-                                {color: t.palette.primary_700},
+                                {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
                               ]}>
                               Activate
                             </Text>
@@ -923,6 +681,24 @@ export function CommunityBadgesScreen() {
                       </View>
                     ))}
                   </View>
+                  {!isModerator && 
+                  currentAccount && 
+                  !role.role.toLowerCase().includes('agent') &&
+                  !role.role.toLowerCase().includes('delegate') &&
+                  !role.applicants.some(a => (a.did || a.handle) === (currentAccount.did || currentAccount.handle)) ? (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={() => void onApplyForRole(role.key)}
+                      style={[
+                        styles.primaryActionButton,
+                        a.mt_md,
+                        {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.15) : hexToRgba(brandColor, 0.1), borderWidth: 1, borderColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.3) : hexToRgba(brandColor, 0.2)},
+                      ]}>
+                      <Text style={[styles.primaryActionText, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
+                        Nominate for this role
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
                   {canEditGovernance ? (
                     <View style={[a.mt_md, a.gap_sm]}>
                       <TouchableOpacity
@@ -1418,8 +1194,16 @@ export function CommunityBadgesScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
     gap: 16,
+    paddingBottom: 40,
+  },
+  heroBanner: {
+    paddingTop: 32,
+    paddingBottom: 24,
+    paddingHorizontal: 16,
+  },
+  heroContent: {
+    gap: 8,
   },
   summaryCard: {
     borderWidth: 1,
@@ -1485,7 +1269,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   profileRow: {
-    borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1519,12 +1302,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   repCard: {
-    borderWidth: 1,
     borderRadius: 16,
     padding: 14,
   },
   deputyCard: {
-    borderWidth: 1,
     borderRadius: 18,
     padding: 14,
   },

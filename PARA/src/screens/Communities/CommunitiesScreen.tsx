@@ -18,6 +18,7 @@ import {
   useCommunityBoardsQuery,
 } from '#/state/queries/community-boards'
 import {useSession} from '#/state/session'
+import {useRecentCommunities} from '#/state/persisted/recent-communities'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {FlairSelectionList} from '#/components/FlairSelectionList'
@@ -94,7 +95,6 @@ export function CommunitiesScreen() {
     sort: 'activity',
   })
 
-  const civicScrollRef = useRef<ScrollView>(null)
   const politicalScrollRef = useRef<ScrollView>(null)
 
   const matterFlairs = useMemo(
@@ -115,8 +115,8 @@ export function CommunitiesScreen() {
   const liveBoards = liveBoardsData?.boards ?? []
   const participationMatches = participationMatchesData?.boards ?? []
   const stateMatches = stateMatchesData?.boards ?? []
-  const recentLiveBoards = liveBoards.slice(0, 3)
-  const civicBoards = liveBoards.filter(board => board.quadrant !== 'political')
+  const recentCommunities = useRecentCommunities()
+  const recentLiveBoards = recentCommunities.slice(0, 3)
   const politicalBoards = liveBoards.filter(board => board.quadrant === 'political')
 
   useEffect(() => {
@@ -183,19 +183,6 @@ export function CommunitiesScreen() {
           contentContainerStyle={styles.scrollContent}>
           <View style={[styles.contentShell, IS_WEB && styles.contentShellWeb]}>
             <View style={styles.section}>
-              <Text
-                style={[styles.sectionEyebrow, {color: t.palette.primary_500}]}>
-                <Trans>Continue exploring</Trans>
-              </Text>
-              <Text style={[styles.heroTitle, t.atoms.text]}>
-                <Trans>Your community directory</Trans>
-              </Text>
-              <Text style={[styles.sectionLead, t.atoms.text_contrast_medium]}>
-                <Trans>
-                  Pick up where you left off, browse civic territories, and move
-                  into parties without the dashboard clutter.
-                </Trans>
-              </Text>
 
               <View style={[styles.resumeGrid, IS_WEB && styles.resumeGridWeb]}>
                 {recentLiveBoards.length > 0 ? (
@@ -218,20 +205,6 @@ export function CommunitiesScreen() {
             </View>
 
             <View style={styles.section}>
-              <Text
-                style={[styles.sectionEyebrow, {color: t.palette.primary_500}]}>
-                <Trans>Creator flow</Trans>
-              </Text>
-              <Text style={[styles.sectionHeading, t.atoms.text]}>
-                <Trans>Real community creation</Trans>
-              </Text>
-              <Text style={[styles.sectionLead, t.atoms.text_contrast_medium]}>
-                <Trans>
-                  Anyone can create a real community now. New communities begin
-                  in draft and unlock after 9 founding members join through the
-                  starter-pack quorum flow.
-                </Trans>
-              </Text>
 
               <View
                 style={[
@@ -274,12 +247,12 @@ export function CommunitiesScreen() {
                     onPress={navigateToCreateCommunity}
                     style={[
                       styles.creatorEntryButton,
-                      {backgroundColor: t.palette.contrast_100},
+                      {backgroundColor: canCreateCommunity ? '#fff' : t.palette.contrast_100},
                     ]}>
                     <Text
                       style={[
                         styles.creatorEntryButtonText,
-                        {color: t.palette.primary_600},
+                        {color: canCreateCommunity ? t.palette.primary_600 : t.atoms.text.color},
                       ]}>
                       Create community
                     </Text>
@@ -300,14 +273,6 @@ export function CommunitiesScreen() {
                 <Text style={[styles.sectionHeading, t.atoms.text]}>
                   <Trans>Live community boards</Trans>
                 </Text>
-                <Text
-                  style={[styles.sectionLead, t.atoms.text_contrast_medium]}>
-                  <Trans>
-                    These boards come from the real community directory read
-                    path, so newly created communities can show up here without
-                    client-side fabrication.
-                  </Trans>
-                </Text>
 
                 <View style={styles.liveBoardsGrid}>
                   {liveBoards.map(board => (
@@ -323,48 +288,15 @@ export function CommunitiesScreen() {
             ) : null}
 
             <View style={styles.section}>
-              <Text
-                style={[styles.sectionEyebrow, {color: t.palette.primary_500}]}>
-                <Trans>Discover communities</Trans>
-              </Text>
               <Text style={[styles.sectionHeading, t.atoms.text]}>
-                <Trans>Browse the directory by context</Trans>
-              </Text>
-              <Text style={[styles.sectionLead, t.atoms.text_contrast_medium]}>
-                <Trans>
-                  Start with civic territories, then move into parties
-                  and coalition spaces.
-                </Trans>
+                <Trans>Browse communities</Trans>
               </Text>
 
               <View style={styles.directoryStack}>
-                <DirectoryModule
-                  title="Civic Territories"
-                  description="Live communities with civic or territorial context."
-                  theme={t}>
-                  <View style={{position: 'relative'}}>
-                    <WebScrollControls scrollViewRef={civicScrollRef} />
-                    <ScrollView
-                      ref={civicScrollRef}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.cardsScroll}
-                      contentContainerStyle={styles.directoryRail}>
-                      {(civicBoards.length ? civicBoards : liveBoards).map(board => (
-                        <LiveCommunityCard
-                          key={board.uri}
-                          board={board}
-                          theme={t}
-                          onPress={() => navigateToLiveCommunityProfile(board)}
-                        />
-                      ))}
-                    </ScrollView>
-                  </View>
-                </DirectoryModule>
 
                 <DirectoryModule
                   title="Parties"
-                  description="Live party, movement, and coalition communities when they are published."
+                  description=""
                   theme={t}>
                   {politicalBoards.length === 0 ? (
                     <EmptyLiveDirectoryCard
@@ -404,61 +336,9 @@ export function CommunitiesScreen() {
               </View>
             </View>
 
-            <TouchableOpacity
-              accessibilityRole="button"
-              activeOpacity={0.86}
-              onPress={() => navigation.navigate('CabildeoList')}
-              style={[
-                styles.cabildeoCard,
-                {
-                  backgroundColor: t.palette.primary_500 + '0E',
-                  borderColor: t.palette.primary_500 + '24',
-                },
-              ]}>
-              <View style={styles.cabildeoMeta}>
-                <Text
-                  style={[
-                    styles.cabildeoEyebrow,
-                    {color: t.palette.primary_500},
-                  ]}>
-                  <Trans>Action lane</Trans>
-                </Text>
-                <Text style={[styles.cabildeoTitle, t.atoms.text]}>
-                  <Trans>Cabildeo</Trans>
-                </Text>
-                <Text
-                  style={[styles.cabildeoBody, t.atoms.text_contrast_medium]}>
-                  <Trans>
-                    Move from community browsing into proposals, deliberation,
-                    and quadratic voting when you want an active civic path.
-                  </Trans>
-                </Text>
-              </View>
-
-              <View
-                style={[
-                  styles.cabildeoPill,
-                  {backgroundColor: t.palette.primary_500},
-                ]}>
-                <Text style={styles.cabildeoPillText}>
-                  <Trans>Open Cabildeo</Trans>
-                </Text>
-              </View>
-            </TouchableOpacity>
-
             <View style={styles.section}>
-              <Text
-                style={[styles.sectionEyebrow, {color: t.palette.primary_500}]}>
-                <Trans>Refine discovery</Trans>
-              </Text>
               <Text style={[styles.sectionHeading, t.atoms.text]}>
                 <Trans>Explore by participation or geography</Trans>
-              </Text>
-              <Text style={[styles.sectionLead, t.atoms.text_contrast_medium]}>
-                <Trans>
-                  Use the existing discovery tools without pretending that
-                  ranking is ready yet.
-                </Trans>
               </Text>
 
               <View style={styles.refineLayout}>
@@ -581,6 +461,41 @@ export function CommunitiesScreen() {
                 </RefinementPanel>
               </View>
             </View>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              activeOpacity={0.86}
+              onPress={() => navigation.navigate('CabildeoList')}
+              style={[
+                styles.cabildeoCard,
+                {
+                  backgroundColor: t.palette.primary_500 + '0E',
+                  borderColor: t.palette.primary_500 + '24',
+                },
+              ]}>
+              <View style={styles.cabildeoMeta}>
+                <Text
+                  style={[
+                    styles.cabildeoEyebrow,
+                    {color: t.palette.primary_500},
+                  ]}>
+                  <Trans>Action lane</Trans>
+                </Text>
+                <Text style={[styles.cabildeoTitle, t.atoms.text]}>
+                  <Trans>Cabildeo</Trans>
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.cabildeoPill,
+                  {backgroundColor: t.palette.primary_500},
+                ]}>
+                <Text style={styles.cabildeoPillText}>
+                  <Trans>Open Cabildeo</Trans>
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </Layout.Center>

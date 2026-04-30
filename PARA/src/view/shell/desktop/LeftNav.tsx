@@ -45,6 +45,10 @@ import {
 } from '#/components/icons/Bell'
 import {Bookmark, BookmarkFilled} from '#/components/icons/Bookmark'
 import {
+  Library_Filled_Corner0_Rounded as LibraryFilled,
+  Library_Stroke2_Corner0_Rounded as Library,
+} from '#/components/icons/Library'
+import {
   BulletList_Filled_Corner0_Rounded as ListFilled,
   BulletList_Stroke2_Corner0_Rounded as List,
 } from '#/components/icons/BulletList'
@@ -696,10 +700,10 @@ function CabildeoNavItem() {
     <NavItem
       href="/communities/cabildeos"
       icon={
-        <List style={pal.text} aria-hidden={true} width={NAV_ICON_WIDTH} />
+        <Library style={pal.text} aria-hidden={true} width={NAV_ICON_WIDTH} />
       }
       iconFilled={
-        <ListFilled
+        <LibraryFilled
           style={pal.text}
           aria-hidden={true}
           width={NAV_ICON_WIDTH}

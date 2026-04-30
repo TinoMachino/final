@@ -120,7 +120,7 @@ export type CommonNavigatorParams = {
   OpenQuestionThread: {id: string}
   CommunityRAQ: {communityId: string; communityName: string}
   CommunityVoters: {communityId: string; communityName: string}
-  CommunityBadges: {communityId: string; communityName: string}
+  CommunityRoles: {communityId: string; communityName: string}
   Highlights: undefined
   SeeHighlightDetails: {highlightId: string}
   Map: undefined
@@ -162,7 +162,7 @@ export type BaseTabNavigatorParams = CommonNavigatorParams & {
   MyBase: undefined
   MyAffiliations: undefined
   CommunityProfile: {communityId: string; communityName: string}
-  CommunityBadges: {communityId: string; communityName: string}
+  CommunityRoles: {communityId: string; communityName: string}
   PoliciesDashboard: {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
@@ -178,7 +178,7 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   Feeds: undefined
   Notifications: undefined
   CommunityProfile: {communityId: string; communityName: string}
-  CommunityBadges: {communityId: string; communityName: string}
+  CommunityRoles: {communityId: string; communityName: string}
   PoliciesDashboard: {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
@@ -219,7 +219,7 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   MyAffiliations: undefined
   CreatePost: undefined
   CommunityProfile: {communityId: string; communityName: string}
-  CommunityBadges: {communityId: string; communityName: string}
+  CommunityRoles: {communityId: string; communityName: string}
   RAQ: undefined
   OpenQuestionsList: undefined
   AxesDiscoveryList: {initialTab?: 'official' | 'unofficial'}

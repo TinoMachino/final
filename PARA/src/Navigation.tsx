@@ -86,7 +86,7 @@ import {CabildeoDetailScreen} from '#/screens/Communities/CabildeoDetailScreen'
 import {CabildeoListScreen} from '#/screens/Communities/CabildeoListScreen'
 import {CommunitiesScreen} from '#/screens/Communities/CommunitiesScreen'
 import {CommunityAgentProfileScreen} from '#/screens/Communities/CommunityAgentProfileScreen'
-import {CommunityBadgesScreen} from '#/screens/Communities/CommunityBadgesScreen'
+import {CommunityRolesScreen} from '#/screens/Communities/CommunityRolesScreen'
 import {CommunityProfileScreen} from '#/screens/Communities/CommunityProfileScreen'
 import {CommunityRAQScreen} from '#/screens/Communities/CommunityRAQScreen'
 import {CommunityVotersScreen} from '#/screens/Communities/CommunityVotersScreen'
@@ -788,8 +788,8 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         options={{title: title(msg`Community Voters`)}}
       />
       <Stack.Screen
-        name="CommunityBadges"
-        getComponent={() => CommunityBadgesScreen}
+        name="CommunityRoles"
+        getComponent={() => CommunityRolesScreen}
         options={{title: title(msg`Community Badges`)}}
       />
       <Stack.Screen

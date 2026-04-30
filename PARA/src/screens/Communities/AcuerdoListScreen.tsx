@@ -18,6 +18,7 @@ import {useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {Lock_Stroke2_Corner0_Rounded as LockIcon} from '#/components/icons/Lock'
 import {Person_Stroke2_Corner0_Rounded as UsersIcon} from '#/components/icons/Person'
+import {Warning_Stroke2_Corner0_Rounded as WarningIcon} from '#/components/icons/Warning'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
 import {useAcuerdos} from '#/state/shell/acuerdos'
@@ -26,8 +27,22 @@ export function AcuerdoListScreen() {
   const {_} = useLingui()
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
-  const {acuerdos, myLocks, isLoading, joinAcuerdo, requestExit} = useAcuerdos()
+  const {
+    acuerdos,
+    myLocks,
+    isLoading,
+    joinAcuerdo,
+    requestExit,
+    isInCooldown,
+    getCooldownRemainingMs,
+    resolveEffectiveVote,
+    getWatermark,
+    generateWatermark,
+    checkQuorum,
+  } = useAcuerdos()
   const [showCreate, setShowCreate] = useState(false)
+  const [selectedAcuerdo, setSelectedAcuerdo] = useState<string | null>(null)
+  const [showJoinExplain, setShowJoinExplain] = useState(false)
 
   const publicAcuerdos = acuerdos.filter(a => a.visibility === 'public')
   const myLockedUris = new Set(myLocks.map(l => l.acuerdo))
@@ -65,6 +80,8 @@ export function AcuerdoListScreen() {
               const acuerdo = acuerdos.find(a => a.uri === lock.acuerdo)
               const isExiting = !!lock.exitRequestedAt && !lock.exitCooldownEndsAt
               const isCooldown = !!lock.exitCooldownEndsAt && new Date(lock.exitCooldownEndsAt) > new Date()
+              const remainingMs = getCooldownRemainingMs(lock.id)
+              const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000))
 
               return (
                 <View key={lock.id} style={[styles.lockCard, t.atoms.bg_contrast_25]}>
@@ -82,10 +99,18 @@ export function AcuerdoListScreen() {
                       Delegado a representante
                     </Text>
                   )}
-                  {isCooldown && (
-                    <Text style={[styles.cooldownText, {color: t.palette.negative_500}]}>
-                      Cooldown de salida activo
+                  {lock.commitment.type === 'follow-acuerdo' && (
+                    <Text style={[styles.lockBadge, {color: t.palette.primary_500}]}>
+                      Siguiendo consenso del acuerdo
                     </Text>
+                  )}
+                  {isCooldown && (
+                    <View style={[styles.cooldownBanner, {backgroundColor: t.palette.negative_500 + '15'}]}>
+                      <WarningIcon size="sm" style={{color: t.palette.negative_500}} />
+                      <Text style={[styles.cooldownText, {color: t.palette.negative_500}]}>
+                        Cooldown activo: {remainingHours}h restantes
+                      </Text>
+                    </View>
                   )}
                   <Button
                     variant="ghost"
@@ -95,7 +120,7 @@ export function AcuerdoListScreen() {
                     onPress={() => requestExit(lock.id)}
                     disabled={isCooldown || isExiting}>
                     <ButtonText>
-                      {isCooldown ? 'Esperando cooldown...' : 'Solicitar salida'}
+                      {isCooldown ? `Esperar ${remainingHours}h...` : 'Solicitar salida'}
                     </ButtonText>
                   </Button>
                 </View>
@@ -111,15 +136,14 @@ export function AcuerdoListScreen() {
           </Text>
           {publicAcuerdos.map(acuerdo => {
             const isLocked = myLockedUris.has(acuerdo.uri)
+            const quorum = checkQuorum(acuerdo.uri)
+
             return (
               <TouchableOpacity
                 accessibilityRole="button"
                 key={acuerdo.uri}
                 style={[styles.acuerdoCard, t.atoms.bg_contrast_25]}
-                onPress={() => {
-                  // TODO: navigate to AcuerdoDetail when screen exists
-                  console.log('Navigate to acuerdo:', acuerdo.uri)
-                }}>
+                onPress={() => setSelectedAcuerdo(acuerdo.uri)}>
                 <View style={styles.acuerdoHeader}>
                   <Text style={[styles.acuerdoTitle, t.atoms.text]}>
                     {acuerdo.title}
@@ -135,13 +159,13 @@ export function AcuerdoListScreen() {
                   <View style={styles.stat}>
                     <UsersIcon size="xs" style={t.atoms.text_contrast_medium} />
                     <Text style={[styles.statText, t.atoms.text_contrast_medium]}>
-                      {acuerdo.lockedCount} bloqueados
+                      {acuerdo.lockedCount} / {acuerdo.minLockQuorum} quorum
                     </Text>
                   </View>
                   <View style={styles.stat}>
                     <LockIcon size="xs" style={t.atoms.text_contrast_medium} />
                     <Text style={[styles.statText, t.atoms.text_contrast_medium]}>
-                      Min: {acuerdo.minLockQuorum}
+                      {quorum.quorumMet ? 'Quorum ✓' : `Faltan ${quorum.shortfall}`}
                     </Text>
                   </View>
                 </View>
@@ -152,16 +176,8 @@ export function AcuerdoListScreen() {
                       color="primary"
                       size="small"
                       label="lock"
-                      onPress={() => joinAcuerdo(acuerdo.uri, 'follow-acuerdo')}>
+                      onPress={() => setSelectedAcuerdo(acuerdo.uri)}>
                       <ButtonText>Bloquear voto</ButtonText>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      color="primary"
-                      size="small"
-                      label="delegate"
-                      onPress={() => joinAcuerdo(acuerdo.uri, 'delegate-to-rep')}>
-                      <ButtonText>Delegar</ButtonText>
                     </Button>
                   </View>
                 )}
@@ -181,9 +197,162 @@ export function AcuerdoListScreen() {
 
       {/* Create Modal */}
       <CreateAcuerdoModal visible={showCreate} onClose={() => setShowCreate(false)} />
+
+      {/* Join/Delegate Explanation Modal */}
+      {selectedAcuerdo && (
+        <JoinAcuerdoModal
+          acuerdoUri={selectedAcuerdo}
+          onClose={() => setSelectedAcuerdo(null)}
+        />
+      )}
     </Layout.Screen>
   )
 }
+
+// ─── Join/Delegate Explanation Modal ─────────────────────────────────────────
+// FIX #5: Makes the stakes viscerally clear
+
+function JoinAcuerdoModal({acuerdoUri, onClose}: {acuerdoUri: string; onClose: () => void}) {
+  const t = useTheme()
+  const {getAcuerdoByUri, joinAcuerdo, isInCooldown} = useAcuerdos()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const acuerdo = getAcuerdoByUri(acuerdoUri)
+  const cooldown = isInCooldown(acuerdoUri)
+
+  const handleJoin = async (type: 'follow-acuerdo' | 'delegate-to-rep') => {
+    if (cooldown) {
+      setError('Cooldown activo: debes esperar 48h antes de volver a unirte')
+      return
+    }
+    setIsLoading(true)
+    setError(null)
+    try {
+      await joinAcuerdo(acuerdoUri, type)
+      onClose()
+    } catch (e: any) {
+      setError(e.message || 'Error al unirse')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (!acuerdo) return null
+
+  return (
+    <Modal visible animationType="slide" transparent>
+      <View style={[styles.modalOverlay, {backgroundColor: 'rgba(0,0,0,0.6)'}]}>
+        <View style={[styles.modalContent, t.atoms.bg]}>
+          <Text style={[styles.modalTitle, t.atoms.text]}>{acuerdo.title}</Text>
+          <Text style={[styles.modalSubtitle, t.atoms.text_contrast_medium]}>
+            Elige cómo participar. Esta decisión bloquea tu voto.
+          </Text>
+
+          {error && (
+            <View style={[styles.errorBanner, {backgroundColor: t.palette.negative_500 + '15'}]}>
+              <WarningIcon size="sm" style={{color: t.palette.negative_500}} />
+              <Text style={{color: t.palette.negative_500, fontSize: 13}}>{error}</Text>
+            </View>
+          )}
+
+          {/* Follow option */}
+          <TouchableOpacity
+            style={[styles.choiceCard, {borderColor: t.palette.primary_500 + '40'}]}
+            onPress={() => handleJoin('follow-acuerdo')}
+            disabled={isLoading || cooldown}>
+            <View style={styles.choiceHeader}>
+              <View style={[styles.choiceIcon, {backgroundColor: t.palette.primary_500 + '15'}]}>
+                <UsersIcon size="sm" style={{color: t.palette.primary_500}} />
+              </View>
+              <View style={{flex: 1}}>
+                <Text style={[styles.choiceTitle, t.atoms.text]}>
+                  Seguir el consenso
+                </Text>
+                <Text style={[styles.choiceDesc, t.atoms.text_contrast_medium]}>
+                  Tu voto se bloquea y sigue automáticamente la decisión mayoritaria
+                  de este acuerdo. No puedes votar individualmente en las políticas
+                  cubiertas hasta que salgas del acuerdo.
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.stakesRow, {backgroundColor: t.palette.primary_500 + '08'}]}>
+              <LockIcon size="xs" style={{color: t.palette.primary_500}} />
+              <Text style={[styles.stakesText, {color: t.palette.primary_500}]}>
+                Bloqueo completo • Salida: 48h cooldown
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Delegate option */}
+          <TouchableOpacity
+            style={[styles.choiceCard, {borderColor: t.palette.positive_500 + '40'}]}
+            onPress={() => handleJoin('delegate-to-rep')}
+            disabled={isLoading || cooldown}>
+            <View style={styles.choiceHeader}>
+              <View style={[styles.choiceIcon, {backgroundColor: t.palette.positive_500 + '15'}]}>
+                <LockIcon size="sm" style={{color: t.palette.positive_500}} />
+              </View>
+              <View style={{flex: 1}}>
+                <Text style={[styles.choiceTitle, t.atoms.text]}>
+                  Delegar a representante
+                </Text>
+                <Text style={[styles.choiceDesc, t.atoms.text_contrast_medium]}>
+                  Tu poder de voto se transfiere al representante que este acuerdo
+                  designe. Puedes revocar esta delegación en cualquier momento,
+                  pero con 48h de cooldown.
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.stakesRow, {backgroundColor: t.palette.positive_500 + '08'}]}>
+              <LockIcon size="xs" style={{color: t.palette.positive_500}} />
+              <Text style={[styles.stakesText, {color: t.palette.positive_500}]}>
+                Delegación flexible • Revocación: 48h cooldown
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <Button variant="ghost" label="cancel" onPress={onClose}>
+            <ButtonText>Cancelar</ButtonText>
+          </Button>
+        </View>
+      </View>
+    </Modal>
+  )
+}
+
+// ─── Private Acuerdo Watermark Overlay ───────────────────────────────────────
+// FIX #4: Embeds viewer identity for leak tracing
+
+export function AcuerdoWatermark({acuerdoUri}: {acuerdoUri: string}) {
+  const t = useTheme()
+  const {getAcuerdoByUri, getWatermark, generateWatermark} = useAcuerdos()
+  const [visible, setVisible] = useState(true)
+
+  const acuerdo = getAcuerdoByUri(acuerdoUri)
+  if (!acuerdo || acuerdo.visibility !== 'private') return null
+
+  let watermark = getWatermark(acuerdoUri)
+  if (!watermark) {
+    watermark = generateWatermark(acuerdoUri)
+  }
+
+  if (!visible) return null
+
+  return (
+    <View style={[styles.watermarkOverlay, {backgroundColor: t.palette.negative_500 + '08'}]}>
+      <WarningIcon size="xs" style={{color: t.palette.negative_500 + '60'}} />
+      <Text style={[styles.watermarkText, {color: t.palette.negative_500 + '50'}]}>
+        PRIVADO • {watermark.viewerDid.slice(0, 20)}... • {watermark.timestamp.slice(0, 10)}
+      </Text>
+      <TouchableOpacity onPress={() => setVisible(false)}>
+        <Text style={{color: t.palette.negative_500 + '40', fontSize: 11}}>ocultar</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+// ─── Create Modal ────────────────────────────────────────────────────────────
 
 function CreateAcuerdoModal({visible, onClose}: {visible: boolean; onClose: () => void}) {
   const t = useTheme()
@@ -231,6 +400,15 @@ function CreateAcuerdoModal({visible, onClose}: {visible: boolean; onClose: () =
             <Text style={t.atoms.text}>Público</Text>
             <Switch value={isPublic} onValueChange={setIsPublic} />
           </View>
+          {!isPublic && (
+            <View style={[styles.privacyWarning, {backgroundColor: t.palette.negative_500 + '10'}]}>
+              <WarningIcon size="sm" style={{color: t.palette.negative_500}} />
+              <Text style={{color: t.palette.negative_500, fontSize: 12, flex: 1}}>
+                Los acuerdos privados incluyen marcas de agua que identifican
+                a cada visualizador para prevenir fugas.
+              </Text>
+            </View>
+          )}
           <TextInput
             style={[styles.input, t.atoms.bg_contrast_25, t.atoms.text]}
             placeholder="Quorum mínimo"
@@ -286,6 +464,14 @@ const styles = StyleSheet.create({
   lockTitle: {fontSize: 16, fontWeight: '700'},
   lockMeta: {fontSize: 13},
   lockBadge: {fontSize: 12, fontWeight: '600'},
+  cooldownBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 4,
+  },
   cooldownText: {fontSize: 12, fontWeight: '600'},
   acuerdoCard: {
     padding: 16,
@@ -324,6 +510,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   modalTitle: {fontSize: 20, fontWeight: '800'},
+  modalSubtitle: {fontSize: 14, lineHeight: 20},
   input: {
     padding: 14,
     borderRadius: 12,
@@ -332,4 +519,55 @@ const styles = StyleSheet.create({
   textArea: {height: 100, textAlignVertical: 'top'},
   row: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   modalActions: {flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8},
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+  },
+  choiceCard: {
+    borderWidth: 1.5,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  choiceHeader: {flexDirection: 'row', gap: 12},
+  choiceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  choiceTitle: {fontSize: 16, fontWeight: '700'},
+  choiceDesc: {fontSize: 13, lineHeight: 18, marginTop: 4},
+  stakesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+  },
+  stakesText: {fontSize: 12, fontWeight: '600'},
+  privacyWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+  },
+  watermarkOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  watermarkText: {fontSize: 10, fontWeight: '600'},
 })

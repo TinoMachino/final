@@ -14,6 +14,7 @@ import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
 import {type NavigationProp} from '#/lib/routes/types'
+import {useAcuerdos} from '#/state/shell/acuerdos'
 import {useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {Lock_Stroke2_Corner0_Rounded as LockIcon} from '#/components/icons/Lock'
@@ -21,7 +22,6 @@ import {Person_Stroke2_Corner0_Rounded as UsersIcon} from '#/components/icons/Pe
 import {Warning_Stroke2_Corner0_Rounded as WarningIcon} from '#/components/icons/Warning'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
-import {useAcuerdos} from '#/state/shell/acuerdos'
 
 export function AcuerdoListScreen() {
   const {_} = useLingui()
@@ -257,7 +257,7 @@ function JoinAcuerdoModal({acuerdoUri, onClose}: {acuerdoUri: string; onClose: (
           )}
 
           {/* Follow option */}
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[styles.choiceCard, {borderColor: t.palette.primary_500 + '40'}]}
             onPress={() => handleJoin('follow-acuerdo')}
             disabled={isLoading || cooldown}>
@@ -285,7 +285,7 @@ function JoinAcuerdoModal({acuerdoUri, onClose}: {acuerdoUri: string; onClose: (
           </TouchableOpacity>
 
           {/* Delegate option */}
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[styles.choiceCard, {borderColor: t.palette.positive_500 + '40'}]}
             onPress={() => handleJoin('delegate-to-rep')}
             disabled={isLoading || cooldown}>
@@ -345,7 +345,7 @@ export function AcuerdoWatermark({acuerdoUri}: {acuerdoUri: string}) {
       <Text style={[styles.watermarkText, {color: t.palette.negative_500 + '50'}]}>
         PRIVADO • {watermark.viewerDid.slice(0, 20)}... • {watermark.timestamp.slice(0, 10)}
       </Text>
-      <TouchableOpacity onPress={() => setVisible(false)}>
+      <TouchableOpacity accessibilityRole="button" onPress={() => setVisible(false)}>
         <Text style={{color: t.palette.negative_500 + '40', fontSize: 11}}>ocultar</Text>
       </TouchableOpacity>
     </View>
@@ -381,14 +381,14 @@ function CreateAcuerdoModal({visible, onClose}: {visible: boolean; onClose: () =
       <View style={[styles.modalOverlay, {backgroundColor: 'rgba(0,0,0,0.5)'}]}>
         <View style={[styles.modalContent, t.atoms.bg]}>
           <Text style={[styles.modalTitle, t.atoms.text]}>Crear Acuerdo</Text>
-          <TextInput
+          <TextInput accessibilityLabel="Text input field"
             style={[styles.input, t.atoms.bg_contrast_25, t.atoms.text]}
             placeholder="Título del acuerdo"
             placeholderTextColor={t.palette.contrast_400}
             value={title}
             onChangeText={setTitle}
           />
-          <TextInput
+          <TextInput accessibilityLabel="Text input field"
             style={[styles.input, styles.textArea, t.atoms.bg_contrast_25, t.atoms.text]}
             placeholder="Descripción"
             placeholderTextColor={t.palette.contrast_400}
@@ -409,7 +409,7 @@ function CreateAcuerdoModal({visible, onClose}: {visible: boolean; onClose: () =
               </Text>
             </View>
           )}
-          <TextInput
+          <TextInput accessibilityLabel="Text input field"
             style={[styles.input, t.atoms.bg_contrast_25, t.atoms.text]}
             placeholder="Quorum mínimo"
             placeholderTextColor={t.palette.contrast_400}

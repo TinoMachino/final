@@ -8,7 +8,7 @@ import {
 import {useNotificationSettingsQuery} from '#/state/queries/notifications/settings'
 import {atoms as a} from '#/alf'
 import {Admonition} from '#/components/Admonition'
-import {Heart2_Stroke2_Corner0_Rounded as HeartIcon} from '#/components/icons/Heart2'
+import {Influence_Stroke_Icon as InfluenceIcon} from '#/components/icons/Influence'
 import * as Layout from '#/components/Layout'
 import * as SettingsList from '../components/SettingsList'
 import {ItemTextWithSubtitle} from './components/ItemTextWithSubtitle'
@@ -35,12 +35,12 @@ export function LikeNotificationSettingsScreen({}: Props) {
       <Layout.Content>
         <SettingsList.Container>
           <SettingsList.Item style={[a.align_start]}>
-            <SettingsList.ItemIcon icon={HeartIcon} />
+            <SettingsList.ItemIcon icon={InfluenceIcon} />
             <ItemTextWithSubtitle
               bold
-              titleText={<Trans>Likes</Trans>}
+              titleText={<Trans>Influence</Trans>}
               subtitleText={
-                <Trans>Get notifications when people like your posts.</Trans>
+                <Trans>Get notifications when people vote on your posts.</Trans>
               }
             />
           </SettingsList.Item>

@@ -26,6 +26,10 @@ import {Button, ButtonText} from '#/components/Button'
 import {useDialogControl} from '#/components/Dialog'
 import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
 import {
+  Book_Filled_Corner0_Rounded as BookFilled,
+  Book_Stroke2_Corner0_Rounded as Book,
+} from '#/components/icons/Base'
+import {
   Bell_Filled_Corner0_Rounded as BellFilled,
   Bell_Stroke2_Corner0_Rounded as Bell,
 } from '#/components/icons/Bell'
@@ -37,10 +41,6 @@ import {
   MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled,
   MagnifyingGlass_Stroke2_Corner0_Rounded as MagnifyingGlass,
 } from '#/components/icons/MagnifyingGlass'
-import {
-  Book_Filled_Corner0_Rounded as BookFilled,
-  Book_Stroke2_Corner0_Rounded as Book,
-} from '#/components/icons/Base'
 import {Text} from '#/components/Typography'
 import {styles} from './BottomBarStyles'
 

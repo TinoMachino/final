@@ -23,10 +23,10 @@ import {Text} from '#/view/com/util/text/Text'
 import {atoms as a, useTheme} from '#/alf'
 import {ActiveFiltersStackButton} from '#/components/BaseFilterControls'
 import {SearchInput} from '#/components/forms/SearchInput'
-import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
 import {ArrowsDiagonalIn_Stroke2_Corner0_Rounded as SortIcon} from '#/components/icons/ArrowsDiagonal'
-import {Person_Stroke2_Corner0_Rounded as UsersIcon} from '#/components/icons/Person'
 import {Globe_Stroke2_Corner0_Rounded as BuildingIcon} from '#/components/icons/Globe'
+import {Person_Stroke2_Corner0_Rounded as UsersIcon} from '#/components/icons/Person'
+import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
 import * as Layout from '#/components/Layout'
 
 const CATEGORIES = [

@@ -4,8 +4,8 @@
  */
 
 export {
+  createDisplayRichText,
   extractPartyInsignia as extractPartyShield,
   hasPartyPrefix,
-  createDisplayRichText,
   type CivicInsigniaInfo as PartyShieldInfo,
 } from '#/lib/civic-insignias'

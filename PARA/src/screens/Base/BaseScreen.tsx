@@ -10,8 +10,8 @@ import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {ComposeIcon2} from '#/lib/icons'
 import {type NavigationProp} from '#/lib/routes/types'
 import {s} from '#/lib/styles'
-import {useProfileQuery} from '#/state/queries/profile'
 import {type FeedDescriptor} from '#/state/queries/post-feed'
+import {useProfileQuery} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
 import {useBaseFilter} from '#/state/shell/base-filter'
 import {PostFeed} from '#/view/com/posts/PostFeed'
@@ -77,10 +77,6 @@ function DataCard({
       <View style={styles.dataCardIconWrap}>{icon}</View>
     </TouchableOpacity>
   )
-}
-
-function EmptyDataCard({cardBgColor}: {cardBgColor: object}) {
-  return <View style={[styles.dataCard, styles.emptyDataCard, cardBgColor]} />
 }
 
 // ---------------------------------------------------------------------------

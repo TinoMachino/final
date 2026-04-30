@@ -21,6 +21,7 @@ import {BellRinging_Stroke2_Corner0_Rounded as BellRingingIcon} from '#/componen
 import {Bubble_Stroke2_Corner2_Rounded as BubbleIcon} from '#/components/icons/Bubble'
 import {Haptic_Stroke2_Corner2_Rounded as HapticIcon} from '#/components/icons/Haptic'
 import {Heart2_Stroke2_Corner0_Rounded as HeartIcon} from '#/components/icons/Heart2'
+import {Influence_Stroke_Icon as InfluenceIcon} from '#/components/icons/Influence'
 import {PersonPlus_Stroke2_Corner2_Rounded as PersonPlusIcon} from '#/components/icons/Person'
 import {CloseQuote_Stroke2_Corner0_Rounded as CloseQuoteIcon} from '#/components/icons/Quote'
 import {Shapes_Stroke2_Corner0_Rounded as ShapesIcon} from '#/components/icons/Shapes'
@@ -113,12 +114,12 @@ export function NotificationSettingsScreen({}: Props) {
           )}
           <View style={[a.gap_sm]}>
             <SettingsList.LinkItem
-              label={_(msg`Settings for like notifications`)}
+              label={_(msg`Settings for influence notifications`)}
               to={{screen: 'LikeNotificationSettings'}}
               contentContainerStyle={[a.align_start]}>
-              <SettingsList.ItemIcon icon={HeartIcon} />
+              <SettingsList.ItemIcon icon={InfluenceIcon} />
               <ItemTextWithSubtitle
-                titleText={<Trans>Likes</Trans>}
+                titleText={<Trans>Influence</Trans>}
                 subtitleText={<SettingPreview preference={settings?.like} />}
                 showSkeleton={!settings}
               />
@@ -186,7 +187,7 @@ export function NotificationSettingsScreen({}: Props) {
               )}
               to={{screen: 'LikesOnRepostsNotificationSettings'}}
               contentContainerStyle={[a.align_start]}>
-              <SettingsList.ItemIcon icon={UpvoteIcon} />
+              <SettingsList.ItemIcon icon={InfluenceIcon} />
               <ItemTextWithSubtitle
                 titleText={<Trans>Votes of your quotes</Trans>}
                 subtitleText={

@@ -13,9 +13,6 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native'
 
 import {type CabildeoView} from '#/lib/cabildeo-client'
 import {
-  getViewerParticipation,
-} from '#/lib/cabildeo-display'
-import {
   type PoliticalAffiliation,
 } from '#/lib/political-affiliations'
 import {type NavigationProp} from '#/lib/routes/types'
@@ -33,15 +30,14 @@ import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useTheme} from '#/alf'
 import {CompassMini} from '#/components/CompassMini'
-import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/components/icons/SettingsGear2'
+import {ArrowLeft_Stroke2_Corner0_Rounded as BackIcon} from '#/components/icons/Arrow'
 import {
   CommunityIcon_Stroke as CommunityIcon,
 } from '#/components/icons/Community'
-import {ArrowLeft_Stroke2_Corner0_Rounded as BackIcon} from '#/components/icons/Arrow'
+import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/components/icons/SettingsGear2'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
 import * as Layout from '#/components/Layout'
-import {ListMaybePlaceholder} from '#/components/Lists'
 import {toClout} from '#/analytics/metrics'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,7 +294,6 @@ function MyBaseSummaryTab({
   onPressViewProfile: () => void
 }) {
   const t = useTheme()
-  const {_, i18n} = useLingui()
   const now = Date.now()
 
   // ── Upcoming: cabildeos in voting where user hasn't voted ──
@@ -333,8 +328,6 @@ function MyBaseSummaryTab({
 
   // ── Followed ──
   const recentFollowed = followedItems.slice(0, 8)
-
-  const formatCount = (v: number) => i18n.number(v)
 
   return (
     <ScrollView
@@ -570,78 +563,49 @@ function CabildeoMiniCard({
   )
 }
 
-function CabildeoFullCard({
-  cabildeo,
+function HighlightCard({
+  highlight,
   onPress,
+  onDelete,
 }: {
-  cabildeo: CabildeoView
+  highlight: HighlightData
   onPress: () => void
+  onDelete: () => void
 }) {
   const t = useTheme()
-  const phase = getPhaseStyle(cabildeo.phase)
-  const participation = getViewerParticipation(cabildeo)
-
   return (
     <TouchableOpacity
       accessibilityRole="button"
       onPress={onPress}
-      activeOpacity={0.8}
       style={[
-        styles.fullCard,
+        styles.highlightCard,
         t.atoms.bg_contrast_25,
-        {borderLeftWidth: 4, borderLeftColor: phase.color},
+        t.atoms.border_contrast_low,
       ]}>
-      <View style={styles.fullCardHeader}>
+      <View style={styles.highlightCardContent}>
         <View
-          style={[styles.phasePill, {backgroundColor: phase.color + '18'}]}>
-          <Text style={[styles.phasePillText, {color: phase.color}]}>
-            {phase.label}
+          style={[
+            styles.highlightDot,
+            {backgroundColor: t.palette.primary_500},
+          ]}
+        />
+        <View style={{flex: 1}}>
+          <Text
+            style={[styles.highlightTag, t.atoms.text_contrast_medium]}
+            numberOfLines={1}>
+            {highlight.postTitle}
+          </Text>
+          <Text style={[styles.highlightText, t.atoms.text]} numberOfLines={2}>
+            {highlight.text}
           </Text>
         </View>
-        <Text style={[styles.fullCardCommunity, t.atoms.text_contrast_medium]}>
-          {cabildeo.community}
-        </Text>
       </View>
-
-      <Text style={[styles.fullCardTitle, t.atoms.text]} numberOfLines={2}>
-        {cabildeo.title}
-      </Text>
-      <Text
-        style={[styles.fullCardDesc, t.atoms.text_contrast_medium]}
-        numberOfLines={2}>
-        {cabildeo.description}
-      </Text>
-
-      <View style={styles.fullCardFooter}>
-        <View style={styles.fullCardStats}>
-          <Text style={[styles.statText, t.atoms.text_contrast_medium]}>
-            🗳️ {cabildeo.voteTotals.total}
-          </Text>
-          <Text style={[styles.statText, t.atoms.text_contrast_medium]}>
-            🗣️ {cabildeo.positionCounts.total}
-          </Text>
-          <Text style={[styles.statText, t.atoms.text_contrast_medium]}>
-            📋 {cabildeo.options.length}
-          </Text>
-        </View>
-        {participation && (
-          <View
-            style={[
-              styles.participationPill,
-              {backgroundColor: t.palette.primary_500 + '15'},
-            ]}>
-            <Text
-              style={[
-                styles.participationText,
-                {color: t.palette.primary_500},
-              ]}>
-              {participation.optionLabel
-                ? `${participation.label}: ${participation.optionLabel}`
-                : participation.label}
-            </Text>
-          </View>
-        )}
-      </View>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={onDelete}
+        style={{padding: 4}}>
+        <XIcon size="sm" style={t.atoms.text_contrast_medium} />
+      </TouchableOpacity>
     </TouchableOpacity>
   )
 }
@@ -765,12 +729,11 @@ function EmptyState({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function MyBaseScreen() {
-  const {_, i18n} = useLingui()
   const {currentAccount} = useSession()
   const navigation = useNavigation<NavigationProp>()
   const currentDid = currentAccount?.did
   const {data: currentProfile} = useProfileQuery({did: currentDid})
-  const {data: cabildeos = [], isLoading: isCabildeosLoading} =
+  const {data: cabildeos = []} =
     useCabildeosQuery()
   const {affiliations, activeFlair} = usePoliticalAffiliation()
 
@@ -853,7 +816,7 @@ export function MyBaseScreen() {
         activeFlair={activeFlair}
         onPressMetric={onPressMetric}
         onPressSettings={() => navigation.navigate('AccountSettings')}
-        onPressCommunities={() => navigation.navigate('Communities')}
+        onPressCommunities={() => navigation.navigate('MyCommunities')}
         onPressCompass={() => navigation.navigate('MyAffiliations')}
         onPressPoliticalAffiliation={() => navigation.navigate('PoliticalAffiliation')}
         onPressBack={() => {
@@ -870,7 +833,7 @@ export function MyBaseScreen() {
         onPressHighlight={onPressHighlight}
         onDeleteHighlight={handleDeleteHighlight}
         onUnfollowItem={unfollowItem}
-        onPressRAQ={() => navigation.navigate('RAQ')}
+        onPressRAQ={() => navigation.navigate('MyRAQ')}
         onPressPolicyTree={() => navigation.navigate('Compass')}
         onPressViewAllHighlights={() =>
           navigation.navigate('Highlights')

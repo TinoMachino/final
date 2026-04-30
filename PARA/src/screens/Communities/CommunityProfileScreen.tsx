@@ -17,9 +17,11 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
+import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {type CommunityGovernanceView} from '#/lib/community-governance'
 import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
 import {usePalette} from '#/lib/hooks/usePalette'
+import {COMMUNITY_AGENT_PROFILE} from '#/lib/mock-data/community-agent'
 import {getPostBadges} from '#/lib/post-flairs'
 import {type NavigationProp} from '#/lib/routes/types'
 import {
@@ -28,7 +30,6 @@ import {
   isGeographicGroupCommunity,
 } from '#/lib/strings/community-names'
 import {cleanError} from '#/lib/strings/errors'
-import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {
   useAcceptDraftInviteMutation,
   useCommunityBoardQuery,
@@ -40,15 +41,14 @@ import {useSearchPostsQuery} from '#/state/queries/search-posts'
 import {Post} from '#/view/com/post/Post'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
+import {CivicInsignia} from '#/components/CivicInsignia'
 import {Macintosh_Stroke2_Corner2_Rounded as MacintoshIcon} from '#/components/icons/Macintosh'
 import {Message_Stroke2_Corner0_Rounded as ChatIcon} from '#/components/icons/Message'
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
 import * as Layout from '#/components/Layout'
-import {CivicInsignia} from '#/components/CivicInsignia'
 import {ListFooter} from '#/components/Lists'
 import {ProfileHoverCard} from '#/components/ProfileHoverCard'
-import {COMMUNITY_AGENT_PROFILE} from '#/lib/mock-data/community-agent'
 
 type CommunityProfileParams = {
   communityId?: string

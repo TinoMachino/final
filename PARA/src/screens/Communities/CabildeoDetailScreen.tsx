@@ -1,9 +1,10 @@
 import {useEffect, useMemo, useState} from 'react'
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
 import {type CabildeoPhase} from '#/lib/api/para-lexicons'
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
@@ -13,13 +14,13 @@ import {
   useCabildeoPositionsQuery,
   useCabildeoQuery,
   useCabildeosQuery,
+  useDelegationCandidatesQuery,
   useVoteMutation,
 } from '#/state/queries/cabildeo'
 import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
-import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'CabildeoDetail'>
 
@@ -145,6 +146,83 @@ function getStanceColors(t: ReturnType<typeof useTheme>): Record<string, {bg: st
   }
 }
 
+function DelegationImpactCalculator({
+  delegateDid,
+  cabildeoUri,
+}: {
+  delegateDid: string
+  cabildeoUri: string
+}) {
+  const t = useTheme()
+  const {data: candidates = []} = useDelegationCandidatesQuery({cabildeoUri})
+  const delegate = candidates.find(c => c.did === delegateDid)
+
+  if (!delegate) return null
+
+  const N = Math.max(1, delegate.activeDelegationCount)
+  // Current delegated weight share: total power (sqrt(N)) / total people (N)
+  const delegatedWeight = Math.sqrt(N) / N
+  const directWeight = 1.0
+  const gain = directWeight - delegatedWeight
+  const multiplier = (directWeight / delegatedWeight).toFixed(1)
+
+  return (
+    <View
+      style={[
+        styles.impactCalculator,
+        {
+          backgroundColor: t.palette.primary_500 + '08',
+          borderColor: t.palette.primary_500 + '20',
+        },
+      ]}>
+      <Text style={[styles.impactTitle, {color: t.palette.primary_500}]}>
+        📊 Impacto del Voto Directo
+      </Text>
+      <View style={styles.impactMathRow}>
+        <View style={styles.impactMathItem}>
+          <Text style={[styles.impactMathLabel, t.atoms.text_contrast_medium]}>
+            Delegado (√N)
+          </Text>
+          <Text style={[styles.impactMathValue, t.atoms.text]}>
+            {delegatedWeight.toFixed(2)}
+          </Text>
+        </View>
+        <Text style={[styles.impactMathOp, t.atoms.text_contrast_medium]}>
+          →
+        </Text>
+        <View style={styles.impactMathItem}>
+          <Text style={[styles.impactMathLabel, t.atoms.text_contrast_medium]}>
+            Directo
+          </Text>
+          <Text
+            style={[
+              styles.impactMathValue,
+              {color: t.palette.positive_500, fontWeight: '900'},
+            ]}>
+            {directWeight.toFixed(2)}
+          </Text>
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.impactResult,
+          {backgroundColor: t.palette.positive_500 + '15'},
+        ]}>
+        <Text style={[styles.impactResultText, {color: t.palette.positive_500}]}>
+          Tu voto tendrá{' '}
+          <Text style={{fontWeight: '900'}}>{multiplier} veces</Text> más peso
+          si votas directamente (+{gain.toFixed(2)} de poder).
+        </Text>
+      </View>
+
+      <Text style={[styles.impactFootnote, t.atoms.text_contrast_medium]}>
+        Basado en {N} personas delegando a {delegate.displayName || 'este usuario'}.
+      </Text>
+    </View>
+  )
+}
+
 export function CabildeoDetailScreen({route}: Props) {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
@@ -152,6 +230,7 @@ export function CabildeoDetailScreen({route}: Props) {
   const {
     data: cabildeo = null,
     isFetched: isCabildeoFetched,
+    isFetching: isFetchingCabildeo,
     isLoading: isCabildeoLoading,
     isError: isCabildeoError,
     refetch: refetchCabildeo,
@@ -159,6 +238,7 @@ export function CabildeoDetailScreen({route}: Props) {
   const {
     data: allPositions = [],
     isFetched: isPositionsFetched,
+    isFetching: isFetchingPositions,
     isLoading: isPositionsLoading,
     isError: isPositionsError,
     refetch: refetchPositions,
@@ -308,7 +388,17 @@ export function CabildeoDetailScreen({route}: Props) {
 
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}>
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetchingCabildeo || isFetchingPositions}
+            onRefresh={() => {
+              refetchCabildeo()
+              refetchPositions()
+            }}
+            tintColor={t.palette.primary_500}
+          />
+        }>
         <Layout.Center style={styles.center}>
           {/* ─── Phase Timeline ─── */}
           <View style={[styles.timeline, t.atoms.bg_contrast_25]}>
@@ -749,6 +839,11 @@ export function CabildeoDetailScreen({route}: Props) {
                   Dejar así (Peso √N)
                 </Text>
               </TouchableOpacity>
+
+              <DelegationImpactCalculator
+                delegateDid={cabildeo.userContext.hasDelegatedTo}
+                cabildeoUri={cabildeoUri}
+              />
             </View>
           )}
 
@@ -1447,5 +1542,56 @@ const styles = StyleSheet.create({
   synthesizerBtnText: {
     fontSize: 13,
     fontWeight: '800',
+  },
+  impactCalculator: {
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  impactTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  impactMathRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  impactMathItem: {
+    alignItems: 'center',
+  },
+  impactMathLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  impactMathValue: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  impactMathOp: {
+    fontSize: 18,
+    fontWeight: '300',
+  },
+  impactResult: {
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  impactResultText: {
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+  impactFootnote: {
+    fontSize: 10,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 })

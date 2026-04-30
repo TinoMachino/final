@@ -10,27 +10,27 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useFocusEffect, useNavigation} from '@react-navigation/native'
 
+import {getVoteBreakdownByParty} from '#/lib/cabildeo-party-alignment'
+import {
+  getPartyNinthId,
+  PARTY_COMPASS_PROFILE_BY_ID,
+  PARTY_COMPASS_PROFILES,
+} from '#/lib/compass/party-distributions'
 import {
   NINTH_NAME_TO_COMPASS_ID,
   POLITICAL_AFFILIATION_OPTIONS,
   type PoliticalAffiliation,
 } from '#/lib/political-affiliations'
 import {type NavigationProp} from '#/lib/routes/types'
-import {
-  PARTY_COMPASS_PROFILES,
-  PARTY_COMPASS_PROFILE_BY_ID,
-  getPartyNinthId,
-} from '#/lib/compass/party-distributions'
 import {useCabildeosQuery} from '#/state/queries/cabildeo'
 import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {CompassMini} from '#/components/CompassMini'
+import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
 import {Header, Screen} from '#/components/Layout'
 import {PieChart} from '#/components/PieChart'
 import {Text} from '#/components/Typography'
-import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
-import {getVoteBreakdownByParty} from '#/lib/cabildeo-party-alignment'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VoteAnalysis — pie chart + voted policies list

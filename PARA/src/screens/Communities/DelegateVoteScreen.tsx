@@ -2,6 +2,7 @@ import {useCallback, useMemo, useState} from 'react'
 import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
@@ -15,7 +16,6 @@ import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
-import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'DelegateVote'>
 

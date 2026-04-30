@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 import {type AppBskyFeedDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
+import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {
   canManageGovernance,
   communityGovernanceHandleLabel,
@@ -28,24 +30,22 @@ import {
 } from '#/lib/strings/community-names'
 import {cleanError} from '#/lib/strings/errors'
 import {
+  applyForDeputyRole,
   publishDeputySelection,
   publishOfficialRepresentative,
-  applyForDeputyRole,
   useCommunityGovernanceMutation,
   useCommunityGovernanceQuery,
 } from '#/state/queries/community-governance'
 import {useSession} from '#/state/session'
 import {Text} from '#/view/com/util/text/Text'
 import {atoms as a, useTheme} from '#/alf'
-import {LinearGradient} from 'expo-linear-gradient'
-import {getCommunityInsignia} from '#/lib/civic-insignias'
-import * as Layout from '#/components/Layout'
-import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
+import {At_Stroke2_Corner0_Rounded as AtIcon} from '#/components/icons/At'
+import {Group3_Stroke2_Corner0_Rounded as GroupIcon} from '#/components/icons/Group'
+import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/Person'
 import {Shield_Stroke2_Corner0_Rounded as ShieldIcon} from '#/components/icons/Shield'
 import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
-import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/Person'
-import {Group3_Stroke2_Corner0_Rounded as GroupIcon} from '#/components/icons/Group'
-import {At_Stroke2_Corner0_Rounded as AtIcon} from '#/components/icons/At'
+import * as Layout from '#/components/Layout'
+import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
 
 type CommunityRolesParams = {
   communityId: string

@@ -23,15 +23,15 @@ import {
   type NativeStackScreenProps,
 } from '#/lib/routes/types'
 import {
-  usePoliticalAffiliation,
   BADGE_INFO,
+  usePoliticalAffiliation,
 } from '#/state/shell/political-affiliation'
 import * as SettingsList from '#/screens/Settings/components/SettingsList'
 import {atoms as a, useTheme} from '#/alf'
+import {AffiliationChangeModal, useAffiliationChangeGuard} from '#/components/AffiliationChangeModal'
 import {ColorStack} from '#/components/AvatarStack'
 import {Check_Stroke2_Corner0_Rounded as CheckIcon} from '#/components/icons/Check'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
-import {AffiliationChangeModal, useAffiliationChangeGuard} from '#/components/AffiliationChangeModal'
 import * as Layout from '#/components/Layout'
 import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'

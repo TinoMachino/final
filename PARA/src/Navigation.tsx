@@ -78,22 +78,23 @@ import {createNativeStackNavigatorWithAuth} from '#/view/shell/createNativeStack
 import {BaseScreen} from '#/screens/Base/BaseScreen'
 import {CompassScreen} from '#/screens/Base/CompassScreen'
 import {CreatePostScreen} from '#/screens/Base/CreatePostScreen'
+import {MyAffiliationsScreen} from '#/screens/Base/MyAffiliationsScreen'
 // Lazy loaded below
 import {MyBaseScreen} from '#/screens/Base/MyBaseScreen'
-import {MyAffiliationsScreen} from '#/screens/Base/MyAffiliationsScreen'
 import {BookmarksScreen} from '#/screens/Bookmarks'
 import {CabildeoDetailScreen} from '#/screens/Communities/CabildeoDetailScreen'
 import {CabildeoListScreen} from '#/screens/Communities/CabildeoListScreen'
 import {CommunitiesScreen} from '#/screens/Communities/CommunitiesScreen'
 import {CommunityAgentProfileScreen} from '#/screens/Communities/CommunityAgentProfileScreen'
-import {CommunityRolesScreen} from '#/screens/Communities/CommunityRolesScreen'
 import {CommunityProfileScreen} from '#/screens/Communities/CommunityProfileScreen'
 import {CommunityRAQScreen} from '#/screens/Communities/CommunityRAQScreen'
+import {CommunityRolesScreen} from '#/screens/Communities/CommunityRolesScreen'
 import {CommunityVotersScreen} from '#/screens/Communities/CommunityVotersScreen'
 import {CreateCabildeoScreen} from '#/screens/Communities/CreateCabildeoScreen'
 import {CreateCommunityScreen} from '#/screens/Communities/CreateCommunityScreen'
 import {CreatePositionScreen} from '#/screens/Communities/CreatePositionScreen'
 import {DelegateVoteScreen} from '#/screens/Communities/DelegateVoteScreen'
+import {MyCommunitiesScreen} from '#/screens/Communities/MyCommunitiesScreen'
 import {DiscourseAnalysisScreen} from '#/screens/Dashboard/DiscourseAnalysis'
 import {MemesAndDocumentsScreen} from '#/screens/Dashboard/MemesAndDocumentsScreen'
 import {PoliciesDashboard} from '#/screens/Dashboard/PoliciesAndMatters'
@@ -128,6 +129,7 @@ import {ProfileLabelerLikedByScreen} from '#/screens/Profile/ProfileLabelerLiked
 import {ProfileSearchScreen} from '#/screens/Profile/ProfileSearch'
 import {ProfileListScreen} from '#/screens/ProfileList'
 import AxesDiscoveryScreen from '#/screens/RAQ/AxesDiscoveryScreen'
+import {MyRAQScreen} from '#/screens/RAQ/MyRAQScreen'
 import OpenQuestionsListScreen from '#/screens/RAQ/OpenQuestionsList'
 import OpenQuestionThreadScreen from '#/screens/RAQ/OpenQuestionThreadScreen'
 import ProposedRAQListScreen from '#/screens/RAQ/ProposedRAQList'
@@ -557,7 +559,7 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         name="LikeNotificationSettings"
         getComponent={() => LikeNotificationSettingsScreen}
         options={{
-          title: title(msg`Like notifications`),
+          title: title(msg`Influence notifications`),
           requireAuth: true,
         }}
       />
@@ -581,7 +583,7 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         name="LikesOnRepostsNotificationSettings"
         getComponent={() => LikesOnRepostsNotificationSettingsScreen}
         options={{
-          title: title(msg`Likes of your reposts notifications`),
+          title: title(msg`Votes of your quotes notifications`),
           requireAuth: true,
         }}
       />
@@ -1007,6 +1009,16 @@ function BaseTabNavigator() {
         options={{title: 'My Base'}}
       />
       <BaseTab.Screen
+        name="MyCommunities"
+        getComponent={() => MyCommunitiesScreen}
+        options={{title: 'My Communities'}}
+      />
+      <BaseTab.Screen
+        name="MyRAQ"
+        getComponent={() => MyRAQScreen}
+        options={{title: 'My RAQ'}}
+      />
+      <BaseTab.Screen
         name="MyAffiliations"
         getComponent={() => MyAffiliationsScreen}
         options={{title: 'My Affiliations'}}
@@ -1094,6 +1106,16 @@ const FlatNavigator = ({
         name="MyBase"
         getComponent={() => MyBaseScreen}
         options={{title: title(msg`My Base`)}}
+      />
+      <Flat.Screen
+        name="MyCommunities"
+        getComponent={() => MyCommunitiesScreen}
+        options={{title: title(msg`My Communities`)}}
+      />
+      <Flat.Screen
+        name="MyRAQ"
+        getComponent={() => MyRAQScreen}
+        options={{title: title(msg`My RAQ`)}}
       />
       <Flat.Screen
         name="MyAffiliations"

@@ -1,12 +1,12 @@
 import {StyleSheet, TouchableOpacity, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 
+import {getPartyNinthId} from '#/lib/compass/party-distributions'
 import {
   COMPASS_ID_TO_NINTH_NAME,
   NINTH_NAME_TO_COMPASS_ID,
   type PoliticalAffiliation,
 } from '#/lib/political-affiliations'
-import {getPartyNinthId} from '#/lib/compass/party-distributions'
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 

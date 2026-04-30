@@ -84,6 +84,7 @@ export type CommonNavigatorParams = {
   MessagesInbox: undefined
   Messages: {pushToConversation?: string; animation?: 'push' | 'pop'}
   Communities: undefined
+  MyCommunities: undefined
   CreateCommunity: undefined
   PoliciesDashboard: {
     filter?: 'Communities' | 'Parties' | 'Both'
@@ -112,6 +113,7 @@ export type CommonNavigatorParams = {
   AgentChat: {agentId: string}
   CommunityAgentProfile: {agentId: string; communityName?: string}
   RAQ: undefined
+  MyRAQ: undefined
   RAQAssessment: undefined
   ProposedRAQList: undefined
   OpenQuestionsList: undefined
@@ -160,6 +162,8 @@ export type MyProfileTabNavigatorParams = CommonNavigatorParams & {
 export type BaseTabNavigatorParams = CommonNavigatorParams & {
   Base: undefined
   MyBase: undefined
+  MyCommunities: undefined
+  MyRAQ: undefined
   MyAffiliations: undefined
   CommunityProfile: {communityId: string; communityName: string}
   CommunityRoles: {communityId: string; communityName: string}

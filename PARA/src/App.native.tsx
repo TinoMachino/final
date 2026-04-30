@@ -13,7 +13,6 @@ import * as SystemUI from 'expo-system-ui'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
-
 import {timeout} from '#/lib/async/timeout'
 import {Provider as HideBottomBarBorderProvider} from '#/lib/hooks/useHideBottomBarBorder'
 import {QueryProvider} from '#/lib/react-query'

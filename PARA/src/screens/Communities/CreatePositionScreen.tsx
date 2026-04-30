@@ -13,6 +13,7 @@ import {useNavigation, useRoute} from '@react-navigation/native'
 
 import {publishCabildeoPosition} from '#/lib/api/cabildeo'
 import {type CabildeoPositionRecord} from '#/lib/api/para-lexicons'
+import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
@@ -23,7 +24,6 @@ import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
 import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'
-import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'CreatePosition'>
 

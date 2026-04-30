@@ -17,7 +17,7 @@ import {
   type PoliticalAffiliationType,
   upsertPoliticalAffiliation,
 } from '#/lib/political-affiliations'
-import {USER_FLAIRS, NINTH_ID_TO_USER_FLAIR, type UserFlair} from '#/lib/tags'
+import {NINTH_ID_TO_USER_FLAIR, USER_FLAIRS, type UserFlair} from '#/lib/tags'
 
 const STORAGE_KEY = 'para_political_affiliation'
 const COOLDOWN_KEY = 'para_affiliation_cooldowns'

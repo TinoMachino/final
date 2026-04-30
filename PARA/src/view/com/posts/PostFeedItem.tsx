@@ -13,11 +13,12 @@ import {useQueryClient} from '@tanstack/react-query'
 
 import {useActorStatus} from '#/lib/actor-status'
 import {type ReasonFeedSource} from '#/lib/api/feed/types'
-import {MAX_POST_LINES} from '#/lib/constants'
 import {
   createDisplayRichText,
   extractPartyInsignia,
 } from '#/lib/civic-insignias'
+import {type CivicInsigniaInfo} from '#/lib/civic-insignias'
+import {MAX_POST_LINES} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {getPostBadges, isPolicyPostRecord} from '#/lib/post-flairs'
@@ -30,13 +31,15 @@ import {
   usePostShadow,
 } from '#/state/cache/post-shadow'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
+import {
+  useShowAuthorInsignias,
+  useShowPartyShields,
+} from '#/state/preferences'
 import {unstableCacheProfileView} from '#/state/queries/profile'
 import {
   useSession,
 } from '#/state/session'
-import {useShowPartyShields} from '#/state/preferences'
 import {useMergedThreadgateHiddenReplies} from '#/state/threadgate-hidden-replies'
-import {type CivicInsigniaInfo} from '#/lib/civic-insignias'
 import {
   buildPostSourceKey,
   setUnstablePostSource,
@@ -45,6 +48,7 @@ import {Link} from '#/view/com/util/Link'
 import {PostMeta} from '#/view/com/util/PostMeta'
 import {PreviewableUserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a} from '#/alf'
+import {CivicInsignia} from '#/components/CivicInsignia'
 import {ContentHider} from '#/components/moderation/ContentHider'
 import {LabelsOnMyPost} from '#/components/moderation/LabelsOnMe'
 import {PostAlerts} from '#/components/moderation/PostAlerts'
@@ -184,6 +188,7 @@ let FeedItemInner = ({
   const pal = usePalette('default')
 
   const [hover, setHover] = useState(false)
+  const showAuthorInsignias = useShowAuthorInsignias()
 
   const [href] = useMemo(() => {
     const urip = new AtUri(post.uri)
@@ -360,6 +365,26 @@ let FeedItemInner = ({
               <VotingButton initialVote={0} />
             )}
           </View>
+          {showAuthorInsignias && partyShield && (
+            <View
+              style={[
+                a.mt_auto,
+                a.align_center,
+                a.pb_xs,
+                {
+                  // Align with the controls row height
+                  height: 35,
+                  justifyContent: 'center',
+                },
+              ]}>
+              <CivicInsignia
+                variant="shield"
+                abbreviation={partyShield.abbreviation}
+                colors={partyShield.colors}
+                size="sm"
+              />
+            </View>
+          )}
           {isThreadParent && (
             <View
               style={[

@@ -15,6 +15,7 @@ import {type SessionManager} from '@atproto/api/dist/session-manager'
 import {TID} from '@atproto/common-web'
 import {type FetchHandlerOptions} from '@atproto/xrpc'
 
+import {registerParaLexicons} from '#/lib/api/para-lexicons-registration'
 import {networkRetry} from '#/lib/async/retry'
 import {
   BSKY_SERVICE,
@@ -49,7 +50,6 @@ import {
 } from './moderation'
 import {type SessionAccount} from './types'
 import {isSessionExpired, isSignupQueued} from './util'
-import {registerParaLexicons} from '#/lib/api/para-lexicons-registration'
 
 export type ProxyHeaderValue = `${Did}#${AtprotoServiceType}`
 

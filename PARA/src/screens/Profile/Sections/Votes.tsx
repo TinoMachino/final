@@ -3,6 +3,7 @@ import {findNodeHandle, View} from 'react-native'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
+import {useProfileVotesQuery} from '#/state/queries/profile-votes'
 import {EmptyState} from '#/view/com/util/EmptyState'
 import {List} from '#/view/com/util/List'
 import {type ListRef} from '#/view/com/util/List'
@@ -10,7 +11,6 @@ import {atoms as a, useTheme} from '#/alf'
 import {EditBig_Stroke1_Corner0_Rounded as EditIcon} from '#/components/icons/EditBig'
 import {Text} from '#/components/Typography'
 import {IS_IOS} from '#/env'
-import {useProfileVotesQuery} from '#/state/queries/profile-votes'
 import {type SectionRef} from './types'
 
 interface Props {

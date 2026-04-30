@@ -62,10 +62,8 @@ module.exports = function (_config) {
   const IS_DEV = !IS_TESTFLIGHT && !IS_PRODUCTION
 
   const ASSOCIATED_DOMAINS = [
-    'applinks:bsky.app',
-    'applinks:staging.bsky.app',
-    'appclips:bsky.app',
-    'appclips:go.bsky.app', // Allows App Clip to work when scanning QR codes
+    'applinks:para.social',
+    'appclips:para.social', // Allows App Clip to work when scanning QR codes
     // When testing local services, enter an ngrok (et al) domain here. It must use a standard HTTP/HTTPS port.
     ...(IS_DEV || IS_TESTFLIGHT ? [] : []),
   ]
@@ -457,8 +455,8 @@ module.exports = function (_config) {
               ios: {
                 appExtensions: [
                   {
-                    targetName: 'Share-with-Bluesky',
-                    bundleIdentifier: 'com.parasocial.app.Share-with-Bluesky',
+                    targetName: 'Share-with-PARA',
+                    bundleIdentifier: 'com.parasocial.app.Share-with-PARA',
                     entitlements: {
                       'com.apple.security.application-groups': [
                         'group.com.parasocial.app',
@@ -466,8 +464,8 @@ module.exports = function (_config) {
                     },
                   },
                   {
-                    targetName: 'BlueskyNSE',
-                    bundleIdentifier: 'com.parasocial.app.BlueskyNSE',
+                    targetName: 'ParaNSE',
+                    bundleIdentifier: 'com.parasocial.app.ParaNSE',
                     entitlements: {
                       'com.apple.security.application-groups': [
                         'group.com.parasocial.app',

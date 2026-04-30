@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react'
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
@@ -42,6 +42,7 @@ export function CabildeoListScreen() {
   const {
     data: cabildeos = [],
     isFetched,
+    isFetching,
     isLoading,
     isError,
     refetch,
@@ -92,7 +93,14 @@ export function CabildeoListScreen() {
 
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}>
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+            tintColor={t.palette.primary_500}
+          />
+        }>
         <Layout.Center style={styles.center}>
           {contextCommunity ? (
             <View

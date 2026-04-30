@@ -8,7 +8,7 @@ import {
 import {useNotificationSettingsQuery} from '#/state/queries/notifications/settings'
 import {atoms as a} from '#/alf'
 import {Admonition} from '#/components/Admonition'
-import {Upvote_Stroke2_Corner0_Rounded as UpvoteIcon} from '#/components/icons/ArrowTriangle'
+import {Influence_Stroke_Icon as InfluenceIcon} from '#/components/icons/Influence'
 import * as Layout from '#/components/Layout'
 import * as SettingsList from '../components/SettingsList'
 import {ItemTextWithSubtitle} from './components/ItemTextWithSubtitle'
@@ -35,7 +35,7 @@ export function LikesOnRepostsNotificationSettingsScreen({}: Props) {
       <Layout.Content>
         <SettingsList.Container>
           <SettingsList.Item style={[a.align_start]}>
-            <SettingsList.ItemIcon icon={UpvoteIcon} />
+            <SettingsList.ItemIcon icon={InfluenceIcon} />
             <ItemTextWithSubtitle
               bold
               titleText={<Trans>Votes of your quotes</Trans>}

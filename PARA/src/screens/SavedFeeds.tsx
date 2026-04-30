@@ -19,6 +19,10 @@ import {
 import {logger} from '#/logger'
 import {useA11y} from '#/state/a11y'
 import {
+  useSetShowAuthorInsignias,
+  useShowAuthorInsignias,
+} from '#/state/preferences'
+import {
   useOverwriteSavedFeedsMutation,
   usePreferencesQuery,
 } from '#/state/queries/preferences'
@@ -27,16 +31,19 @@ import {useSetMinimalShellMode} from '#/state/shell'
 import {FeedSourceCard} from '#/view/com/feeds/FeedSourceCard'
 import {NoFollowingFeed} from '#/screens/Feeds/NoFollowingFeed'
 import {NoSavedFeedsOfAnyType} from '#/screens/Feeds/NoSavedFeedsOfAnyType'
+import * as SettingsList from '#/screens/Settings/components/SettingsList'
 import {atoms as a, useBreakpoints, useTheme} from '#/alf'
 import {Admonition} from '#/components/Admonition'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {SortableList} from '#/components/DraggableList'
+import * as Toggle from '#/components/forms/Toggle'
 import {
   ArrowBottom_Stroke2_Corner0_Rounded as ArrowDownIcon,
   ArrowTop_Stroke2_Corner0_Rounded as ArrowUpIcon,
 } from '#/components/icons/Arrow'
 import {FilterTimeline_Stroke2_Corner0_Rounded as FilterTimeline} from '#/components/icons/FilterTimeline'
 import {FloppyDisk_Stroke2_Corner0_Rounded as SaveIcon} from '#/components/icons/FloppyDisk'
+import {Person_Stroke2_Corner0_Rounded as UserIcon} from '#/components/icons/Person'
 import {Pin_Filled_Corner0_Rounded as PinIcon} from '#/components/icons/Pin'
 import {Trash_Stroke2_Corner0_Rounded as TrashIcon} from '#/components/icons/Trash'
 import * as Layout from '#/components/Layout'
@@ -72,6 +79,8 @@ function SavedFeedsInner({
   const navigation = useNavigation<NavigationProp>()
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollViewOffset(scrollRef)
+  const showAuthorInsignias = useShowAuthorInsignias()
+  const setShowAuthorInsignias = useSetShowAuthorInsignias()
 
   /*
    * Use optimistic data if exists and no error, otherwise fallback to remote
@@ -228,6 +237,27 @@ function SavedFeedsInner({
             <Loader size="xl" />
           </View>
         )}
+
+        <SectionHeaderText>
+          <Trans>Feed View Settings</Trans>
+        </SectionHeaderText>
+
+        <SettingsList.Container>
+          <Toggle.Item
+            name="show_author_insignias"
+            label={_(msg`Show author insignias (aligned with controls)`)}
+            value={showAuthorInsignias ?? true}
+            onChange={value => setShowAuthorInsignias(value)}>
+            <SettingsList.Item>
+              <SettingsList.ItemIcon icon={UserIcon} />
+              <SettingsList.ItemText>
+                <Trans>Show author insignias on feed</Trans>
+              </SettingsList.ItemText>
+              <Toggle.Platform />
+            </SettingsList.Item>
+          </Toggle.Item>
+        </SettingsList.Container>
+
 
         <View style={[a.px_lg, a.py_xl]}>
           <Text

@@ -266,8 +266,10 @@ export function CompassSettingsButton() {
     <>
       <TouchableOpacity
         accessibilityRole="button"
+        accessibilityLabel="View settings"
         style={styles.filterButton}
-        onPress={() => setShowSettings(true)}>
+        onPress={() => setShowSettings(true)}
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
         <CompassIcon size="lg" style={t.atoms.text} />
       </TouchableOpacity>
 
@@ -422,17 +424,23 @@ export function CompassSettingsButton() {
                   borderTopWidth: 1,
                   borderColor: t.palette.contrast_100,
                 }}>
-                <Toggle.Item
-                  name="hide_communities"
-                  label="Hide communities cards"
-                  value={!showCommunities}
-                  onChange={isSelected => setShowCommunities(!isSelected)}
-                  style={styles.settingsOption}>
-                  <Text style={[styles.settingsOptionText, t.atoms.text]}>
-                    Hide communities cards
-                  </Text>
-                  <Toggle.Switch />
-                </Toggle.Item>
+                <Toggle.Group
+                  label="Communities visibility"
+                  type="checkbox"
+                  values={!showCommunities ? ['hide_communities'] : []}
+                  onChange={values =>
+                    setShowCommunities(!values.includes('hide_communities'))
+                  }>
+                  <Toggle.Item
+                    name="hide_communities"
+                    label="Hide communities cards"
+                    style={styles.settingsOption}>
+                    <Text style={[styles.settingsOptionText, t.atoms.text]}>
+                      Hide communities cards
+                    </Text>
+                    <Toggle.Switch />
+                  </Toggle.Item>
+                </Toggle.Group>
               </View>
             </View>
 
@@ -467,13 +475,12 @@ export function CommunityFilterList({
 }) {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
-  const {viewMode, selectedFilters, toggleFilter} = useBaseFilter()
+  const {viewMode, selectedFilters, toggleFilter, showCommunities} =
+    useBaseFilter()
   const scrollViewRef = useRef<ScrollView>(null)
   const {_} = useLingui()
 
-  // Need to read showCommunities from context ideally
-  // For now we render it always? Or let parent control visibility?
-  // BaseScreen handles visibility. I'll just render the content.
+  if (!showCommunities) return null
 
   const mexicanStates = MEXICAN_STATES
 
@@ -621,13 +628,12 @@ const styles = StyleSheet.create({
     color: '#1f2430',
   },
   filterButton: {
-    width: 33,
+    width: 44,
     paddingHorizontal: 0,
     paddingVertical: 8,
-    marginRight: 0, // Removed margin as tabBar has padding
+    marginRight: -14, // Symmetric with myBaseButton's marginLeft
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{translateX: 7}], // Moved 1px left as requested
   },
   modalOverlay: {
     flex: 1,

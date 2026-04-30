@@ -45,10 +45,6 @@ import {
 } from '#/components/icons/Bell'
 import {Bookmark, BookmarkFilled} from '#/components/icons/Bookmark'
 import {
-  Library_Filled_Corner0_Rounded as LibraryFilled,
-  Library_Stroke2_Corner0_Rounded as Library,
-} from '#/components/icons/Library'
-import {
   BulletList_Filled_Corner0_Rounded as ListFilled,
   BulletList_Stroke2_Corner0_Rounded as List,
 } from '#/components/icons/BulletList'
@@ -66,6 +62,10 @@ import {
   HomeOpen_Filled_Corner0_Rounded as HomeFilled,
   HomeOpen_Stoke2_Corner0_Rounded as Home,
 } from '#/components/icons/HomeOpen'
+import {
+  Library_Filled_Corner0_Rounded as LibraryFilled,
+  Library_Stroke2_Corner0_Rounded as Library,
+} from '#/components/icons/Library'
 import {
   MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled,
   MagnifyingGlass_Stroke2_Corner0_Rounded as MagnifyingGlass,

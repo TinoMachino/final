@@ -8,7 +8,9 @@ import {logEvent} from '#/lib/statsig/statsig'
 import {
   useAutoplayDisabled,
   useSetAutoplayDisabled,
+  useSetShowAuthorInsignias,
   useSetShowPartyShields,
+  useShowAuthorInsignias,
   useShowPartyShields,
 } from '#/state/preferences'
 import {
@@ -27,6 +29,7 @@ import {CircleInfo_Stroke2_Corner0_Rounded as CircleInfo} from '#/components/ico
 import {Hashtag_Stroke2_Corner0_Rounded as HashtagIcon} from '#/components/icons/Hashtag'
 import {Home_Stroke2_Corner2_Rounded as HomeIcon} from '#/components/icons/Home'
 import {Macintosh_Stroke2_Corner2_Rounded as MacintoshIcon} from '#/components/icons/Macintosh'
+import {Person_Stroke2_Corner0_Rounded as UserIcon} from '#/components/icons/Person'
 import {Play_Stroke2_Corner2_Rounded as PlayIcon} from '#/components/icons/Play'
 import {Trending2_Stroke2_Corner2_Rounded as Graph} from '#/components/icons/Trending'
 import {Window_Stroke2_Corner2_Rounded as WindowIcon} from '#/components/icons/Window'
@@ -42,6 +45,8 @@ export function ContentAndMediaSettingsScreen({}: Props) {
   const {_} = useLingui()
   const showPartyShieldsPref = useShowPartyShields()
   const setShowPartyShieldsPref = useSetShowPartyShields()
+  const showAuthorInsigniasPref = useShowAuthorInsignias()
+  const setShowAuthorInsigniasPref = useSetShowAuthorInsignias()
   const autoplayDisabledPref = useAutoplayDisabled()
   const setAutoplayDisabledPref = useSetAutoplayDisabled()
   const inAppBrowserPref = useInAppBrowser()
@@ -142,6 +147,19 @@ export function ContentAndMediaSettingsScreen({}: Props) {
               <SettingsList.ItemIcon icon={HashtagIcon} />
               <SettingsList.ItemText>
                 <Trans>Show party shields on posts</Trans>
+              </SettingsList.ItemText>
+              <Toggle.Platform />
+            </SettingsList.Item>
+          </Toggle.Item>
+          <Toggle.Item
+            name="show_author_insignias"
+            label={_(msg`Show official author insignia next to avatar`)}
+            value={showAuthorInsigniasPref ?? true}
+            onChange={value => setShowAuthorInsigniasPref(value)}>
+            <SettingsList.Item>
+              <SettingsList.ItemIcon icon={UserIcon} />
+              <SettingsList.ItemText>
+                <Trans>Show author insignia next to avatar</Trans>
               </SettingsList.ItemText>
               <Toggle.Platform />
             </SettingsList.Item>

@@ -13,12 +13,12 @@ import {useNavigation} from '@react-navigation/native'
 
 import {type NavigationProp} from '#/lib/routes/types'
 import {POST_FLAIRS, type PostFlair} from '#/lib/tags'
+import {useRecentCommunities} from '#/state/persisted/recent-communities'
 import {
   type CommunityBoardView,
   useCommunityBoardsQuery,
 } from '#/state/queries/community-boards'
 import {useSession} from '#/state/session'
-import {useRecentCommunities} from '#/state/persisted/recent-communities'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {FlairSelectionList} from '#/components/FlairSelectionList'

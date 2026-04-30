@@ -16,10 +16,10 @@ import {Trans} from '@lingui/react/macro'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
 import {
-  type PartyCompassProfile,
-  PARTY_COMPASS_PROFILES,
-  PARTY_COMPASS_PROFILE_BY_ID,
   formatNinthPartyBreakdown,
+  PARTY_COMPASS_PROFILE_BY_ID,
+  PARTY_COMPASS_PROFILES,
+  type PartyCompassProfile,
 } from '#/lib/compass/party-distributions'
 import {
   SIXTY_NINTHS_BY_ID,

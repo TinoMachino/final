@@ -80,7 +80,7 @@ export function ActivityNotificationSettingsScreen({}: Props) {
     try {
       await fetchNextPage()
     } catch (err) {
-      logger.error('Failed to load more likes', {message: err})
+      logger.error('Failed to load more subscriptions', {message: err})
     }
   }, [isFetchingNextPage, hasNextPage, isError, fetchNextPage])
 

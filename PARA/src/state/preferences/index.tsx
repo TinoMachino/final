@@ -9,8 +9,9 @@ import {Provider as InAppBrowserProvider} from './in-app-browser'
 import {Provider as KawaiiProvider} from './kawaii'
 import {Provider as LanguagesProvider} from './languages'
 import {Provider as LargeAltBadgeProvider} from './large-alt-badge'
-import {Provider as SubtitlesProvider} from './subtitles'
+import {Provider as ShowAuthorInsigniasProvider} from './show-author-insignias'
 import {Provider as ShowPartyShieldsProvider} from './show-party-shields'
+import {Provider as SubtitlesProvider} from './subtitles'
 import {Provider as TrendingSettingsProvider} from './trending'
 import {Provider as UsedStarterPacksProvider} from './used-starter-packs'
 
@@ -27,11 +28,15 @@ export {
 export {useHiddenPosts, useHiddenPostsApi} from './hidden-posts'
 export {useLabelDefinitions} from './label-defs'
 export {useLanguagePrefs, useLanguagePrefsApi} from './languages'
-export {useSetSubtitlesEnabled, useSubtitlesEnabled} from './subtitles'
+export {
+  useSetShowAuthorInsignias,
+  useShowAuthorInsignias,
+} from './show-author-insignias'
 export {
   useSetShowPartyShields,
   useShowPartyShields,
 } from './show-party-shields'
+export {useSetSubtitlesEnabled, useSubtitlesEnabled} from './subtitles'
 
 export function Provider({children}: PropsWithChildren<{}>) {
   return (
@@ -47,7 +52,9 @@ export function Provider({children}: PropsWithChildren<{}>) {
                       <SubtitlesProvider>
                         <TrendingSettingsProvider>
                           <ShowPartyShieldsProvider>
-                            <KawaiiProvider>{children}</KawaiiProvider>
+                            <ShowAuthorInsigniasProvider>
+                              <KawaiiProvider>{children}</KawaiiProvider>
+                            </ShowAuthorInsigniasProvider>
                           </ShowPartyShieldsProvider>
                         </TrendingSettingsProvider>
                       </SubtitlesProvider>

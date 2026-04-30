@@ -4,10 +4,10 @@ import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
+import {type PoliticalAffiliationType} from '#/lib/political-affiliations'
 import {
   BADGE_INFO,
 } from '#/state/shell/political-affiliation'
-import {type PoliticalAffiliationType} from '#/lib/political-affiliations'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'

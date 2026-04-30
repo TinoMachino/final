@@ -4,7 +4,7 @@
  */
 
 export {
-  getCommunityInsignia as getCommunityEstandarte,
-  insigniaFromColor as estandarteFromColor,
   type InsigniaColors as EstandarteColors,
+  insigniaFromColor as estandarteFromColor,
+  getCommunityInsignia as getCommunityEstandarte,
 } from '#/lib/civic-insignias'

@@ -161,6 +161,14 @@ export type Events = {
   'onboarding:valueProp:stepOne:nextPressed': {}
   'onboarding:valueProp:stepTwo:nextPressed': {}
   'onboarding:valueProp:skipPressed': {}
+  'onboarding:community:nextPressed': {
+    community: string
+  }
+  'onboarding:community:skipPressed': {}
+  'onboarding:compass:nextPressed': {
+    answeredCount: number
+  }
+  'onboarding:compass:skipPressed': {}
   'home:feedDisplayed': {
     feedUrl: string
     feedType: string

@@ -66,12 +66,26 @@ const insertFn = async (
     indexedAt: timestamp,
   }
 
-  const insertedPost = await db
-    .insertInto('para_post')
-    .values(post)
-    .onConflict((oc) => oc.doNothing())
-    .returningAll()
-    .executeTakeFirst()
+  const [insertedPost] = await Promise.all([
+    db
+      .insertInto('para_post')
+      .values(post)
+      .onConflict((oc) => oc.doNothing())
+      .returningAll()
+      .executeTakeFirst(),
+    db
+      .insertInto('feed_item')
+      .values({
+        type: 'post',
+        uri: post.uri,
+        cid: post.cid,
+        postUri: post.uri,
+        originatorDid: post.creator,
+        sortAt: post.indexedAt < post.createdAt ? post.indexedAt : post.createdAt,
+      })
+      .onConflict((oc) => oc.doNothing())
+      .executeTakeFirst(),
+  ])
 
   if (!insertedPost) {
     return null
@@ -113,6 +127,10 @@ const deleteFn = async (
       .deleteFrom('para_post')
       .where('uri', '=', uri.toString())
       .returningAll()
+      .executeTakeFirst(),
+    db
+      .deleteFrom('feed_item')
+      .where('postUri', '=', uri.toString())
       .executeTakeFirst(),
     db
       .deleteFrom('para_post_meta')

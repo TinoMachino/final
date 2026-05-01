@@ -99,6 +99,10 @@ interface PostOpts {
   onStateChange?: (state: string) => void
   langs?: string[]
   collection?: string
+  /** Para-specific: party affiliation for feed indexing */
+  party?: string
+  /** Para-specific: community slug for feed indexing */
+  community?: string
 }
 
 type FeatureFlags = {
@@ -179,10 +183,13 @@ export async function post(
       langs,
       labels,
       tags: buildTagsArray(draft),
-      // Para-specific fields: persist flairs and postType when writing to com.para.post
+      // Para-specific fields: persist flairs, postType, party, and community
+      // when writing to com.para.post so the backend can index them directly.
       ...(opts.collection === 'com.para.post' && {
         flairs: buildFlairsArray(draft),
         postType: derivePostTypeId(draft),
+        party: opts.party || undefined,
+        community: opts.community || undefined,
       }),
     }
     writes.push({

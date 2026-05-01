@@ -50,24 +50,54 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     }
 
     const { ref } = db.db.dynamic
-    let builder = db.db.selectFrom('post').selectAll()
 
+    const baseFilters = <T extends 'post' | 'para_post'>(
+      qb: any,
+      table: T,
+    ) => {
+      let qb2 = qb
+      if (q) {
+        qb2 = qb2.where(`${table}.text`, 'like', `%${q}%`)
+      }
+      if (authorDid) {
+        qb2 = qb2.where(`${table}.creator`, '=', authorDid)
+      }
+      return qb2
+    }
+
+    let postBuilder = baseFilters(db.db.selectFrom('post'), 'post')
     if (tags && tags.length > 0) {
-      // Use PostgreSQL jsonb ?& operator for AND matching of all tags
-      builder = builder.where(
+      postBuilder = postBuilder.where(
         sql<boolean>`"post"."tags" ?& ${JSON.stringify(tags)}`,
       )
     }
 
-    if (q) {
-      builder = builder.where('post.text', 'like', `%${q}%`)
+    let paraPostBuilder = baseFilters(
+      db.db.selectFrom('para_post'),
+      'para_post',
+    )
+    if (tags && tags.length > 0) {
+      paraPostBuilder = paraPostBuilder.where((qb) =>
+        qb
+          .where(sql<boolean>`"para_post"."tags" ?& ${JSON.stringify(tags)}`)
+          .orWhere('para_post.party', 'in', tags)
+          .orWhere('para_post.community', 'in', tags),
+      )
     }
 
-    if (authorDid) {
-      builder = builder.where('post.creator', '=', authorDid)
-    }
+    let builder = db.db
+      .selectFrom(() =>
+        postBuilder
+          .select(['uri', 'cid', 'sortAt'])
+          .unionAll(paraPostBuilder.select(['uri', 'cid', 'sortAt']))
+          .as('combined_posts'),
+      )
+      .selectAll()
 
-    const keyset = new TimeCidKeyset(ref('post.sortAt'), ref('post.cid'))
+    const keyset = new TimeCidKeyset(
+      ref('combined_posts.sortAt'),
+      ref('combined_posts.cid'),
+    )
     builder = paginate(builder, {
       limit,
       cursor,

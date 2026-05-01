@@ -853,6 +853,14 @@ export const ComposePost = ({
         }),
       }
 
+      // Derive party/community BEFORE post creation so they get stored
+      // directly on the com.para.post record for backend indexing.
+      const derivedParty = affiliation || activeFilters[0]
+      const derivedCommunity =
+        activeFilters.find(filter => filter !== derivedParty) ||
+        activeFilters[0] ||
+        affiliation
+
       postUri = (
         await apilib.post(
           agent,
@@ -863,6 +871,8 @@ export const ComposePost = ({
             onStateChange: setPublishingStage,
             langs: currentLanguages,
             collection: apilib.PARA_POST_COLLECTION,
+            party: derivedParty || undefined,
+            community: derivedCommunity || undefined,
           },
           {
             highResolutionImages: ax.features.enabled(
@@ -877,11 +887,6 @@ export const ComposePost = ({
       const adjustedFlairTags = selectedFlairs.map(flair =>
         applyOfficialToFlairTag(flair.tag, isOfficial),
       )
-      const derivedParty = affiliation || activeFilters[0]
-      const derivedCommunity =
-        activeFilters.find(filter => filter !== derivedParty) ||
-        activeFilters[0] ||
-        affiliation
       if (
         postUri &&
         (adjustedFlairTags.length > 0 ||

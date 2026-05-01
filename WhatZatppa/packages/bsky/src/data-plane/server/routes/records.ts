@@ -69,8 +69,8 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         author: post.creator,
         postType: meta?.postType ?? post.postType ?? undefined,
         official: meta?.official != null ? String(meta.official) : undefined,
-        party: meta?.party ?? undefined,
-        community: meta?.community ?? undefined,
+        party: meta?.party ?? post.party ?? undefined,
+        community: meta?.community ?? post.community ?? undefined,
         category: meta?.category ?? undefined,
         tags: meta?.tags ?? post.tags ?? [],
         flairs: meta?.flairs ?? post.flairs ?? [],
@@ -92,7 +92,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         'post.uri as postUri',
         'post.postType as postType',
         'meta.official as official',
-        'meta.community as community',
+        sql<string>`coalesce(meta.community, post.community)`.as('community'),
       ])
       .where('post.uri', '=', req.postUri)
       .executeTakeFirst()

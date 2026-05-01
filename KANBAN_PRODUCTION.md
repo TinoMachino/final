@@ -61,11 +61,15 @@ _Items done but need verification before moving to Done._
   - *Verify:* Run stack, trigger an event, check Umami dashboard shows it
 - [ ] **Sentry stripped** — No `import '#/logger/sentry/setup'` in App entry points
   - *Verify:* Search codebase for `@sentry/react-native` imports — should only remain in `logger/` (unused)
-- [ ] **Statsig deleted** — `gates.ts` removed, `statsig.tsx` is no-op shim
+- [x] **Statsig deleted** — `gates.ts` removed, `statsig.tsx` is no-op shim
   - *Verify:* `grep -r "statsig" src/` should only show the shim file
-- [ ] **CivicInsignia unified** — `PartyShield` + `CommunityEstandarte` → one component
+- [x] **Onboarding Redesign** — 6-step flow (Profile, Interests, Suggested, Community, Compass, Finished)
+  - *Verify:* Run onboarding, ensure all 6 steps show and work.
+- [x] **Feed Data Persistence** — Party/community fields in `para_post`, indexer fix, search/timeline UNION fix
+  - *Verify:* Community/Party feeds show posts even after backend restart.
+- [x] **CivicInsignia unified** — `PartyShield` + `CommunityEstandarte` → one component
   - *Verify:* Both render correctly in app (shield in posts, banner in communities)
-- [ ] **TypeScript clean** — `npx tsc --noEmit` passes for our files
+- [x] **TypeScript clean** — `npx tsc --noEmit` passes for our files
   - *Verify:* Only pre-existing errors in `bskylink/`, `__tests__/` remain
 - [ ] **Tests pass** — `yarn test` → 523/523
   - *Verify:* Run test suite
@@ -85,6 +89,7 @@ _Items completed and verified._
 - [x] **Day 5 — Production Hardening** — Party shields, estandartes, flairs, `IS_DEV` fix, rate limits, readiness probe
 - [x] **Day 6 — Navigation + Seeding** — Cabildeo in Drawer, 20 users, 20 cabildeos, 200+ votes
 - [x] **Day 7 — Political Identity** — MyBase redesign, compass, affiliations, flair persistence
+- [x] **Day 8 — Onboarding + Feed Stability** — 6-step onboarding, dead code cleanup, backend search/timeline UNION fix, feed_item indexing for Para posts
 
 ### Post-Week Polish
 
@@ -102,7 +107,7 @@ _Items completed and verified._
 |----------|--------|
 | `yarn test` passes (523) | 🟡 Review |
 | `pnpm build` passes (backend) | 🟡 Review |
-| TypeScript clean (our files) | 🟡 Review |
+| TypeScript clean (our files) | 🟢 Done |
 | Secrets generated | 🔴 Ready |
 | `.env` filled | 🔴 Ready |
 | 5950X machine ready | 🔴 Backlog |
@@ -120,4 +125,4 @@ _Items completed and verified._
 
 ---
 
-*Last updated: Day 7 closeout. Update this file as items move.*
+*Last updated: Day 8 closeout. Onboarding and feeds are now production-ready.*

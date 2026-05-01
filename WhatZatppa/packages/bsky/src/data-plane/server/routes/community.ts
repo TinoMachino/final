@@ -724,7 +724,7 @@ const getCommunityPostCounts = async (
 
   const community = board ? normalizeCommunitySlug(board.slug || board.name) : ''
   let builder = db.db
-    .selectFrom('para_post_meta')
+    .selectFrom('para_post')
     .where('creator', 'in', dids)
     .select(['creator'])
     .select(
@@ -798,7 +798,7 @@ const getCommunityCounters = async (
       .select(countAll.as('count'))
       .executeTakeFirst(),
     db.db
-      .selectFrom('para_post_meta')
+      .selectFrom('para_post')
       .where(
         sql`regexp_replace(lower(coalesce("community", '')), '[^a-z0-9]+', '-', 'g')`,
         '=',
@@ -807,7 +807,7 @@ const getCommunityCounters = async (
       .select(sql<number>`count(distinct "creator")`.as('count'))
       .executeTakeFirst(),
     db.db
-      .selectFrom('para_post_meta')
+      .selectFrom('para_post')
       .where(
         sql`regexp_replace(lower(coalesce("community", '')), '[^a-z0-9]+', '-', 'g')`,
         '=',

@@ -2,6 +2,147 @@ import {useMemo} from 'react'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
+// ─── Civic Categories ────────────────────────────────────────────────────────
+// Organized by the 6 pillars of civic governance that PARA tracks.
+
+export type CivicCategoryKey =
+  | 'internal-revenue'
+  | 'public-services'
+  | 'economy'
+  | 'internal-affairs'
+  | 'external-affairs'
+  | 'social-issues'
+
+export interface CivicCategory {
+  label: string
+  emoji: string
+  interests: string[]
+  interestLabels: Record<string, string>
+}
+
+export function useCivicCategories(): Record<CivicCategoryKey, CivicCategory> {
+  const {_} = useLingui()
+
+  return useMemo(
+    () => ({
+      'internal-revenue': {
+        label: _(msg`Internal Revenue`),
+        emoji: '🏛️',
+        interests: [
+          'tax-reform',
+          'fiscal-transparency',
+          'public-debt',
+          'audit-accountability',
+          'tax-evasion',
+        ],
+        interestLabels: {
+          'tax-reform': _(msg`Tax Reform`),
+          'fiscal-transparency': _(msg`Fiscal Transparency`),
+          'public-debt': _(msg`Public Debt`),
+          'audit-accountability': _(msg`Audit & Accountability`),
+          'tax-evasion': _(msg`Tax Evasion`),
+        },
+      },
+      'public-services': {
+        label: _(msg`Public Services`),
+        emoji: '🏥',
+        interests: [
+          'healthcare',
+          'education',
+          'infrastructure',
+          'public-transport',
+          'water-sanitation',
+        ],
+        interestLabels: {
+          healthcare: _(msg`Healthcare`),
+          education: _(msg`Education`),
+          infrastructure: _(msg`Infrastructure`),
+          'public-transport': _(msg`Public Transport`),
+          'water-sanitation': _(msg`Water & Sanitation`),
+        },
+      },
+      economy: {
+        label: _(msg`Economy`),
+        emoji: '📊',
+        interests: [
+          'employment',
+          'inflation',
+          'trade-policy',
+          'minimum-wage',
+          'small-business',
+        ],
+        interestLabels: {
+          employment: _(msg`Employment`),
+          inflation: _(msg`Inflation`),
+          'trade-policy': _(msg`Trade Policy`),
+          'minimum-wage': _(msg`Minimum Wage`),
+          'small-business': _(msg`Small Business`),
+        },
+      },
+      'internal-affairs': {
+        label: _(msg`Internal Affairs`),
+        emoji: '⚖️',
+        interests: [
+          'security',
+          'justice-reform',
+          'corruption',
+          'civil-rights',
+          'indigenous-rights',
+        ],
+        interestLabels: {
+          security: _(msg`Security`),
+          'justice-reform': _(msg`Justice Reform`),
+          corruption: _(msg`Corruption`),
+          'civil-rights': _(msg`Civil Rights`),
+          'indigenous-rights': _(msg`Indigenous Rights`),
+        },
+      },
+      'external-affairs': {
+        label: _(msg`External Affairs`),
+        emoji: '🌎',
+        interests: [
+          'diplomacy',
+          'migration',
+          'trade-agreements',
+          'border-policy',
+          'international-aid',
+        ],
+        interestLabels: {
+          diplomacy: _(msg`Diplomacy`),
+          migration: _(msg`Migration`),
+          'trade-agreements': _(msg`Trade Agreements`),
+          'border-policy': _(msg`Border Policy`),
+          'international-aid': _(msg`International Aid`),
+        },
+      },
+      'social-issues': {
+        label: _(msg`Social Issues`),
+        emoji: '🤝',
+        interests: [
+          'gender-equality',
+          'lgbtq-rights',
+          'disability-rights',
+          'housing',
+          'environmental-justice',
+        ],
+        interestLabels: {
+          'gender-equality': _(msg`Gender Equality`),
+          'lgbtq-rights': _(msg`LGBTQ+ Rights`),
+          'disability-rights': _(msg`Disability Rights`),
+          housing: _(msg`Housing`),
+          'environmental-justice': _(msg`Environmental Justice`),
+        },
+      },
+    }),
+    [_],
+  )
+}
+
+// ─── Legacy compatibility ────────────────────────────────────────────────────
+// The old flat interests array is still used by the AT Proto setInterestsPref
+// API. We keep it exported so existing code doesn't break, but the onboarding
+// UI now uses the structured civic categories above.
+
 export const interests = [
   'animals',
   'art',

@@ -58,6 +58,14 @@ export interface ParaPostRecord {
    * Para-specific post type (policy, matter, meme, etc).
    */
   postType?: string
+  /**
+   * Party affiliation for feed indexing (e.g. 'Morena', 'PAN').
+   */
+  party?: string
+  /**
+   * Community slug for feed indexing (e.g. 'jalisco', 'cdmx').
+   */
+  community?: string
 }
 
 export interface ParaPostMetaRecord {

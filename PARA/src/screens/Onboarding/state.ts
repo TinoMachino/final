@@ -10,9 +10,8 @@ type OnboardingScreen =
   | 'profile'
   | 'interests'
   | 'suggested-accounts'
-  | 'suggested-starterpacks'
-  | 'find-contacts-intro'
-  | 'find-contacts'
+  | 'choose-community'
+  | 'compass-preview'
   | 'finished'
 
 export type OnboardingState = {
@@ -22,6 +21,12 @@ export type OnboardingState = {
 
   interestsStepResults: {
     selectedInterests: string[]
+  }
+  communityStepResults: {
+    selectedCommunity: string | null
+  }
+  compassStepResults: {
+    answers: Record<string, 'agree' | 'disagree'> // questionId → answer
   }
   profileStepResults: {
     isCreatedAvatar: boolean
@@ -49,14 +54,19 @@ export type OnboardingAction =
       type: 'prev'
     }
   | {
-      type: 'skip-contacts'
-    }
-  | {
       type: 'finish'
     }
   | {
       type: 'setInterestsStepResults'
       selectedInterests: string[]
+    }
+  | {
+      type: 'setCommunityStepResults'
+      selectedCommunity: string | null
+    }
+  | {
+      type: 'setCompassStepResults'
+      answers: Record<string, 'agree' | 'disagree'>
     }
   | {
       type: 'setProfileStepResults'
@@ -72,22 +82,13 @@ export type OnboardingAction =
         | undefined
     }
 
-export function createInitialOnboardingState(
-  {
-    starterPacksStepEnabled,
-    findContactsStepEnabled,
-  }: {
-    starterPacksStepEnabled: boolean
-    findContactsStepEnabled: boolean
-  } = {starterPacksStepEnabled: true, findContactsStepEnabled: false},
-): OnboardingState {
+export function createInitialOnboardingState(): OnboardingState {
   const screens: OnboardingState['screens'] = {
     profile: true,
     interests: true,
     'suggested-accounts': true,
-    'suggested-starterpacks': starterPacksStepEnabled,
-    'find-contacts-intro': findContactsStepEnabled,
-    'find-contacts': findContactsStepEnabled,
+    'choose-community': true,
+    'compass-preview': true,
     finished: true,
   }
 
@@ -97,6 +98,12 @@ export function createInitialOnboardingState(
     stepTransitionDirection: 'Forward',
     interestsStepResults: {
       selectedInterests: [],
+    },
+    communityStepResults: {
+      selectedCommunity: null,
+    },
+    compassStepResults: {
+      answers: {},
     },
     profileStepResults: {
       isCreatedAvatar: false,
@@ -140,23 +147,25 @@ export function reducer(
       next.stepTransitionDirection = 'Backward'
       break
     }
-    case 'skip-contacts': {
-      const nextIndex = stepOrder.indexOf('find-contacts') + 1
-      const nextStep = stepOrder[nextIndex] ?? 'finished'
-      next.activeStep = nextStep
-      next.stepTransitionDirection = 'Forward'
-      break
-    }
     case 'finish': {
-      next = createInitialOnboardingState({
-        starterPacksStepEnabled: s.screens['suggested-starterpacks'],
-        findContactsStepEnabled: s.screens['find-contacts'],
-      })
+      next = createInitialOnboardingState()
       break
     }
     case 'setInterestsStepResults': {
       next.interestsStepResults = {
         selectedInterests: a.selectedInterests,
+      }
+      break
+    }
+    case 'setCommunityStepResults': {
+      next.communityStepResults = {
+        selectedCommunity: a.selectedCommunity,
+      }
+      break
+    }
+    case 'setCompassStepResults': {
+      next.compassStepResults = {
+        answers: a.answers,
       }
       break
     }
@@ -169,15 +178,6 @@ export function reducer(
         creatorState: a.creatorState,
       }
       break
-    }
-  }
-
-  if (a.type === 'next') {
-    if (next.activeStep === 'find-contacts-intro') {
-      logger.metric('onboarding:contacts:presented', {})
-    }
-    if (next.activeStep === 'find-contacts') {
-      logger.metric('onboarding:contacts:begin', {})
     }
   }
 
@@ -207,9 +207,8 @@ function getStepOrder(s: OnboardingState): OnboardingScreen[] {
     s.screens.profile && ('profile' as const),
     s.screens.interests && ('interests' as const),
     s.screens['suggested-accounts'] && ('suggested-accounts' as const),
-    s.screens['suggested-starterpacks'] && ('suggested-starterpacks' as const),
-    s.screens['find-contacts-intro'] && ('find-contacts-intro' as const),
-    s.screens['find-contacts'] && ('find-contacts' as const),
+    s.screens['choose-community'] && ('choose-community' as const),
+    s.screens['compass-preview'] && ('compass-preview' as const),
     s.screens.finished && ('finished' as const),
   ].filter(x => !!x)
 }
@@ -234,7 +233,7 @@ export function useOnboardingInternalState() {
   return {
     state: useMemo(() => {
       const stepOrder = getStepOrder(state).filter(
-        x => x !== 'find-contacts' && x !== 'finished',
+        x => x !== 'finished',
       ) as string[]
       const canGoBack = state.activeStep !== stepOrder[0]
       return {
@@ -242,13 +241,9 @@ export function useOnboardingInternalState() {
         canGoBack,
         /**
          * Note: for *display* purposes only, do not lean on this
-         * for navigation purposes! we merge certain steps!
+         * for navigation purposes!
          */
-        activeStepIndex: stepOrder.indexOf(
-          state.activeStep === 'find-contacts'
-            ? 'find-contacts-intro'
-            : state.activeStep,
-        ),
+        activeStepIndex: stepOrder.indexOf(state.activeStep),
         totalSteps: stepOrder.length,
       }
     }, [state]),

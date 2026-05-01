@@ -205,12 +205,12 @@ export const getRecords = (db: Database, ns?: l.Main<l.RecordSchema>) => {
 }
 
 export const getPostRecords = (db: Database) => {
-  const getBaseRecords = getRecords(db, app.bsky.feed.post)
+  const getRecordsAny = getRecords(db)
   return async (req: {
     uris: string[]
   }): Promise<{ records: Record[]; meta: PostRecordMeta[] }> => {
     const [{ records }, details] = await Promise.all([
-      getBaseRecords(req),
+      getRecordsAny(req),
       req.uris.length
         ? await db.db
             .selectFrom('post')
@@ -222,16 +222,29 @@ export const getPostRecords = (db: Database) => {
               'hasThreadGate',
               'hasPostGate',
             ])
+            .unionAll(
+              db.db
+                .selectFrom('para_post')
+                .where('uri', 'in', req.uris)
+                .select([
+                  'uri',
+                  sql<boolean>`false`.as('violatesThreadGate'),
+                  sql<boolean>`false`.as('violatesEmbeddingRules'),
+                  sql<boolean>`false`.as('hasThreadGate'),
+                  sql<boolean>`false`.as('hasPostGate'),
+                ]),
+            )
             .execute()
         : [],
     ])
     const byKey = keyBy(details, 'uri')
     const meta = req.uris.map((uri) => {
+      const detail = byKey.get(uri)
       return new PostRecordMeta({
-        violatesThreadGate: !!byKey.get(uri)?.violatesThreadGate,
-        violatesEmbeddingRules: !!byKey.get(uri)?.violatesEmbeddingRules,
-        hasThreadGate: !!byKey.get(uri)?.hasThreadGate,
-        hasPostGate: !!byKey.get(uri)?.hasPostGate,
+        violatesThreadGate: !!detail?.violatesThreadGate,
+        violatesEmbeddingRules: !!detail?.violatesEmbeddingRules,
+        hasThreadGate: !!detail?.hasThreadGate,
+        hasPostGate: !!detail?.hasPostGate,
       })
     })
     return { records, meta }

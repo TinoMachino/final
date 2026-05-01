@@ -85,13 +85,12 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       )
     }
 
+    const combinedPosts = postBuilder
+      .select(['uri', 'cid', 'sortAt'])
+      .unionAll(paraPostBuilder.select(['uri', 'cid', 'sortAt']))
+
     let builder = db.db
-      .selectFrom(() =>
-        postBuilder
-          .select(['uri', 'cid', 'sortAt'])
-          .unionAll(paraPostBuilder.select(['uri', 'cid', 'sortAt']))
-          .as('combined_posts'),
-      )
+      .selectFrom(combinedPosts.as('combined_posts'))
       .selectAll()
 
     const keyset = new TimeCidKeyset(

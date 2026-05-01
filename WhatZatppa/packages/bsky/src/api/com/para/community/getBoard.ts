@@ -38,27 +38,37 @@ const getBoard = async ({
   params: QueryParams
   viewer?: string
 }) => {
-  const res = await ctx.dataplane.getParaCommunityBoard({
-    communityId: params.communityId ?? '',
-    uri: params.uri ?? '',
-    viewerDid: viewer ?? '',
-  })
+  console.log('[getBoard API] Incoming params:', params, 'viewer:', viewer)
+  try {
+    const res = await ctx.dataplane.getParaCommunityBoard({
+      communityId: params.communityId ?? '',
+      uri: params.uri ?? '',
+      viewerDid: viewer ?? '',
+    })
+    
+    console.log('[getBoard API] Dataplane response received. Board present?', !!res?.board)
 
-  if (!res.board) {
-    throw new InvalidRequestError('Community not found', 'NotFound')
-  }
+    if (!res.board) {
+      console.warn('[getBoard API] Dataplane returned no board. Throwing NotFound.')
+      throw new InvalidRequestError('Community not found', 'NotFound')
+    }
 
-  const board = mapBoardView(res.board, res.governanceSummary)
+    const board = mapBoardView(res.board, res.governanceSummary)
+    console.log('[getBoard API] Successfully mapped board view for:', board.slug || board.communityId)
 
-  return {
-    board,
-    viewerCapabilities: getViewerCapabilities({
-      viewer,
-      creatorDid: res.board.creatorDid,
-      viewerRoles: res.board.viewerRoles,
-      viewerMembershipState: res.board.viewerMembershipState || 'none',
-      canCreateCommunity: true,
-    }),
+    return {
+      board,
+      viewerCapabilities: getViewerCapabilities({
+        viewer,
+        creatorDid: res.board.creatorDid,
+        viewerRoles: res.board.viewerRoles,
+        viewerMembershipState: res.board.viewerMembershipState || 'none',
+        canCreateCommunity: true,
+      }),
+    }
+  } catch (err) {
+    console.error('[getBoard API] FATAL ERROR during getBoard execution:', err)
+    throw err
   }
 }
 

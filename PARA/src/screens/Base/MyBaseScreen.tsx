@@ -1,5 +1,6 @@
 import {useCallback, useMemo, useState} from 'react'
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {StyleSheet, TouchableOpacity, View} from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 import {type AppBskyActorDefs, AtUri} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
@@ -19,7 +20,7 @@ import {FOLLOWED_ITEM_CATEGORIES, useFollowedItems} from '#/state/topics'
 import {type FollowedItem} from '#/state/topics'
 import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
-import {atoms as a, useTheme} from '#/alf'
+import {atoms as a, useBreakpoints, useTheme} from '#/alf'
 import {CompassMini} from '#/components/CompassMini'
 import {ArrowLeft_Stroke2_Corner0_Rounded as BackIcon} from '#/components/icons/Arrow'
 import {CommunityIcon_Stroke as CommunityIcon} from '#/components/icons/Community'
@@ -35,17 +36,22 @@ import {toClout} from '#/analytics/metrics'
 
 type MetricKey = 'Influence' | 'Votes' | 'Posts' | 'Followers' | 'Following'
 
+const MY_BASE_SURFACE = '#1F2937' // Sleek dark surface
+const MY_BASE_BORDER = 'rgba(255,255,255,0.1)'
+const MY_BASE_TEXT = '#F9FAFB'
+const MY_BASE_MUTED = '#9CA3AF'
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getPhaseStyle(phase: string) {
   const meta: Record<string, {label: string; color: string}> = {
-    draft: {label: 'Borrador', color: '#6B7280'},
-    open: {label: 'Abierto', color: '#0EA5E9'},
-    deliberating: {label: 'Deliberando', color: '#F59E0B'},
-    voting: {label: 'Votación', color: '#22C55E'},
-    resolved: {label: 'Resuelto', color: '#8B5CF6'},
+    draft: {label: 'Draft', color: '#6B7280'},
+    open: {label: 'Open', color: '#0EA5E9'},
+    deliberating: {label: 'Deliberating', color: '#F59E0B'},
+    voting: {label: 'Voting', color: '#22C55E'},
+    resolved: {label: 'Resolved', color: '#8B5CF6'},
   }
   return meta[phase] || meta.draft
 }
@@ -66,6 +72,7 @@ function MyBaseHeader({
   onPressCompass,
   onPressPoliticalAffiliation,
   onPressBack,
+  gtMobile,
 }: {
   profile: AppBskyActorDefs.ProfileViewDetailed
   influenceScore: number
@@ -78,6 +85,7 @@ function MyBaseHeader({
   onPressCompass: () => void
   onPressPoliticalAffiliation: () => void
   onPressBack: () => void
+  gtMobile?: boolean
 }) {
   const t = useTheme()
   const {i18n} = useLingui()
@@ -89,143 +97,164 @@ function MyBaseHeader({
 
   return (
     <View>
-      {/* Banner / top bar */}
-      <View
-        style={[styles.headerTopBar, {backgroundColor: t.palette.primary_500}]}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={onPressBack}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <BackIcon size="md" style={{color: 'white'}} />
-        </TouchableOpacity>
-        <View style={{flex: 1}} />
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={onPressCommunities}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-          style={{marginRight: 12}}>
-          <CommunityIcon size="md" style={{color: 'white'}} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={onPressSettings}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <SettingsIcon size="md" style={{color: 'white'}} />
-        </TouchableOpacity>
-      </View>
+      {/* Premium Gradient Banner */}
+      <LinearGradient
+        colors={['#4F46E5', '#7C3AED', '#DB2777']}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={styles.headerTopBar}>
+        <Layout.Center style={a.flex_row}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onPressBack}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <BackIcon size="md" style={{color: 'white'}} />
+          </TouchableOpacity>
+          <View style={{flex: 1}} />
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onPressCommunities}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+            style={{marginRight: 12}}>
+            <CommunityIcon size="md" style={{color: 'white'}} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onPressSettings}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <SettingsIcon size="md" style={{color: 'white'}} />
+          </TouchableOpacity>
+        </Layout.Center>
+      </LinearGradient>
 
       {/* Profile block */}
-      <View style={[styles.headerProfileBlock, t.atoms.bg]}>
-        {/* Top row: Avatar + Identity + Compass */}
-        <View style={styles.headerTopRow}>
-          <View style={styles.headerAvatarWrap}>
-            <UserAvatar
-              avatar={profile?.avatar}
-              size={80}
-              type={profile?.associated?.labeler ? 'labeler' : 'user'}
+      <Layout.Center>
+        <View
+          style={[
+            styles.headerProfileBlock,
+            {
+              backgroundColor: t.atoms.bg_contrast_25.backgroundColor,
+              borderColor: t.atoms.border_contrast_low.borderColor,
+            },
+            gtMobile && styles.headerProfileBlockWeb,
+          ]}>
+          {/* Top row: Avatar + Identity + Compass */}
+          <View style={[styles.headerTopRow, gtMobile && a.align_center]}>
+            <View style={styles.headerAvatarWrap}>
+              <UserAvatar
+                avatar={profile?.avatar}
+                size={84}
+                type={profile?.associated?.labeler ? 'labeler' : 'user'}
+              />
+            </View>
+
+            <View style={styles.headerIdentityColumn}>
+              <Text style={[styles.headerName, t.atoms.text]}>
+                {profileDisplayName}
+              </Text>
+              <Text style={[styles.headerHandle, t.atoms.text_contrast_medium]}>
+                {profileHandleText}
+              </Text>
+
+              <View style={styles.headerSocialRow}>
+                <SocialMetricItem
+                  label="Followers"
+                  value={formatCount(profile?.followersCount)}
+                  onPress={() => onPressMetric('Followers')}
+                />
+                <View style={[styles.headerSocialDivider, {backgroundColor: t.atoms.border_contrast_low.borderColor}]} />
+                <SocialMetricItem
+                  label="Following"
+                  value={formatCount(profile?.followsCount)}
+                  onPress={() => onPressMetric('Following')}
+                />
+              </View>
+
+              {/* Flair */}
+              {activeFlair ? (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  style={[
+                    styles.flairBadge,
+                    {backgroundColor: activeFlair.color + '20', borderColor: activeFlair.color + '40', borderWidth: 1},
+                  ]}
+                  onPress={onPressPoliticalAffiliation}>
+                  <View
+                    style={[
+                      styles.flairDot,
+                      {backgroundColor: activeFlair.color},
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.flairText,
+                      {color: activeFlair.color},
+                      a.font_bold,
+                    ]}>
+                    {activeFlair.label}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  style={[
+                    styles.flairBadge,
+                    t.atoms.bg_contrast_50,
+                  ]}
+                  onPress={onPressPoliticalAffiliation}>
+                  <View
+                    style={[
+                      styles.flairDot,
+                      {backgroundColor: t.atoms.text_contrast_medium.color},
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.flairText,
+                      t.atoms.text_contrast_medium,
+                      a.font_bold,
+                    ]}>
+                    Set position →
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <CompassMini
+              affiliations={affiliations}
+              onPress={onPressCompass}
+              size={gtMobile ? 84 : 72}
+              compact
             />
           </View>
 
-          <View style={styles.headerIdentityColumn}>
-            <Text style={[styles.headerName, t.atoms.text]}>
-              {profileDisplayName}
-            </Text>
-            <Text style={[styles.headerHandle, t.atoms.text_contrast_medium]}>
-              {profileHandleText}
-            </Text>
-
-            {/* Flair */}
-            {activeFlair ? (
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={[
-                  styles.flairBadge,
-                  {backgroundColor: activeFlair.color + '20'},
-                ]}
-                onPress={onPressPoliticalAffiliation}>
-                <View
-                  style={[
-                    styles.flairDot,
-                    {backgroundColor: activeFlair.color},
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.flairText,
-                    {color: activeFlair.color},
-                    a.font_bold,
-                  ]}>
-                  {activeFlair.label}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={[
-                  styles.flairBadge,
-                  {backgroundColor: t.palette.contrast_300 + '30'},
-                ]}
-                onPress={onPressPoliticalAffiliation}>
-                <View
-                  style={[
-                    styles.flairDot,
-                    {backgroundColor: t.palette.contrast_300},
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.flairText,
-                    {color: t.palette.contrast_400},
-                    a.font_bold,
-                  ]}>
-                  Set position →
-                </Text>
-              </TouchableOpacity>
-            )}
+          {/* Metrics */}
+          <View style={[styles.metricsRow, {borderTopColor: t.atoms.border_contrast_low.borderColor}, gtMobile && styles.metricsRowWeb]}>
+            <MetricItem
+              label="Influence"
+              value={formatCount(influenceScore)}
+              onPress={() => onPressMetric('Influence')}
+              isWeb={gtMobile}
+            />
+            <MetricItem
+              label="Votes"
+              value={formatCount(votedCount)}
+              onPress={() => onPressMetric('Votes')}
+            />
+            <MetricItem
+              label="Posts"
+              value={formatCount(profile?.postsCount)}
+              onPress={() => onPressMetric('Posts')}
+            />
           </View>
-
-          <CompassMini
-            affiliations={affiliations}
-            onPress={onPressCompass}
-            size={72}
-            compact
-          />
         </View>
-
-        {/* Metrics */}
-        <View style={styles.metricsRow}>
-          <MetricItem
-            label="Influence"
-            value={formatCount(influenceScore)}
-            onPress={() => onPressMetric('Influence')}
-          />
-          <MetricItem
-            label="Votos"
-            value={formatCount(votedCount)}
-            onPress={() => onPressMetric('Votes')}
-          />
-          <MetricItem
-            label="Posts"
-            value={formatCount(profile?.postsCount)}
-            onPress={() => onPressMetric('Posts')}
-          />
-          <MetricItem
-            label="Seguidores"
-            value={formatCount(profile?.followersCount)}
-            onPress={() => onPressMetric('Followers')}
-          />
-          <MetricItem
-            label="Siguiendo"
-            value={formatCount(profile?.followsCount)}
-            onPress={() => onPressMetric('Following')}
-          />
-        </View>
-      </View>
+      </Layout.Center>
     </View>
+
   )
 }
 
-function MetricItem({
+function SocialMetricItem({
   label,
   value,
   onPress,
@@ -239,7 +268,33 @@ function MetricItem({
     <TouchableOpacity
       accessibilityRole="button"
       onPress={onPress}
-      style={styles.metricItem}>
+      style={styles.socialMetricItem}>
+      <Text style={[styles.socialMetricValue, t.atoms.text]}>{value}</Text>
+      <Text style={[styles.socialMetricLabel, t.atoms.text_contrast_medium]}>{label}</Text>
+    </TouchableOpacity>
+  )
+}
+
+function MetricItem({
+  label,
+  value,
+  onPress,
+  isWeb,
+}: {
+  label: string
+  value: string
+  onPress: () => void
+  isWeb?: boolean
+}) {
+  const t = useTheme()
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[
+        styles.metricItem,
+        isWeb && [t.atoms.bg_contrast_25, styles.metricItemWeb],
+      ]}>
       <Text style={[styles.metricValue, t.atoms.text]}>{value}</Text>
       <Text style={[styles.metricLabel, t.atoms.text_contrast_medium]}>
         {label}
@@ -249,7 +304,7 @@ function MetricItem({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tab: Resumen
+// Tab: Summary
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MyBaseSummaryTab({
@@ -264,6 +319,8 @@ function MyBaseSummaryTab({
   onPressPolicyTree,
   onPressViewAllHighlights,
   onPressViewProfile,
+  onPressFollowedItem,
+  gtMobile,
 }: {
   cabildeos: CabildeoView[]
   myHighlights: HighlightData[]
@@ -276,10 +333,13 @@ function MyBaseSummaryTab({
   onPressPolicyTree: () => void
   onPressViewAllHighlights: () => void
   onPressViewProfile: () => void
+  onPressFollowedItem: (item: FollowedItem) => void
+  gtMobile?: boolean
 }) {
   const t = useTheme()
   const {_} = useLingui()
-  const now = Date.now()
+  const [now, setNow] = useState(() => Date.now())
+  void setNow
 
   // ── Upcoming: cabildeos in voting where user hasn't voted ──
   const upcoming = useMemo(() => {
@@ -315,14 +375,14 @@ function MyBaseSummaryTab({
   const recentFollowed = followedItems.slice(0, 8)
 
   return (
-    <ScrollView
+    <Layout.Content
       style={styles.tabScroll}
       contentContainerStyle={styles.tabScrollContent}>
       {/* ── UPCOMING ACTIONS ── */}
       {upcoming.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, t.atoms.text]}>
-            <Trans>Próximas acciones</Trans>
+            <Trans>Upcoming actions</Trans>
           </Text>
           <View style={{gap: 10}}>
             {upcoming.map(c => (
@@ -330,6 +390,7 @@ function MyBaseSummaryTab({
                 key={c.uri}
                 cabildeo={c}
                 onPress={() => onPressCard(c.uri)}
+                now={now}
                 showDeadline
               />
             ))}
@@ -341,7 +402,7 @@ function MyBaseSummaryTab({
       {recentVotes.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, t.atoms.text]}>
-            <Trans>Votos recientes</Trans>
+            <Trans>Recent votes</Trans>
           </Text>
           <View style={{gap: 10}}>
             {recentVotes.map(c => (
@@ -349,6 +410,7 @@ function MyBaseSummaryTab({
                 key={c.uri}
                 cabildeo={c}
                 onPress={() => onPressCard(c.uri)}
+                now={now}
               />
             ))}
           </View>
@@ -374,19 +436,29 @@ function MyBaseSummaryTab({
             )}
           />
         ) : (
-          <View style={{gap: 8}}>
+          <View
+            style={[
+              styles.highlightsGrid,
+              gtMobile && a.flex_row,
+              gtMobile && a.flex_wrap,
+            ]}>
             {recentHighlights.map(h => (
               <HighlightCard
                 key={h.id}
                 highlight={h}
                 onPress={() => onPressHighlight(h)}
                 onDelete={() => onDeleteHighlight(h)}
+                isWeb={gtMobile}
               />
             ))}
             {myHighlights.length > 5 && (
               <TouchableOpacity
                 accessibilityRole="button"
-                style={[styles.viewAllButton, t.atoms.bg_contrast_25]}
+                style={[
+                  styles.viewAllButton,
+                  t.atoms.bg_contrast_25,
+                  gtMobile && {width: '100%'},
+                ]}
                 onPress={onPressViewAllHighlights}>
                 <Text
                   style={[styles.viewAllText, {color: t.palette.primary_500}]}>
@@ -417,17 +489,21 @@ function MyBaseSummaryTab({
             )}
           />
         ) : (
-          <View style={styles.followedGrid}>
+          <View
+            style={[styles.followedGrid, gtMobile && styles.followedGridWeb]}>
             {recentFollowed.map(item => (
               <FollowedItemCard
                 key={item.id}
                 item={item}
+                onPress={() => onPressFollowedItem(item)}
                 onUnfollow={() => onUnfollowItem(item.id)}
+                isWeb={gtMobile}
               />
             ))}
           </View>
         )}
       </View>
+
 
       {/* ── RAQ SECTION ── */}
       <View
@@ -472,18 +548,19 @@ function MyBaseSummaryTab({
       {/* ── VIEW PROFILE LINK ── */}
       <TouchableOpacity
         accessibilityRole="button"
-        style={[styles.viewProfileLink, {backgroundColor: '#e8e8e8'}]}
+        style={[styles.viewProfileLink, t.atoms.bg_contrast_25]}
         onPress={onPressViewProfile}>
         <Text style={[styles.viewProfileText, {color: t.palette.primary_500}]}>
-          <Trans>Ver perfil público →</Trans>
+          <Trans>View public profile →</Trans>
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+    </Layout.Content>
+
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tab: Votos
+// Tab: Votes
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -493,15 +570,16 @@ function MyBaseSummaryTab({
 function CabildeoMiniCard({
   cabildeo,
   onPress,
+  now,
   showDeadline,
 }: {
   cabildeo: CabildeoView
   onPress: () => void
+  now: number
   showDeadline?: boolean
 }) {
   const t = useTheme()
   const phase = getPhaseStyle(cabildeo.phase)
-  const now = Date.now()
   const deadline = cabildeo.phaseDeadline
     ? new Date(cabildeo.phaseDeadline).getTime()
     : 0
@@ -533,8 +611,8 @@ function CabildeoMiniCard({
         {showDeadline && hoursLeft > 0 && hoursLeft < 168 && (
           <Text style={[styles.deadlineText, {color: t.palette.negative_500}]}>
             {hoursLeft < 24
-              ? `${hoursLeft}h restantes`
-              : `${Math.floor(hoursLeft / 24)}d restantes`}
+              ? `${hoursLeft}h left`
+              : `${Math.floor(hoursLeft / 24)}d left`}
           </Text>
         )}
       </View>
@@ -546,10 +624,12 @@ function HighlightCard({
   highlight,
   onPress,
   onDelete,
+  isWeb,
 }: {
   highlight: HighlightData
   onPress: () => void
   onDelete: () => void
+  isWeb?: boolean
 }) {
   const t = useTheme()
   return (
@@ -558,6 +638,7 @@ function HighlightCard({
         styles.highlightCard,
         t.atoms.bg_contrast_25,
         t.atoms.border_contrast_low,
+        isWeb && styles.highlightCardWeb,
       ]}>
       <TouchableOpacity
         accessibilityRole="button"
@@ -589,10 +670,14 @@ function HighlightCard({
 
 function FollowedItemCard({
   item,
+  onPress,
   onUnfollow,
+  isWeb,
 }: {
   item: FollowedItem
+  onPress: () => void
   onUnfollow: () => void
+  isWeb?: boolean
 }) {
   const t = useTheme()
   const category = FOLLOWED_ITEM_CATEGORIES[item.type]
@@ -602,8 +687,12 @@ function FollowedItemCard({
         styles.followedCard,
         t.atoms.bg_contrast_25,
         t.atoms.border_contrast_low,
+        isWeb && styles.followedCardWeb,
       ]}>
-      <View style={styles.followedCardContent}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={onPress}
+        style={styles.followedCardContent}>
         <View
           style={[
             styles.followedIcon,
@@ -619,7 +708,7 @@ function FollowedItemCard({
             {category.label}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity
         accessibilityRole="button"
         onPress={onUnfollow}
@@ -661,7 +750,10 @@ function EmptyState({
 export function MyBaseScreen() {
   const {currentAccount} = useSession()
   const navigation = useNavigation<NavigationProp>()
+  const {gtMobile} = useBreakpoints()
+  const t = useTheme()
   const currentDid = currentAccount?.did
+
   const {data: currentProfile} = useProfileQuery({did: currentDid})
   const {data: cabildeos = []} = useCabildeosQuery()
   const {affiliations, activeFlair} = usePoliticalAffiliation()
@@ -722,14 +814,37 @@ export function MyBaseScreen() {
 
   const onPressHighlight = useCallback(
     (highlight: HighlightData) => {
+      navigation.navigate('SeeHighlightDetails', {highlightId: highlight.id})
+    },
+    [navigation],
+  )
+
+  const onPressFollowedItem = useCallback(
+    (item: FollowedItem) => {
+      if (item.type === 'policy') {
+        navigation.navigate('PoliciesDashboard', {mode: 'Policies'})
+        return
+      }
+      if (item.type === 'matter') {
+        navigation.navigate('PoliciesDashboard', {mode: 'Matters'})
+        return
+      }
+      if (item.type === 'hashtag') {
+        navigation.navigate('Hashtag', {
+          tag: item.identifier.replace(/^#/, ''),
+        })
+        return
+      }
+
+      const uri = item.uri || item.identifier
       try {
-        const urip = new AtUri(highlight.postUri)
+        const urip = new AtUri(uri)
         navigation.push('PostThread', {
           name: urip.host,
           rkey: urip.rkey,
         })
       } catch (e) {
-        console.error('Invalid post URI', e)
+        navigation.navigate('Topic', {topic: item.displayName})
       }
     },
     [navigation],
@@ -737,6 +852,19 @@ export function MyBaseScreen() {
 
   if (!currentAccount) {
     return null
+  }
+
+  if (!currentProfile) {
+    return (
+      <Layout.Screen>
+        <Layout.Center style={styles.loadingWrap}>
+          <Text style={[styles.loadingTitle, t.atoms.text]}>My Base</Text>
+          <Text style={[styles.loadingText, t.atoms.text_contrast_medium]}>
+            Loading your profile
+          </Text>
+        </Layout.Center>
+      </Layout.Screen>
+    )
   }
 
   return (
@@ -759,6 +887,7 @@ export function MyBaseScreen() {
             navigation.goBack()
           }
         }}
+        gtMobile={gtMobile}
       />
       <MyBaseSummaryTab
         cabildeos={cabildeos}
@@ -768,6 +897,7 @@ export function MyBaseScreen() {
         onPressHighlight={onPressHighlight}
         onDeleteHighlight={handleDeleteHighlight}
         onUnfollowItem={unfollowItem}
+        onPressFollowedItem={onPressFollowedItem}
         onPressRAQ={() => navigation.navigate('MyRAQ')}
         onPressPolicyTree={() => navigation.navigate('Compass')}
         onPressViewAllHighlights={() => navigation.navigate('Highlights')}
@@ -776,7 +906,9 @@ export function MyBaseScreen() {
             name: currentProfile?.handle || '',
           })
         }
+        gtMobile={gtMobile}
       />
+
     </Layout.Screen>
   )
 }
@@ -786,49 +918,89 @@ export function MyBaseScreen() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  darkSurface: {
+    backgroundColor: MY_BASE_SURFACE,
+    borderColor: MY_BASE_BORDER,
+  },
+  darkSoftSurface: {
+    backgroundColor: MY_BASE_SURFACE_SOFT,
+    borderColor: MY_BASE_BORDER,
+  },
   // Header
   headerTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 40,
+    paddingTop: 14,
+    paddingBottom: 52,
   },
   headerProfileBlock: {
-    marginTop: -30,
+    marginTop: -42,
     marginHorizontal: 16,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 8,
+    padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  headerProfileBlockWeb: {
+    padding: 20,
   },
   headerAvatarWrap: {
-    marginTop: -60,
-    borderWidth: 4,
+    marginTop: -42,
+    borderWidth: 3,
     borderColor: 'white',
     borderRadius: 44,
   },
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 16,
+    gap: 14,
   },
   headerIdentityColumn: {
     flex: 1,
     paddingTop: 4,
+    minWidth: 0,
   },
   headerName: {
     fontSize: 22,
     fontWeight: '800',
+    lineHeight: 27,
   },
   headerHandle: {
     fontSize: 15,
     marginTop: 2,
+  },
+  headerSocialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  headerSocialDivider: {
+    width: 1,
+    height: 22,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  socialMetricItem: {
+    paddingVertical: 2,
+    paddingRight: 4,
+  },
+  socialMetricValue: {
+    color: MY_BASE_TEXT,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 16,
+  },
+  socialMetricLabel: {
+    color: MY_BASE_MUTED,
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 13,
+    textTransform: 'uppercase',
   },
   metricsRow: {
     flexDirection: 'row',
@@ -840,6 +1012,8 @@ const styles = StyleSheet.create({
   },
   metricItem: {
     alignItems: 'center',
+    minWidth: 54,
+    flex: 1,
   },
   metricValue: {
     fontSize: 18,
@@ -902,18 +1076,19 @@ const styles = StyleSheet.create({
   },
   tabScrollContent: {
     padding: 16,
+    paddingTop: 18,
     paddingBottom: 100,
   },
 
   // Sections
   section: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '800',
     marginBottom: 12,
-    letterSpacing: -0.3,
+    lineHeight: 24,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -946,7 +1121,7 @@ const styles = StyleSheet.create({
   // Mini card
   miniCard: {
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
   },
@@ -965,7 +1140,7 @@ const styles = StyleSheet.create({
   phasePill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 4,
   },
   phasePillText: {
     fontSize: 10,
@@ -983,7 +1158,7 @@ const styles = StyleSheet.create({
   // Full card
   fullCard: {
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
   },
@@ -1039,7 +1214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
   },
   highlightCardContent: {
@@ -1074,7 +1249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     minWidth: 150,
     flexBasis: '47%',
@@ -1090,7 +1265,7 @@ const styles = StyleSheet.create({
   followedIcon: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1119,7 +1294,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -1130,7 +1305,7 @@ const styles = StyleSheet.create({
   viewProfileLink: {
     alignItems: 'center',
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -1149,7 +1324,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 32,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   emptyStateIcon: {
     fontSize: 36,
@@ -1186,7 +1361,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     marginBottom: 24,
   },
@@ -1214,7 +1389,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -1243,7 +1418,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 320,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     padding: 20,
     shadowColor: '#000',
@@ -1266,7 +1441,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
   },
   flairOptionSelected: {
@@ -1275,5 +1450,48 @@ const styles = StyleSheet.create({
   flairOptionText: {
     fontSize: 16,
     flex: 1,
+  },
+
+  // Web overrides
+  metricsRowWeb: {
+    borderTopWidth: 0,
+    gap: 12,
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  metricItemWeb: {
+    flex: 1,
+    minWidth: 100,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  highlightsGrid: {
+    gap: 10,
+  },
+  highlightCardWeb: {
+    flexBasis: '48.5%',
+    flexGrow: 0,
+  },
+  followedGridWeb: {
+    gap: 12,
+  },
+  followedCardWeb: {
+    flexBasis: '48.5%',
+    flexGrow: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  loadingTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  loadingText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 })

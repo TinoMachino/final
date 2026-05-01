@@ -11,6 +11,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native'
+import {type AnimatedStyleProp} from 'react-native-reanimated'
 import {StickyTable} from 'react-native-sticky-table'
 import {LinearGradient} from 'expo-linear-gradient'
 import {AtUri} from '@atproto/api'
@@ -19,10 +20,12 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
-import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {
   type CommunityGovernanceOfficialRepresentative,
   type CommunityGovernancePerson,
+} from '#/lib/api/para-lexicons'
+import {getCommunityInsignia} from '#/lib/civic-insignias'
+import {
   type CommunityGovernanceView,
 } from '#/lib/community-governance'
 import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
@@ -43,7 +46,7 @@ import {
   useLeaveCommunityMutation,
 } from '#/state/queries/community-boards'
 import {useCommunityGovernanceQuery} from '#/state/queries/community-governance'
-import {useSearchPostsQuery} from '#/state/queries/search-posts'
+import {useCommunityPostsQuery} from '#/state/queries/community-posts'
 import {Post} from '#/view/com/post/Post'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
@@ -110,6 +113,11 @@ export function CommunityProfileScreen() {
   const governanceCommunity = fetchedGovernance?.community
   const resolvedCommunityName =
     governanceCommunity || board?.name || communityName
+  const communityPostsKey =
+    board?.communityId ||
+    board?.slug ||
+    fetchedGovernance?.slug ||
+    resolvedCommunityName
   const isGeographicGroup = isGeographicGroupCommunity({
     communityId,
     communityName: resolvedCommunityName,
@@ -151,6 +159,7 @@ export function CommunityProfileScreen() {
     featuredRepresentative?.did ||
     featuredRepresentative?.handle ||
     COMMUNITY_AGENT_PROFILE.id
+  const isDraft = board?.status === 'draft'
 
   const {
     data,
@@ -159,13 +168,12 @@ export function CommunityProfileScreen() {
     isLoading,
     isError,
     error,
-    refetch,
+    refetch: refetchPosts,
     fetchNextPage,
     hasNextPage,
-  } = useSearchPostsQuery({
-    query: '*',
-    tag: [plainCommunityName],
-    sort: 'latest',
+  } = useCommunityPostsQuery({
+    community: communityPostsKey,
+    enabled: !isDraft,
   })
 
   const posts = useMemo(() => {
@@ -179,7 +187,6 @@ export function CommunityProfileScreen() {
     )
   }, [data])
 
-  const isDraft = board?.status === 'draft'
   const quorumCount = board?.memberCount ?? 0
   const membersToUnlock = Math.max(0, 9 - quorumCount)
   const [activeTab, setActiveTab] = useState<'Feed' | 'about'>(
@@ -232,9 +239,9 @@ export function CommunityProfileScreen() {
 
   const onRefresh = useCallback(async () => {
     setIsPTR(true)
-    await Promise.all([refetch(), refetchGovernance()])
+    await Promise.all([refetchPosts(), refetchGovernance()])
     setIsPTR(false)
-  }, [refetch, refetchGovernance])
+  }, [refetchPosts, refetchGovernance])
 
   const communityStats = useMemo(() => {
     let policyPosts = 0
@@ -940,7 +947,7 @@ export function CommunityProfileScreen() {
                     </Text>
                     <TouchableOpacity
                       accessibilityRole="button"
-                      onPress={() => void refetch()}
+                      onPress={() => void refetchPosts()}
                       style={[
                         styles.feedRetryButton,
                         {backgroundColor: t.palette.primary_500},
@@ -2705,7 +2712,7 @@ function TableContent({pal}: {pal: UsePaletteValue}) {
             paddingHorizontal: 8,
             justifyContent: 'center',
           },
-        ] as StyleProp<ViewStyle>,
+        ] as unknown as AnimatedStyleProp<ViewStyle>,
         otherIndexContainerStyle: [
           pal.view,
           pal.border,
@@ -2715,7 +2722,7 @@ function TableContent({pal}: {pal: UsePaletteValue}) {
             paddingHorizontal: 8,
             justifyContent: 'center',
           },
-        ] as StyleProp<ViewStyle>,
+        ] as unknown as AnimatedStyleProp<ViewStyle>,
         separatorViewStyle: [
           pal.view,
           pal.border,

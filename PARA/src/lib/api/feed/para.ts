@@ -8,6 +8,25 @@ import {
 import {PARA_POST_COLLECTION} from '../para-lexicons'
 import {type FeedAPI, type FeedAPIResponse} from './types'
 
+export type ParaPostView = {
+  uri: string
+  cid: string
+  author: string
+  text: string
+  createdAt: string
+  replyRoot?: string
+  replyParent?: string
+  langs?: string[]
+  tags?: string[]
+  flairs?: string[]
+  postType?: string
+}
+
+export type ParaTimelineFilters = {
+  party?: string
+  community?: string
+}
+
 export class ParaFeedAPI implements FeedAPI {
   agent: BskyAgent
   actor: string
@@ -103,7 +122,8 @@ export class ParaFeedAPI implements FeedAPI {
           // Use agent.service (PDS)
           // Ensure serviceUrl does not have trailing slash?
           const serviceUrl = this.agent.service.toString().replace(/\/$/, '')
-          const thumb = `${serviceUrl}/xrpc/com.atproto.sync.getBlob?did=${this.actor}&cid=${img.image.ref.toString()}`
+          const cid = readBlobRefString(img.image)
+          const thumb = `${serviceUrl}/xrpc/com.atproto.sync.getBlob?did=${this.actor}&cid=${cid}`
           return {
             thumb,
             fullsize: thumb,
@@ -163,4 +183,165 @@ export class ParaFeedAPI implements FeedAPI {
       // MVP: No thread context/replies in feed yet
     }
   }
+}
+
+export class ParaTimelineFeedAPI implements FeedAPI {
+  agent: BskyAgent
+  filters: ParaTimelineFilters
+  profiles = new Map<string, AppBskyActorDefs.ProfileViewDetailed>()
+
+  constructor({
+    agent,
+    filters,
+  }: {
+    agent: BskyAgent
+    filters?: ParaTimelineFilters
+  }) {
+    this.agent = agent
+    this.filters = filters ?? {}
+  }
+
+  async peekLatest(): Promise<AppBskyFeedDefs.FeedViewPost> {
+    const res = await this.fetch({limit: 1, cursor: undefined})
+    return res.feed[0]
+  }
+
+  async fetch({
+    cursor,
+    limit,
+  }: {
+    cursor: string | undefined
+    limit: number
+  }): Promise<FeedAPIResponse> {
+    try {
+      const res = await this.agent.call('com.para.feed.getTimeline', {
+        limit,
+        cursor,
+        ...buildParaTimelineFilterParams(this.filters),
+      })
+      const data = res.data as {cursor?: string; feed?: unknown[]}
+      const feed = await Promise.all(
+        (data.feed ?? [])
+          .filter(isParaTimelinePostView)
+          .map(post => this.hydrateTimelinePost(post)),
+      )
+
+      return {
+        cursor: data.cursor,
+        feed,
+      }
+    } catch (e) {
+      console.error('Error fetching Para timeline posts', e)
+      return {feed: []}
+    }
+  }
+
+  async hydrateTimelinePost(
+    paraPost: ParaPostView,
+  ): Promise<AppBskyFeedDefs.FeedViewPost> {
+    const author = await this.getAuthorProfile(paraPost.author)
+    return hydrateParaPostView(paraPost, author)
+  }
+
+  private async getAuthorProfile(
+    actor: string,
+  ): Promise<AppBskyActorDefs.ProfileViewDetailed> {
+    const cached = this.profiles.get(actor)
+    if (cached) return cached
+
+    try {
+      const res = await this.agent.getProfile({actor})
+      this.profiles.set(actor, res.data)
+      return res.data
+    } catch (e) {
+      console.error('Failed to fetch author profile for Para timeline', e)
+      return {
+        did: actor,
+        handle: actor,
+        displayName: actor,
+        labels: [],
+      }
+    }
+  }
+}
+
+export function buildParaTimelineFilterParams(filters: ParaTimelineFilters) {
+  return {
+    ...(filters.party ? {party: filters.party} : {}),
+    ...(filters.community ? {community: filters.community} : {}),
+  }
+}
+
+export function hydrateParaPostView(
+  paraPost: ParaPostView,
+  author: AppBskyActorDefs.ProfileViewDetailed,
+): AppBskyFeedDefs.FeedViewPost {
+  const authorView: AppBskyActorDefs.ProfileViewBasic = {
+    did: author.did,
+    handle: author.handle,
+    displayName: author.displayName,
+    avatar: author.avatar,
+    associated: author.associated,
+    viewer: author.viewer,
+    labels: author.labels,
+    createdAt: author.createdAt,
+  }
+  const record = {
+    $type: 'app.bsky.feed.post',
+    text: paraPost.text,
+    createdAt: paraPost.createdAt,
+    langs: paraPost.langs?.length ? paraPost.langs : ['en'],
+    tags: paraPost.tags ?? [],
+    flairs: paraPost.flairs ?? [],
+    postType: paraPost.postType,
+  }
+
+  return {
+    post: {
+      uri: paraPost.uri,
+      cid: paraPost.cid,
+      author: authorView,
+      record,
+      indexedAt: paraPost.createdAt,
+      likeCount: 0,
+      replyCount: 0,
+      repostCount: 0,
+      quoteCount: 0,
+      viewer: {},
+      labels: [],
+    },
+  }
+}
+
+function readBlobRefString(value: unknown) {
+  if (!value || typeof value !== 'object') return ''
+  const image = value as {ref?: unknown}
+  const ref = image.ref
+  if (!ref) return ''
+  if (typeof ref === 'string') return ref
+  if (
+    typeof ref === 'object' &&
+    'toString' in ref &&
+    typeof ref.toString === 'function'
+  ) {
+    const toString = ref.toString as () => string
+    return toString.call(ref)
+  }
+  return ''
+}
+
+export function isParaPostView(value: unknown): value is ParaPostView {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Partial<ParaPostView>
+  return (
+    typeof item.uri === 'string' &&
+    typeof item.cid === 'string' &&
+    typeof item.author === 'string' &&
+    typeof item.text === 'string' &&
+    typeof item.createdAt === 'string'
+  )
+}
+
+function isParaTimelinePostView(value: unknown): value is ParaPostView {
+  return isParaPostView(value)
 }

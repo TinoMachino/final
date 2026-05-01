@@ -65,26 +65,39 @@ type GovernanceRecord = ComParaCommunityGovernance.Record
 
 export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
   async getParaCommunityBoard(req) {
-    const board = await selectBoard(db, req.communityId, req.uri)
-    if (!board) {
-      return new GetParaCommunityBoardResponse()
+    console.log('[Dataplane: getParaCommunityBoard] Start. req:', { communityId: req.communityId, uri: req.uri })
+    try {
+      const board = await selectBoard(db, req.communityId, req.uri)
+      console.log('[Dataplane: getParaCommunityBoard] selectBoard result present?', !!board)
+      if (!board) {
+        return new GetParaCommunityBoardResponse()
+      }
+
+      console.log('[Dataplane: getParaCommunityBoard] resolving members and governance')
+      const [viewerMembership, memberCount, governanceSummary] =
+        await Promise.all([
+          req.viewerDid
+            ? getViewerMemberships(db, req.viewerDid, [board.uri]).then(
+                (memberships) => memberships.get(board.uri),
+              )
+            : Promise.resolve(undefined),
+          getMemberCounts(db, [board.uri]).then((counts) => counts.get(board.uri) ?? 0),
+          getGovernanceSummary(db, board.name, board.slug).catch(err => {
+            console.error('[Dataplane: getParaCommunityBoard] getGovernanceSummary failed:', err)
+            throw err
+          }),
+        ])
+
+      console.log('[Dataplane: getParaCommunityBoard] successfully resolved all parallel queries. Building response.')
+
+      return new GetParaCommunityBoardResponse({
+        board: toBoardView(board, memberCount, viewerMembership),
+        governanceSummary: governanceSummary ?? undefined,
+      })
+    } catch (err) {
+      console.error('[Dataplane: getParaCommunityBoard] FATAL error in dataplane handler:', err)
+      throw err
     }
-
-    const [viewerMembership, memberCount, governanceSummary] =
-      await Promise.all([
-        req.viewerDid
-          ? getViewerMemberships(db, req.viewerDid, [board.uri]).then(
-              (memberships) => memberships.get(board.uri),
-            )
-          : Promise.resolve(undefined),
-        getMemberCounts(db, [board.uri]).then((counts) => counts.get(board.uri) ?? 0),
-        getGovernanceSummary(db, board.name, board.slug),
-      ])
-
-    return new GetParaCommunityBoardResponse({
-      board: toBoardView(board, memberCount, viewerMembership),
-      governanceSummary: governanceSummary ?? undefined,
-    })
   },
 
   async getParaCommunityBoards(req) {
@@ -229,7 +242,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     let builder = db.db
       .selectFrom('para_post')
       .selectAll('para_post')
-      .where('para_post.community', '=', req.community)
+      .where(paraCommunityMetaMatches(req.community))
 
     if (req.postType) {
       builder = builder.where('para_post.postType', '=', req.postType)
@@ -523,13 +536,13 @@ const toBoardView = (
     creatorDid: board.creator,
     creatorHandle: board.creatorHandle ?? '',
     creatorDisplayName: board.creatorDisplayName ?? '',
-    communityId: board.slug,
-    slug: board.slug,
-    name: board.name,
+    communityId: board.slug ?? board.name ?? '',
+    slug: board.slug ?? '',
+    name: board.name ?? '',
     description: board.description ?? '',
-    quadrant: board.quadrant,
-    delegatesChatId: board.delegatesChatId,
-    subdelegatesChatId: board.subdelegatesChatId,
+    quadrant: board.quadrant ?? '',
+    delegatesChatId: board.delegatesChatId ?? '',
+    subdelegatesChatId: board.subdelegatesChatId ?? '',
     memberCount,
     viewerMembershipState: viewerMembership?.membershipState ?? 'none',
     viewerRoles: viewerMembership?.roles ?? [],
@@ -920,8 +933,8 @@ const parseGovernanceRecord = (json: string): GovernanceRecord | null => {
   }
 }
 
-const normalizeCommunityKey = (value: string) =>
-  value
+const normalizeCommunityKey = (value?: string | null) =>
+  (value || '')
     .trim()
     .replace(/^p\//i, '')
     .normalize('NFD')
@@ -929,8 +942,8 @@ const normalizeCommunityKey = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '')
 
-const normalizeCommunitySlug = (value: string) =>
-  value
+const normalizeCommunitySlug = (value?: string | null) =>
+  (value || '')
     .trim()
     .replace(/^p\//i, '')
     .normalize('NFD')
@@ -938,6 +951,18 @@ const normalizeCommunitySlug = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+
+const paraCommunityMetaMatches = (value: string) => {
+  return sql<boolean>`lower(coalesce("para_post"."community", '')) in (${sql.join(
+    paraCommunityMetaCandidates(value),
+  )})`
+}
+
+const paraCommunityMetaCandidates = (value: string) => {
+  const raw = value.trim().toLowerCase()
+  const withoutPrefix = raw.replace(/^p\//, '')
+  return [...new Set([raw, withoutPrefix, `p/${withoutPrefix}`])]
+}
 
 const normalizeLimit = (limit: number) => {
   if (!limit || Number.isNaN(limit)) return 50

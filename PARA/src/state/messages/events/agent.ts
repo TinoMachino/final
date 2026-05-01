@@ -3,7 +3,7 @@ import {EventEmitter} from 'eventemitter3'
 import {nanoid} from 'nanoid/non-secure'
 
 import {networkRetry} from '#/lib/async/retry'
-import {DM_SERVICE_HEADERS} from '#/lib/constants'
+import {getDmServiceHeadersForServiceUrl} from '#/lib/constants'
 import {
   isErrorMaybeAppPasswordPermissions,
   isNetworkError,
@@ -28,6 +28,7 @@ export class MessagesEventBus {
   private id: string
 
   private agent: BskyAgent
+  private dmServiceHeaders: ReturnType<typeof getDmServiceHeadersForServiceUrl>
   private emitter = new EventEmitter<{event: [MessagesEventBusEvent]}>()
 
   private status: MessagesEventBusStatus = MessagesEventBusStatus.Initializing
@@ -38,6 +39,9 @@ export class MessagesEventBus {
   constructor(params: MessagesEventBusParams) {
     this.id = nanoid(3)
     this.agent = params.agent
+    this.dmServiceHeaders = getDmServiceHeadersForServiceUrl(
+      params.agent.serviceUrl?.toString(),
+    )
 
     this.init()
   }
@@ -245,7 +249,7 @@ export class MessagesEventBus {
       const response = await networkRetry(2, () => {
         return this.agent.chat.bsky.convo.getLog(
           {},
-          {headers: DM_SERVICE_HEADERS},
+          {headers: this.dmServiceHeaders},
         )
       })
       // throw new Error('UNCOMMENT TO TEST INIT FAILURE')
@@ -343,7 +347,7 @@ export class MessagesEventBus {
           {
             cursor: this.latestRev,
           },
-          {headers: DM_SERVICE_HEADERS},
+          {headers: this.dmServiceHeaders},
         )
       })
 

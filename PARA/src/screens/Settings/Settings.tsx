@@ -107,8 +107,11 @@ export function SettingsScreen({}: Props) {
         <Layout.Header.Slot />
       </Layout.Header.Outer>
       <Layout.Content>
-        <SettingsList.Container>
-          <AgeAssuranceDismissibleNotice style={[a.px_lg, a.pt_xs, a.pb_xl]} />
+        <Layout.Center>
+          <SettingsList.Container>
+            <AgeAssuranceDismissibleNotice style={[a.px_lg, a.pt_xs, a.pb_xl]} />
+
+
 
           <View
             style={[
@@ -295,7 +298,9 @@ export function SettingsScreen({}: Props) {
             </>
           )}
         </SettingsList.Container>
-      </Layout.Content>
+      </Layout.Center>
+    </Layout.Content>
+
 
       <Prompt.Basic
         control={signOutPromptControl}
@@ -335,52 +340,63 @@ function ProfilePreview({
   )
 
   return (
-    <>
+    <View
+      style={[
+        a.w_full,
+        a.align_center,
+        gtMobile ? [a.flex_row, a.gap_xl, a.px_lg] : [a.flex_col, a.gap_sm],
+      ]}>
       <UserAvatar
-        size={80}
+        size={gtMobile ? 100 : 80}
         avatar={shadow.avatar}
         moderation={moderation.ui('avatar')}
         type={shadow.associated?.labeler ? 'labeler' : 'user'}
         live={live}
       />
 
-      <View
-        style={[
-          a.flex_row,
-          a.gap_xs,
-          a.align_center,
-          a.justify_center,
-          a.w_full,
-        ]}>
-        <Text
-          emoji
-          testID="profileHeaderDisplayName"
-          numberOfLines={1}
+      <View style={[a.flex_1, !gtMobile && a.align_center]}>
+        <View
           style={[
-            a.pt_sm,
-            t.atoms.text,
-            gtMobile ? a.text_4xl : a.text_3xl,
-            a.font_bold,
+            a.flex_row,
+            a.gap_xs,
+            a.align_center,
+            !gtMobile && a.justify_center,
           ]}>
-          {displayName}
-        </Text>
-        {shouldShowVerificationCheckButton(verificationState) && (
-          <View
+          <Text
+            emoji
+            testID="profileHeaderDisplayName"
+            numberOfLines={1}
             style={[
-              {
-                marginTop: platform({web: 8, ios: 8, android: 10}),
-              },
+              t.atoms.text,
+              gtMobile ? a.text_4xl : a.text_3xl,
+              a.font_bold,
             ]}>
-            <VerificationCheckButton profile={shadow} size="lg" />
-          </View>
-        )}
+            {displayName}
+          </Text>
+          {shouldShowVerificationCheckButton(verificationState) && (
+            <View
+              style={[
+                {
+                  marginTop: platform({web: 4, ios: 4, android: 6}),
+                },
+              ]}>
+              <VerificationCheckButton profile={shadow} size="lg" />
+            </View>
+          )}
+        </View>
+        <Text
+          style={[
+            gtMobile ? a.text_lg : a.text_md,
+            a.leading_snug,
+            t.atoms.text_contrast_medium,
+          ]}>
+          {sanitizeHandle(profile.handle, '@')}
+        </Text>
       </View>
-      <Text style={[a.text_md, a.leading_snug, t.atoms.text_contrast_medium]}>
-        {sanitizeHandle(profile.handle, '@')}
-      </Text>
-    </>
+    </View>
   )
 }
+
 
 function DevOptions() {
   const {_} = useLingui()

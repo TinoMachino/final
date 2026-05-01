@@ -6,7 +6,9 @@ import {SafeAreaProvider} from 'react-native-safe-area-context'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
+import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {QueryProvider} from '#/lib/react-query'
+import {s} from '#/lib/styles'
 import {ThemeProvider} from '#/lib/ThemeContext'
 import {Provider as TranslationProvider} from '#/lib/translation'
 import I18nProvider from '#/locale/i18nProvider'
@@ -152,10 +154,13 @@ function InnerApp() {
                                                       <ServiceConfigProvider>
                                                         <EmailVerificationProvider>
                                                           <HideBottomBarBorderProvider>
-                                                            <IntentDialogProvider>
-                                                              <Shell />
-                                                              <ToastOutlet />
-                                                            </IntentDialogProvider>
+                                                            <GestureHandlerRootView
+                                                              style={s.h100pct}>
+                                                              <IntentDialogProvider>
+                                                                <Shell />
+                                                                <ToastOutlet />
+                                                              </IntentDialogProvider>
+                                                            </GestureHandlerRootView>
                                                           </HideBottomBarBorderProvider>
                                                         </EmailVerificationProvider>
                                                       </ServiceConfigProvider>

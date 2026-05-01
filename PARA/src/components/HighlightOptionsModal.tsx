@@ -86,12 +86,13 @@ let HighlightOptionsModal = ({
             a.rounded_md,
             a.p_lg,
             a.mx_lg,
-            a.w_full,
             {
-              maxWidth: 340,
+              width: '100%',
+              maxWidth: 400,
               backgroundColor: t.atoms.bg.backgroundColor,
             },
           ]}>
+
           <Text style={[a.text_lg, a.font_bold, a.mb_md]}>
             <Trans>Highlight Options</Trans>
           </Text>

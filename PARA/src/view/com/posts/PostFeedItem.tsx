@@ -32,8 +32,10 @@ import {logger} from '#/logger'
 import {
   POST_TOMBSTONE,
   type Shadow,
+  updatePostShadow,
   usePostShadow,
 } from '#/state/cache/post-shadow'
+
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {useShowAuthorInsignias, useShowPartyShields} from '#/state/preferences'
 import {unstableCacheProfileView} from '#/state/queries/profile'
@@ -200,6 +202,17 @@ let FeedItemInner = ({
   const {sendInteraction, feedSourceInfo, feedDescriptor} =
     useFeedFeedbackContext()
 
+  const onVoteChange = useCallback(
+    (vote: number) => {
+      updatePostShadow(queryClient, post.uri, {
+        voteScore: vote,
+        voteUri: vote !== 0 ? 'optimistic-vote-uri' : undefined,
+      })
+    },
+    [post.uri, queryClient],
+  )
+
+
   const onPressReply = () => {
     sendInteraction({
       item: post.uri,
@@ -360,11 +373,16 @@ let FeedItemInner = ({
             onBeforePress={onOpenAuthor}
             live={live}
           />
-          <View style={{marginTop: 8, alignItems: 'center'}}>
+          <View style={{marginTop: 16, alignItems: 'center'}}>
+
             {isPolicyPostRecord(record as PostBadgeRecord) && (
-              <VotingButton initialVote={0} />
+              <VotingButton
+                initialVote={(post as any).voteCount || 0}
+                onVoteChange={onVoteChange}
+              />
             )}
           </View>
+
           {showAuthorInsignias && partyShield && (
             <View
               style={[

@@ -532,13 +532,15 @@ const listPosts = {
       type: 'query' as const,
       parameters: {
         type: 'params' as const,
+        required: ['community'],
         properties: {
-          communityId: {type: 'string' as const},
+          community: {type: 'string' as const},
+          postType: {type: 'string' as const},
           limit: {
             type: 'integer' as const,
             minimum: 1,
             maximum: 100,
-            default: 30,
+            default: 50,
           },
           cursor: {type: 'string' as const},
         },
@@ -547,9 +549,10 @@ const listPosts = {
         encoding: 'application/json' as const,
         schema: {
           type: 'object' as const,
+          required: ['feed'],
           properties: {
             cursor: {type: 'string' as const},
-            posts: {type: 'array' as const, items: {type: 'unknown' as const}},
+            feed: {type: 'array' as const, items: {type: 'unknown' as const}},
           },
         },
       },
@@ -776,6 +779,8 @@ const getTimeline = {
             default: 30,
           },
           cursor: {type: 'string' as const},
+          party: {type: 'string' as const, maxLength: 128},
+          community: {type: 'string' as const, maxLength: 128},
         },
       },
       output: {
@@ -1015,17 +1020,17 @@ const ALL_PARA_LEXICONS = [
 export function registerParaLexicons(agent: BskyAgent) {
   for (const lex of ALL_PARA_LEXICONS) {
     try {
+      if (agent.lex.get(lex.id)) {
+        agent.lex.remove(lex.id)
+      }
       // @ts-ignore — lex is plain JSON, Lexicons.add expects LexiconDoc
       agent.lex.add(lex)
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e)
-      // Already registered or schema mismatch — ignore
-      if (!errorMessage?.includes('already registered')) {
-        console.warn(
-          `[para-lexicons] Failed to register ${lex.id}:`,
-          errorMessage,
-        )
-      }
+      console.warn(
+        `[para-lexicons] Failed to register ${lex.id}:`,
+        errorMessage,
+      )
     }
   }
 }

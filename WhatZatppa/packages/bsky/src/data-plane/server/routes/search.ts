@@ -104,7 +104,11 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       tryIndex: true,
     })
 
-    const res = await builder.execute()
+    const res = (await builder.execute()) as {
+      uri: string
+      sortAt: string
+      cid: string
+    }[]
     return {
       uris: res.map((row) => row.uri),
       cursor: keyset.packFromResult(res),

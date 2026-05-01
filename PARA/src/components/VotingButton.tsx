@@ -1,10 +1,14 @@
-import {useMemo, useState} from 'react'
-import {Platform, Pressable, StyleSheet} from 'react-native'
+import {useEffect, useMemo, useState} from 'react'
+import {Platform, Pressable, StyleSheet, View} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import Animated, {
+  interpolateColor,
   runOnJS,
+  useAnimatedProps,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
+  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
@@ -14,6 +18,7 @@ import {
   ArrowBottom_Stroke2_Corner0_Rounded as ArrowDown,
   ArrowTop_Stroke2_Corner0_Rounded as ArrowUp,
 } from '#/components/icons/Arrow'
+
 
 interface VotingButtonProps {
   initialVote?: number
@@ -33,6 +38,20 @@ export function VotingButton({
   const translateY = useSharedValue(0)
   const scale = useSharedValue(1)
   const isActive = useSharedValue(false)
+  
+  // Base scales for the arrows (shared values for smooth combining)
+  const upBaseScale = useSharedValue(initialVote > 0 ? 1.2 : 1)
+  const downBaseScale = useSharedValue(initialVote < 0 ? 1.2 : 1)
+  
+  // Flash animations for clicks
+  const upFlash = useSharedValue(0)
+  const downFlash = useSharedValue(0)
+
+  // Update base scales when currentVote changes
+  useEffect(() => {
+    upBaseScale.value = withSpring(currentVote > initialVote ? 1.2 : 1)
+    downBaseScale.value = withSpring(currentVote < initialVote ? 1.2 : 1)
+  }, [currentVote, initialVote, upBaseScale, downBaseScale])
 
   const pan = Gesture.Pan()
     .onBegin(() => {
@@ -40,23 +59,21 @@ export function VotingButton({
       scale.value = withSpring(1.1)
     })
     .onUpdate(event => {
-      // Limit visual movement to +/- 100px
       const clampedTranslation = Math.max(
-        -100,
-        Math.min(100, event.translationY),
+        -15,
+        Math.min(40, event.translationY),
       )
       translateY.value = clampedTranslation
 
-      // Calculate potential vote for visual feedback only
       const dragDistance = -clampedTranslation
-      const step = 30
-      let newVote = 0
+      const step = 12
+      let delta = 0
       if (Math.abs(dragDistance) > step / 2) {
-        newVote = Math.round(dragDistance / step)
+        delta = Math.round(dragDistance / step)
       }
-      newVote = Math.max(-3, Math.min(3, newVote))
-
-      // Update local state for visual feedback (colors/text)
+      delta = Math.max(-1, Math.min(1, delta))
+      
+      const newVote = Math.max(-3, Math.min(3, initialVote + delta))
       if (newVote !== currentVote) {
         runOnJS(setCurrentVote)(newVote)
       }
@@ -65,12 +82,34 @@ export function VotingButton({
       isActive.value = false
       translateY.value = withSpring(0)
       scale.value = withSpring(1)
-
-      // Commit the vote here
       if (onVoteChange) {
         runOnJS(onVoteChange)(currentVote)
       }
     })
+
+  const onVoteUp = () => {
+    const newVote = Math.min(3, currentVote + 1)
+    upFlash.value = withSequence(
+      withTiming(1, {duration: 100}),
+      withTiming(0, {duration: 200})
+    )
+    if (newVote !== currentVote) {
+      setCurrentVote(newVote)
+      onVoteChange?.(newVote)
+    }
+  }
+
+  const onVoteDown = () => {
+    const newVote = Math.max(-3, currentVote - 1)
+    downFlash.value = withSequence(
+      withTiming(1, {duration: 100}),
+      withTiming(0, {duration: 200})
+    )
+    if (newVote !== currentVote) {
+      setCurrentVote(newVote)
+      onVoteChange?.(newVote)
+    }
+  }
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -92,27 +131,52 @@ export function VotingButton({
     }
   })
 
+  const upFlashStyle = useAnimatedStyle(() => {
+    return {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      opacity: upFlash.value,
+    }
+  })
+
+  const downFlashStyle = useAnimatedStyle(() => {
+    return {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      opacity: downFlash.value,
+    }
+  })
+
+  const upScale = useDerivedValue(() => {
+    return upBaseScale.value + upFlash.value * 0.4
+  })
+
+  const downScale = useDerivedValue(() => {
+    return downBaseScale.value + downFlash.value * 0.4
+  })
+
+
   const upArrowStyle = useAnimatedStyle(() => {
     return {
-      opacity: withTiming(currentVote > 0 ? 1 : 0.3),
-      transform: [{scale: withSpring(currentVote > 0 ? 1.2 : 1)}],
+      opacity: withTiming(currentVote > initialVote ? 1 : 0.3),
+      transform: [{scale: upScale.value}],
     }
   })
 
   const downArrowStyle = useAnimatedStyle(() => {
     return {
-      opacity: withTiming(currentVote < 0 ? 1 : 0.3),
-      transform: [{scale: withSpring(currentVote < 0 ? 1.2 : 1)}],
+      opacity: withTiming(currentVote < initialVote ? 1 : 0.3),
+      transform: [{scale: downScale.value}],
     }
   })
 
   const webEventBlockers = useMemo(() => {
     if (Platform.OS !== 'web') return {}
-
     const stopPropagation = (event: WebEventBoundary) => {
       event.stopPropagation?.()
     }
-
     return {
       onClickCapture: stopPropagation,
       onMouseDown: stopPropagation,
@@ -128,11 +192,7 @@ export function VotingButton({
     <Pressable
       style={styles.container}
       {...webEventBlockers}
-      onPress={e => {
-        if (e && e.stopPropagation) {
-          e.stopPropagation()
-        }
-      }}>
+      onPress={e => e.stopPropagation()}>
       <GestureDetector gesture={pan}>
         <Animated.View
           style={[
@@ -142,24 +202,44 @@ export function VotingButton({
               backgroundColor: t.palette.contrast_25 + '30',
               borderColor: t.palette.contrast_50 + '40',
             },
+            Platform.OS === 'web' && {
+              cursor: isActive.value ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              touchAction: 'none',
+            },
           ]}>
-          <Animated.View style={upArrowStyle}>
-            <ArrowUp
-              size="sm"
-              style={{color: currentVote > 0 ? '#4CAF50' : t.atoms.text.color}}
-            />
-          </Animated.View>
+          <Pressable 
+            onPress={onVoteUp} 
+            hitSlop={8}
+            style={({pressed}) => ({opacity: pressed ? 0.7 : 1})}
+          >
+            <Animated.View style={upArrowStyle}>
+              <ArrowUp size="sm" style={{color: currentVote > initialVote ? '#4CAF50' : t.atoms.text.color}} />
+              <Animated.View style={upFlashStyle} pointerEvents="none">
+                <ArrowUp size="sm" style={{color: '#FFFFFF'}} />
+              </Animated.View>
+            </Animated.View>
+          </Pressable>
 
-          <Animated.Text style={[styles.voteText, voteTextStyle]}>
-            {currentVote > 0 ? `+${currentVote}` : currentVote}
-          </Animated.Text>
+          <View style={styles.textWrapper}>
+            <Animated.Text style={[styles.voteText, voteTextStyle]}>
+              {currentVote > 0 ? `+${currentVote}` : `${currentVote}`}
+            </Animated.Text>
+          </View>
 
-          <Animated.View style={downArrowStyle}>
-            <ArrowDown
-              size="sm"
-              style={{color: currentVote < 0 ? '#FF4444' : t.atoms.text.color}}
-            />
-          </Animated.View>
+          <Pressable 
+            onPress={onVoteDown} 
+            hitSlop={8}
+            style={({pressed}) => ({opacity: pressed ? 0.7 : 1})}
+          >
+            <Animated.View style={downArrowStyle}>
+              <ArrowDown size="sm" style={{color: currentVote < initialVote ? '#FF4444' : t.atoms.text.color}} />
+              <Animated.View style={downFlashStyle} pointerEvents="none">
+                <ArrowDown size="sm" style={{color: '#FFFFFF'}} />
+              </Animated.View>
+            </Animated.View>
+          </Pressable>
+
         </Animated.View>
       </GestureDetector>
     </Pressable>
@@ -171,6 +251,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+    height: 80,
+    marginTop: 4,
   },
   control: {
     alignItems: 'center',
@@ -181,6 +263,10 @@ const styles = StyleSheet.create({
     gap: 4,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.1)',
+  },
+  textWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   voteText: {
     fontSize: 16,

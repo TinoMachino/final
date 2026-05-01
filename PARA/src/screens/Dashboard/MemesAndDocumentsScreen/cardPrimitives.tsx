@@ -1,9 +1,11 @@
 import {type ReactNode} from 'react'
 import {Alert, Pressable, View} from 'react-native'
 
+import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {type Document as MediaDocument, type Meme} from '#/lib/mock-data/types'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
+import {CivicInsignia} from '#/components/CivicInsignia'
 import {ArrowsDiagonalOut_Stroke2_Corner2_Rounded as ExpandIcon} from '#/components/icons/ArrowsDiagonal'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
 import {CalendarDays_Stroke2_Corner0_Rounded as CalendarIcon} from '#/components/icons/CalendarDays'
@@ -11,6 +13,28 @@ import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/ico
 import {formatDateLabel} from './helpers'
 import {styles} from './styles'
 import {type MediaItem, type Mode} from './types'
+
+export function PartyInsignia({
+  party,
+  visible,
+}: {
+  party: string
+  visible: boolean
+}) {
+  if (!visible) return null
+
+  const displayParty = party.replace(/^p\//i, '')
+  const colors = getCommunityInsignia(displayParty)
+
+  return (
+    <CivicInsignia
+      colors={colors}
+      variant="shield"
+      size="md"
+      style={styles.partyInsignia}
+    />
+  )
+}
 
 export function ActionButton({
   icon,
@@ -111,8 +135,8 @@ export function DeckExpandButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Expandir tarjeta"
-      accessibilityHint="Abre la tarjeta en vista completa"
+      accessibilityLabel="Expand card"
+      accessibilityHint="Opens the card in full view"
       onPress={onPress}
       style={[
         styles.deckExpandButton,
@@ -133,8 +157,8 @@ export function DeckOptionsButton({onPress}: {onPress?: () => void}) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Más opciones"
-      accessibilityHint="Muestra acciones para esta tarjeta"
+      accessibilityLabel="More options"
+      accessibilityHint="Shows actions for this card"
       onPress={onPress}
       style={styles.deckOptionsButton}>
       <View style={styles.deckOptionsDots}>
@@ -153,5 +177,5 @@ export function DeckOptionsButton({onPress}: {onPress?: () => void}) {
 }
 
 export function showDeckOptionsAlert() {
-  Alert.alert('Opciones', 'Funcionalidad en desarrollo')
+  Alert.alert('Options', 'Actions are coming soon')
 }

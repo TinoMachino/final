@@ -71,6 +71,11 @@ import {useAppState} from '#/lib/appState'
 import {retry} from '#/lib/async/retry'
 import {until} from '#/lib/async/until'
 import {
+  canonicalizeBaseCommunityFilter,
+  canonicalizeBasePartyFilter,
+  classifyBaseFeedFilters,
+} from '#/lib/base-filters'
+import {
   MAX_GRAPHEME_LENGTH,
   SUPPORTED_MIME_TYPES,
   type SupportedMimeTypes,
@@ -779,8 +784,25 @@ export const ComposePost = ({
     }
   }, [thread, requireAltTextEnabled, _])
 
+  const placeholderTagError = useMemo(() => {
+    for (let i = 0; i < thread.posts.length; i++) {
+      const text = thread.posts[i].richtext.text
+      if (
+        /(^|\s)\|\|#Policy($|\s)/i.test(text) ||
+        /(^|\s)\|#Matter($|\s)/i.test(text)
+      ) {
+        return _(
+          msg`Por favor, selecciona una insignia específica en lugar de usar etiquetas genéricas (#Policy / #Matter).`,
+        )
+      }
+    }
+    return undefined
+  }, [thread, _])
+
+
   const canPost =
     !missingAltError &&
+    !placeholderTagError &&
     thread.posts.every(
       post =>
         post.shortenedGraphemeLength <= MAX_GRAPHEME_LENGTH &&
@@ -790,6 +812,7 @@ export const ComposePost = ({
           post.embed.media.video.status === 'error'
         ),
     )
+
 
   const isComposerEmpty = useMemo(() => {
     return thread.posts.every(
@@ -855,11 +878,16 @@ export const ComposePost = ({
 
       // Derive party/community BEFORE post creation so they get stored
       // directly on the com.para.post record for backend indexing.
-      const derivedParty = affiliation || activeFilters[0]
+      const baseFeedFilters = classifyBaseFeedFilters(activeFilters)
+      const derivedParty = affiliation
+        ? canonicalizeBasePartyFilter(affiliation)
+        : baseFeedFilters.party
       const derivedCommunity =
-        activeFilters.find(filter => filter !== derivedParty) ||
-        activeFilters[0] ||
-        affiliation
+        baseFeedFilters.community ||
+        (activeFilters[0]
+          ? canonicalizeBaseCommunityFilter(activeFilters[0])
+          : undefined) ||
+        (affiliation ? canonicalizeBaseCommunityFilter(affiliation) : undefined)
 
       postUri = (
         await apilib.post(
@@ -1257,6 +1285,7 @@ export const ComposePost = ({
               />
             }>
             {missingAltError && <AltTextReminder error={missingAltError} />}
+            {placeholderTagError && <AltTextReminder error={placeholderTagError} />}
             <ErrorBanner
               error={error}
               videoState={erroredVideo}

@@ -5,12 +5,13 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
+import {classifyBaseFeedFilters} from '#/lib/base-filters'
 import {useBottomBarOffset} from '#/lib/hooks/useBottomBarOffset'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {ComposeIcon2} from '#/lib/icons'
 import {type NavigationProp} from '#/lib/routes/types'
 import {s} from '#/lib/styles'
-import {type FeedDescriptor} from '#/state/queries/post-feed'
+import {type FeedDescriptor, type FeedParams} from '#/state/queries/post-feed'
 import {useProfileQuery} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
 import {useBaseFilter} from '#/state/shell/base-filter'
@@ -22,7 +23,7 @@ import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useGutters, useTheme} from '#/alf'
 import {
   CommunityFilterList,
-  CompassSettingsButton,
+  CompassSettingsButton as BaseFilterSettingsButton,
 } from '#/components/BaseFilterControls'
 import {Button, ButtonIcon} from '#/components/Button'
 import {CommunityIcon_Stroke as CommunityIcon} from '#/components/icons/Community'
@@ -126,11 +127,16 @@ export function BaseScreen() {
   const {openComposer} = useOpenComposer()
   const handleCreatePost = () => openComposer({logContext: 'Fab'})
 
-  // Parties tab always uses the following feed;
-  // active community/compass filters are applied client-side via feed tuners.
+  // Parties tab reads PARA posts from the PARA timeline endpoint.
   const feedDescriptor = useMemo<FeedDescriptor>(() => {
-    return 'following'
+    return 'para-timeline'
   }, [])
+  const feedParams = useMemo<FeedParams>(
+    () => ({
+      paraTimelineFilters: classifyBaseFeedFilters(activeFilters),
+    }),
+    [activeFilters],
+  )
 
   // Card background — shared across all Data cards
   const cardBgColor = {
@@ -234,7 +240,7 @@ export function BaseScreen() {
               />
             )}
           </TouchableOpacity>
-          <CompassSettingsButton />
+          <BaseFilterSettingsButton />
         </View>
 
         {/* Content based on active tab */}
@@ -248,11 +254,11 @@ export function BaseScreen() {
             <View style={styles.feedSection}>
               <PostFeed
                 feed={feedDescriptor}
+                feedParams={feedParams}
                 style={styles.feedContainer}
                 scrollElRef={scrollRef}
                 manualRefreshSignal={refreshSignal}
                 hideComposerPrompt={true}
-                applyBaseCommunityFilters={true}
                 renderEmptyState={() => (
                   <View style={styles.emptyState}>
                     <Text style={[styles.emptyStateText, t.atoms.text]}>

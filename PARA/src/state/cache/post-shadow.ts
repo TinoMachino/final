@@ -26,6 +26,8 @@ export interface PostShadow {
   pinned: boolean
   optimisticReplyCount: number | undefined
   bookmarked: boolean | undefined
+  voteScore: number | undefined
+  voteUri: string | undefined
 }
 
 export const POST_TOMBSTONE = Symbol('PostTombstone')
@@ -141,6 +143,7 @@ function mergeShadow(
     repostCount: repostCount,
     replyCount: replyCount,
     bookmarkCount: bookmarkCount,
+    voteCount: shadow.voteScore ?? (post as any).voteCount,
     viewer: {
       ...(post.viewer || {}),
       like: 'likeUri' in shadow ? shadow.likeUri : post.viewer?.like,
@@ -148,6 +151,7 @@ function mergeShadow(
       pinned: 'pinned' in shadow ? shadow.pinned : post.viewer?.pinned,
       bookmarked:
         'bookmarked' in shadow ? shadow.bookmarked : post.viewer?.bookmarked,
+      voteUri: 'voteUri' in shadow ? shadow.voteUri : (post.viewer as any)?.voteUri,
     },
   })
 }

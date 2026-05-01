@@ -1,11 +1,12 @@
-import {View} from 'react-native'
+import {Pressable, View} from 'react-native'
 
+import {useShowPartyShields} from '#/state/preferences/show-party-shields'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {RedditVoteButton} from '#/components/PostControls/VoteButton'
-import {ActionButton, MediaVisualMeta} from '../cardPrimitives'
+import {ActionButton, MediaVisualMeta, PartyInsignia} from '../cardPrimitives'
 import {buildSubmetaLabel} from '../helpers'
 import {styles} from '../styles'
 import {type MediaItem, type Mode} from '../types'
@@ -15,18 +16,21 @@ export function MediaBoardCard({
   mode,
   vote,
   onVoteChange,
+  onExpand,
   width,
 }: {
   item: MediaItem
   mode: Mode
   vote: 1 | -1 | 0
   onVoteChange: (vote: 1 | -1 | 0) => void
+  onExpand: () => void
   width?: number
 }) {
   const t = useTheme()
   const isMeme = mode === 'Memes'
   const score = item.votes + vote
   const voteState = vote === 1 ? 'upvote' : vote === -1 ? 'downvote' : 'none'
+  const showPartyShields = useShowPartyShields() ?? true
 
   return (
     <View
@@ -35,16 +39,18 @@ export function MediaBoardCard({
         t.atoms.bg_contrast_50,
         width ? {width} : null,
       ]}>
-      <View
+      <Pressable
+        accessibilityHint="Opens this card in a larger view"
+        accessibilityLabel={item.title}
+        accessibilityRole="button"
+        onPress={onExpand}
         style={[
           styles.cardVisual,
           mode === 'Documents' && styles.documentVisual,
           {backgroundColor: item.color, minHeight: 196},
         ]}>
         <View style={styles.cardBadgeRow}>
-          <Text style={styles.cardBadge}>
-            {isMeme ? item.community : item.category}
-          </Text>
+          <PartyInsignia party={item.party} visible={showPartyShields} />
           {!isMeme ? (
             <View style={styles.documentGlyph}>
               <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
@@ -56,7 +62,7 @@ export function MediaBoardCard({
           <Text style={styles.cardTitle}>{item.title}</Text>
           <MediaVisualMeta item={item} mode={mode} />
         </View>
-      </View>
+      </Pressable>
 
       <View style={[styles.cardBody, t.atoms.bg_contrast_50]}>
         <Text style={[styles.cardMeta, t.atoms.text_contrast_medium]}>

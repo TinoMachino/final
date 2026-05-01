@@ -5,7 +5,6 @@ import {type FeedDescriptor} from '../queries/post-feed'
 import {usePreferencesQuery} from '../queries/preferences'
 import {useSession} from '../session'
 import {useBaseFilter} from '../shell/base-filter'
-import {usePoliticalAffiliation} from '../shell/political-affiliation'
 import {useLanguagePrefs} from './languages'
 
 export function useFeedTuners(
@@ -16,7 +15,6 @@ export function useFeedTuners(
   const {data: preferences} = usePreferencesQuery()
   const {currentAccount} = useSession()
   const {activeFilters} = useBaseFilter() // Use activeFilters from card selections
-  const {affiliation} = usePoliticalAffiliation() // User's declared affiliation
 
   return useMemo(() => {
     if (feedDesc.startsWith('author')) {
@@ -54,12 +52,7 @@ export function useFeedTuners(
 
       // Base community filters should only affect the Base feed.
       // When no filters are selected, show ALL posts (no filtering).
-      const allFilters =
-        opts?.applyBaseCommunityFilters && affiliation
-          ? [...new Set([...activeFilters, affiliation])]
-          : opts?.applyBaseCommunityFilters
-            ? activeFilters
-            : []
+      const allFilters = opts?.applyBaseCommunityFilters ? activeFilters : []
 
       if (allFilters.length > 0) {
         feedTuners.push((tuner, slices) => {
@@ -110,7 +103,6 @@ export function useFeedTuners(
     preferences,
     langPrefs,
     activeFilters,
-    affiliation,
     opts?.applyBaseCommunityFilters,
   ])
 }

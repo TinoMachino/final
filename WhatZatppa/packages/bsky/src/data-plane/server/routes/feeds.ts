@@ -17,10 +17,10 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .where('creator', '=', req.actorDid)
 
     if (req.party) {
-      builder = builder.where('para_post.party', '=', req.party)
+      builder = builder.where(paraMetaMatches('party', req.party))
     }
     if (req.community) {
-      builder = builder.where('para_post.community', '=', req.community)
+      builder = builder.where(paraMetaMatches('community', req.community))
     }
 
     const keyset = new TimeCidKeyset(
@@ -59,10 +59,10 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .selectAll('para_post')
 
     if (req.party) {
-      followQb = followQb.where('para_post.party', '=', req.party)
+      followQb = followQb.where(paraMetaMatches('party', req.party))
     }
     if (req.community) {
-      followQb = followQb.where('para_post.community', '=', req.community)
+      followQb = followQb.where(paraMetaMatches('community', req.community))
     }
 
     followQb = paginate(followQb, {
@@ -78,10 +78,10 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .selectAll('para_post')
 
     if (req.party) {
-      selfQb = selfQb.where('para_post.party', '=', req.party)
+      selfQb = selfQb.where(paraMetaMatches('party', req.party))
     }
     if (req.community) {
-      selfQb = selfQb.where('para_post.community', '=', req.community)
+      selfQb = selfQb.where(paraMetaMatches('community', req.community))
     }
 
     selfQb = paginate(selfQb, {
@@ -325,6 +325,23 @@ const feedItemFromRow = (row: { postUri: string; uri: string }) => {
     uri: row.postUri,
     repost: row.uri === row.postUri ? undefined : row.uri,
   }
+}
+
+const paraMetaMatches = (column: 'party' | 'community', value: string) => {
+  const candidates = paraMetaCandidates(value)
+  return column === 'party'
+    ? sql<boolean>`lower(coalesce("para_post"."party", '')) in (${sql.join(
+        candidates,
+      )})`
+    : sql<boolean>`lower(coalesce("para_post"."community", '')) in (${sql.join(
+        candidates,
+      )})`
+}
+
+const paraMetaCandidates = (value: string) => {
+  const raw = value.trim().toLowerCase()
+  const withoutPrefix = raw.replace(/^p\//, '')
+  return [...new Set([raw, withoutPrefix, `p/${withoutPrefix}`])]
 }
 
 const paraFeedItemFromRow = (row: {

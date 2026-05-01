@@ -257,7 +257,8 @@ export function CompassSettingsButton() {
   } = useBaseFilter()
   const [showSettings, setShowSettings] = useState(false)
 
-  const mexicanStates = MEXICAN_STATES
+  const mexicanStates = ['None', ...MEXICAN_STATES]
+
   const selectedStateFilters = selectedFilters.filter(f =>
     mexicanStates.includes(f),
   )
@@ -639,16 +640,35 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    ...(IS_WEB
+      ? {
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }
+      : {
+          justifyContent: 'flex-end',
+        }),
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 16, // Reduced from 20
-    paddingBottom: 32, // Reduced from 40
-    maxHeight: '90%', // Ensure it doesn't go off screen if content is huge
+    padding: 16,
+    paddingBottom: 32,
+    maxHeight: '90%',
+    ...(IS_WEB && {
+      width: '100%',
+      maxWidth: 600,
+      alignSelf: 'center',
+      borderRadius: 20,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+    }),
   },
+
+
+
   activeFiltersModalContent: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
@@ -656,7 +676,18 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 28,
     maxHeight: '70%',
+    ...(IS_WEB && {
+      width: '100%',
+      maxWidth: 600,
+      alignSelf: 'center',
+      borderRadius: 20,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+    }),
   },
+
+
+
   modalHandle: {
     width: 40,
     height: 4,

@@ -4,12 +4,14 @@ import * as uint8arrays from 'uint8arrays'
 import { wait } from '@atproto/common-web'
 import { createServiceJwt } from '@atproto/xrpc-server'
 import { TestBsky } from './bsky'
+import { TestChat } from './chat'
 import { EXAMPLE_LABELER } from './const'
 import { IntrospectServer } from './introspect'
 import { TestNetworkNoAppView } from './network-no-appview'
 import { TestOzone } from './ozone'
 import { TestPds } from './pds'
 import { TestPlc } from './plc'
+import { ChatServiceProfile } from './service-profile-chat'
 import { LexiconAuthorityProfile } from './service-profile-lexicon'
 import { OzoneServiceProfile } from './service-profile-ozone'
 import { TestServerParams } from './types'
@@ -22,6 +24,7 @@ export class TestNetwork extends TestNetworkNoAppView {
   constructor(
     public plc: TestPlc,
     public pds: TestPds,
+    public chat: TestChat,
     public bsky: TestBsky,
     public ozone: TestOzone,
     public introspect?: IntrospectServer,
@@ -42,8 +45,10 @@ export class TestNetwork extends TestNetworkNoAppView {
     const plc = await TestPlc.create(params.plc ?? {})
 
     const bskyPort = params.bsky?.port ?? (await getPort())
+    const chatPort = params.chat?.port ?? (await getPort())
     const pdsPort = params.pds?.port ?? (await getPort())
     const ozonePort = params.ozone?.port ?? (await getPort())
+    const chatUrl = `http://localhost:${chatPort}`
 
     const thirdPartyPds = await TestPds.create({
       didPlcUrl: plc.url,
@@ -60,6 +65,10 @@ export class TestNetwork extends TestNetworkNoAppView {
       thirdPartyPds,
       ozoneUrl,
     )
+    const chatServiceProfile = await ChatServiceProfile.create({
+      plcUrl: plc.url,
+      publicUrl: chatUrl,
+    })
     const lexiconAuthorityProfile =
       await LexiconAuthorityProfile.create(thirdPartyPds)
 
@@ -107,10 +116,18 @@ export class TestNetwork extends TestNetworkNoAppView {
       appviewPushEvents: true,
       pdsUrl: pds.url,
       pdsDid: pds.ctx.cfg.service.did,
+      chatUrl,
+      chatDid: chatServiceProfile.did,
       verifierDid: ozoneServiceProfile.did,
       verifierUrl: pds.url,
       verifierPassword: 'temp',
       ...params.ozone,
+    })
+    const chat = await TestChat.create({
+      plcUrl: plc.url,
+      port: chatPort,
+      serviceDid: chatServiceProfile.did,
+      ...params.chat,
     })
 
     await ozoneServiceProfile.migrateTo(pds)
@@ -146,7 +163,7 @@ export class TestNetwork extends TestNetworkNoAppView {
       )
     }
 
-    return new TestNetwork(plc, pds, bsky, ozone, introspect)
+    return new TestNetwork(plc, pds, chat, bsky, ozone, introspect)
   }
 
   async processFullSubscription(timeout = 60000) {
@@ -203,6 +220,7 @@ export class TestNetwork extends TestNetworkNoAppView {
 
   async close() {
     await Promise.all(this.feedGens.map((fg) => fg.close()))
+    await this.chat.close()
     await this.ozone.close()
     await this.bsky.close()
     await this.pds.close()

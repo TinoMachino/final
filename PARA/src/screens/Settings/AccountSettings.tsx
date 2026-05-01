@@ -60,205 +60,208 @@ export function AccountSettingsScreen({navigation}: Props) {
         <Layout.Header.Slot />
       </Layout.Header.Outer>
       <Layout.Content>
-        <SettingsList.Container>
-          <SettingsList.Item>
-            <SettingsList.ItemIcon icon={EnvelopeIcon} />
-            {/* Tricky flexbox situation here: we want the email to truncate, but by default it will make the "Email" text wrap instead.
-                For numberOfLines to work, we need flex: 1 on the BadgeText, but that means it goes to width: 50% because the
-                ItemText is also flex: 1. So we need to set flex: 0 on the ItemText to prevent it from growing, but if we did that everywhere
-                it wouldn't push the BadgeText/Chevron/whatever to the right.
-                TODO: find a general solution for this. workaround in this case is to set the ItemText to flex: 1 and BadgeText to flex: 0 -sfn */}
-            <SettingsList.ItemText style={[a.flex_0]}>
-              <Trans>Email</Trans>
-            </SettingsList.ItemText>
-            {currentAccount && (
-              <>
-                <SettingsList.BadgeText style={[a.flex_1]}>
-                  {currentAccount.email || <Trans>(no email)</Trans>}
-                </SettingsList.BadgeText>
-                {currentAccount.emailConfirmed && (
-                  <ShieldIcon fill={t.palette.primary_500} size="md" />
-                )}
-              </>
+        <Layout.Center>
+          <SettingsList.Container>
+            <SettingsList.Item>
+              <SettingsList.ItemIcon icon={EnvelopeIcon} />
+              {/* Tricky flexbox situation here: we want the email to truncate, but by default it will make the "Email" text wrap instead.
+                  For numberOfLines to work, we need flex: 1 on the BadgeText, but that means it goes to width: 50% because the
+                  ItemText is also flex: 1. So we need to set flex: 0 on the ItemText to prevent it from growing, but if we did that everywhere
+                  it wouldn't push the BadgeText/Chevron/whatever to the right.
+                  TODO: find a general solution for this. workaround in this case is to set the ItemText to flex: 1 and BadgeText to flex: 0 -sfn */}
+              <SettingsList.ItemText style={[a.flex_0]}>
+                <Trans>Email</Trans>
+              </SettingsList.ItemText>
+              {currentAccount && (
+                <>
+                  <SettingsList.BadgeText style={[a.flex_1]}>
+                    {currentAccount.email || <Trans>(no email)</Trans>}
+                  </SettingsList.BadgeText>
+                  {currentAccount.emailConfirmed && (
+                    <ShieldIcon fill={t.palette.primary_500} size="md" />
+                  )}
+                </>
+              )}
+            </SettingsList.Item>
+            {currentAccount && !currentAccount.emailConfirmed && (
+              <SettingsList.PressableItem
+                label={_(msg`Verify your email`)}
+                onPress={() =>
+                  emailDialogControl.open({
+                    id: EmailDialogScreenID.Verify,
+                  })
+                }
+                style={[
+                  a.my_xs,
+                  a.mx_lg,
+                  a.rounded_md,
+                  {backgroundColor: t.palette.primary_50},
+                ]}
+                hoverStyle={[{backgroundColor: t.palette.primary_100}]}
+                contentContainerStyle={[a.rounded_md, a.px_lg]}>
+                <SettingsList.ItemIcon
+                  icon={ShieldIcon}
+                  color={t.palette.primary_500}
+                />
+                <SettingsList.ItemText
+                  style={[{color: t.palette.primary_500}, a.font_semi_bold]}>
+                  <Trans>Verify your email</Trans>
+                </SettingsList.ItemText>
+                <SettingsList.Chevron color={t.palette.primary_500} />
+              </SettingsList.PressableItem>
             )}
-          </SettingsList.Item>
-          {currentAccount && !currentAccount.emailConfirmed && (
             <SettingsList.PressableItem
-              label={_(msg`Verify your email`)}
+              label={_(msg`Update email`)}
               onPress={() =>
                 emailDialogControl.open({
-                  id: EmailDialogScreenID.Verify,
+                  id: EmailDialogScreenID.Update,
                 })
-              }
-              style={[
-                a.my_xs,
-                a.mx_lg,
-                a.rounded_md,
-                {backgroundColor: t.palette.primary_50},
-              ]}
-              hoverStyle={[{backgroundColor: t.palette.primary_100}]}
-              contentContainerStyle={[a.rounded_md, a.px_lg]}>
-              <SettingsList.ItemIcon
-                icon={ShieldIcon}
-                color={t.palette.primary_500}
-              />
-              <SettingsList.ItemText
-                style={[{color: t.palette.primary_500}, a.font_semi_bold]}>
-                <Trans>Verify your email</Trans>
+              }>
+              <SettingsList.ItemIcon icon={PencilIcon} />
+              <SettingsList.ItemText>
+                <Trans>Update email</Trans>
               </SettingsList.ItemText>
-              <SettingsList.Chevron color={t.palette.primary_500} />
+              <SettingsList.Chevron />
             </SettingsList.PressableItem>
-          )}
-          <SettingsList.PressableItem
-            label={_(msg`Update email`)}
-            onPress={() =>
-              emailDialogControl.open({
-                id: EmailDialogScreenID.Update,
-              })
-            }>
-            <SettingsList.ItemIcon icon={PencilIcon} />
-            <SettingsList.ItemText>
-              <Trans>Update email</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.PressableItem
-            label={_(msg`Verify Identity (INE)`)}
-            onPress={async () => {
-              const isVerified = await AsyncStorage.getItem(
-                'para_verified_human',
-              )
-              if (isVerified === 'true') {
-                Toast.show(_(msg`Your identity is already verified.`))
-                return
-              }
-
-              Alert.alert(
-                _(msg`Verify Identity`),
-                _(
-                  msg`Upload your Official ID (INE) to verify your identity. This data is encrypted and never shared.`,
-                ),
-                [
-                  {
-                    text: _(msg`Upload Mock INE`),
-                    onPress: async () => {
-                      await new Promise(resolve => setTimeout(resolve, 1000))
-                      await AsyncStorage.setItem('para_verified_human', 'true')
-                      Toast.show(
-                        _(
-                          msg`Verification Successful! Your identity is now verified.`,
-                        ),
-                      )
-                    },
-                  },
-                  {
-                    text: _(msg`Cancel`),
-                    style: 'cancel',
-                  },
-                ],
-              )
-            }}>
-            <SettingsList.ItemIcon icon={ShieldIcon} />
-            <SettingsList.ItemText>
-              <Trans>Verify Identity (INE)</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.Divider />
-          <SettingsList.PressableItem
-            label={_(msg`Profile Visibility`)}
-            onPress={async () => {
-              const isVerified = await AsyncStorage.getItem(
-                'para_verified_human',
-              )
-              if (isVerified !== 'true') {
-                Alert.alert(
-                  _(msg`Restricted`),
-                  _(
-                    msg`You must verify your identity (INE) before configuring public visibility.`,
-                  ),
+            <SettingsList.PressableItem
+              label={_(msg`Verify Identity (INE)`)}
+              onPress={async () => {
+                const isVerified = await AsyncStorage.getItem(
+                  'para_verified_human',
                 )
-                return
-              }
-              navigation.push('ProfileVisibility')
-            }}>
-            <SettingsList.ItemIcon icon={AttributesIcon} />
-            <SettingsList.ItemText>
-              <Trans>Profile Visibility</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.LinkItem
-            to="/settings/political-affiliation"
-            label={_(msg`Political Affiliation`)}>
-            <SettingsList.ItemIcon icon={PersonIcon} />
-            <SettingsList.ItemText>
-              <Trans>Political Affiliation</Trans>
-            </SettingsList.ItemText>
-          </SettingsList.LinkItem>
-          <SettingsList.Divider />
-          <SettingsList.PressableItem
-            label={_(msg`Password`)}
-            onPress={() => changePasswordControl.open()}>
-            <SettingsList.ItemIcon icon={LockIcon} />
-            <SettingsList.ItemText>
-              <Trans>Password</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.PressableItem
-            label={_(msg`Handle`)}
-            accessibilityHint={_(msg`Opens change handle dialog`)}
-            onPress={() => changeHandleControl.open()}>
-            <SettingsList.ItemIcon icon={AtIcon} />
-            <SettingsList.ItemText>
-              <Trans>Handle</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.Item>
-            <SettingsList.ItemIcon icon={BirthdayCakeIcon} />
-            <SettingsList.ItemText>
-              <Trans>Birthday</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.BadgeButton
-              label={_(msg`Edit`)}
-              onPress={() => birthdayControl.open()}
-            />
-          </SettingsList.Item>
-          <AgeAssuranceAccountCard style={[a.px_xl, a.pt_xs, a.pb_md]} />
-          <SettingsList.Divider />
-          <SettingsList.PressableItem
-            label={_(msg`Export my data`)}
-            onPress={() => exportCarControl.open()}>
-            <SettingsList.ItemIcon icon={CarIcon} />
-            <SettingsList.ItemText>
-              <Trans>Export my data</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.PressableItem
-            label={_(msg`Deactivate account`)}
-            onPress={() => deactivateAccountControl.open()}
-            destructive>
-            <SettingsList.ItemIcon icon={FreezeIcon} />
-            <SettingsList.ItemText>
-              <Trans>Deactivate account</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-          <SettingsList.PressableItem
-            label={_(msg`Delete account`)}
-            onPress={() => openModal({name: 'delete-account'})}
-            destructive>
-            <SettingsList.ItemIcon icon={Trash_Stroke2_Corner2_Rounded} />
-            <SettingsList.ItemText>
-              <Trans>Delete account</Trans>
-            </SettingsList.ItemText>
-            <SettingsList.Chevron />
-          </SettingsList.PressableItem>
-        </SettingsList.Container>
+                if (isVerified === 'true') {
+                  Toast.show(_(msg`Your identity is already verified.`))
+                  return
+                }
+
+                Alert.alert(
+                  _(msg`Verify Identity`),
+                  _(
+                    msg`Upload your Official ID (INE) to verify your identity. This data is encrypted and never shared.`,
+                  ),
+                  [
+                    {
+                      text: _(msg`Upload Mock INE`),
+                      onPress: async () => {
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+                        await AsyncStorage.setItem('para_verified_human', 'true')
+                        Toast.show(
+                          _(
+                            msg`Verification Successful! Your identity is now verified.`,
+                          ),
+                        )
+                      },
+                    },
+                    {
+                      text: _(msg`Cancel`),
+                      style: 'cancel',
+                    },
+                  ],
+                )
+              }}>
+              <SettingsList.ItemIcon icon={ShieldIcon} />
+              <SettingsList.ItemText>
+                <Trans>Verify Identity (INE)</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.Divider />
+            <SettingsList.PressableItem
+              label={_(msg`Profile Visibility`)}
+              onPress={async () => {
+                const isVerified = await AsyncStorage.getItem(
+                  'para_verified_human',
+                )
+                if (isVerified !== 'true') {
+                  Alert.alert(
+                    _(msg`Restricted`),
+                    _(
+                      msg`You must verify your identity (INE) before configuring public visibility.`,
+                    ),
+                  )
+                  return
+                }
+                navigation.push('ProfileVisibility')
+              }}>
+              <SettingsList.ItemIcon icon={AttributesIcon} />
+              <SettingsList.ItemText>
+                <Trans>Profile Visibility</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.LinkItem
+              to="/settings/political-affiliation"
+              label={_(msg`Political Affiliation`)}>
+              <SettingsList.ItemIcon icon={PersonIcon} />
+              <SettingsList.ItemText>
+                <Trans>Political Affiliation</Trans>
+              </SettingsList.ItemText>
+            </SettingsList.LinkItem>
+            <SettingsList.Divider />
+            <SettingsList.PressableItem
+              label={_(msg`Password`)}
+              onPress={() => changePasswordControl.open()}>
+              <SettingsList.ItemIcon icon={LockIcon} />
+              <SettingsList.ItemText>
+                <Trans>Password</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.PressableItem
+              label={_(msg`Handle`)}
+              accessibilityHint={_(msg`Opens change handle dialog`)}
+              onPress={() => changeHandleControl.open()}>
+              <SettingsList.ItemIcon icon={AtIcon} />
+              <SettingsList.ItemText>
+                <Trans>Handle</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.Item>
+              <SettingsList.ItemIcon icon={BirthdayCakeIcon} />
+              <SettingsList.ItemText>
+                <Trans>Birthday</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.BadgeButton
+                label={_(msg`Edit`)}
+                onPress={() => birthdayControl.open()}
+              />
+            </SettingsList.Item>
+            <AgeAssuranceAccountCard style={[a.px_xl, a.pt_xs, a.pb_md]} />
+            <SettingsList.Divider />
+            <SettingsList.PressableItem
+              label={_(msg`Export my data`)}
+              onPress={() => exportCarControl.open()}>
+              <SettingsList.ItemIcon icon={CarIcon} />
+              <SettingsList.ItemText>
+                <Trans>Export my data</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.PressableItem
+              label={_(msg`Deactivate account`)}
+              onPress={() => deactivateAccountControl.open()}
+              destructive>
+              <SettingsList.ItemIcon icon={FreezeIcon} />
+              <SettingsList.ItemText>
+                <Trans>Deactivate account</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+            <SettingsList.PressableItem
+              label={_(msg`Delete account`)}
+              onPress={() => openModal({name: 'delete-account'})}
+              destructive>
+              <SettingsList.ItemIcon icon={Trash_Stroke2_Corner2_Rounded} />
+              <SettingsList.ItemText>
+                <Trans>Delete account</Trans>
+              </SettingsList.ItemText>
+              <SettingsList.Chevron />
+            </SettingsList.PressableItem>
+          </SettingsList.Container>
+        </Layout.Center>
       </Layout.Content>
+
 
       <BirthDateSettingsDialog control={birthdayControl} />
       <ChangeHandleDialog control={changeHandleControl} />

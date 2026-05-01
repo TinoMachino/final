@@ -127,19 +127,20 @@ export function Outer({
               accessibilityHint={undefined}
               accessibilityLabel={_(msg`Close active dialog`)}
               onPress={handleBackgroundPress}>
-              <View
-                style={[
-                  web(a.fixed),
-                  a.inset_0,
-                  a.z_10,
-                  a.px_xl,
-                  webOptions?.alignCenter ? a.justify_center : undefined,
-                  a.align_center,
-                  {
-                    overflowY: 'auto',
-                    paddingVertical: gtMobile ? '10vh' : a.pt_xl.paddingTop,
-                  },
-                ]}>
+                <View
+                  style={[
+                    web(a.fixed),
+                    a.inset_0,
+                    a.z_10,
+                    a.px_xl,
+                    a.justify_center, // Center vertically
+                    a.align_center, // Center horizontally
+                    {
+                      overflowY: 'auto',
+                      paddingVertical: gtMobile ? '10vh' : a.pt_xl.paddingTop,
+                    },
+                  ]}>
+
                 <Backdrop />
                 {/**
                  * This is needed to prevent centered dialogs from overflowing
@@ -148,13 +149,20 @@ export function Outer({
                  */}
                 <View
                   style={[
-                    a.w_full,
                     a.z_20,
                     a.align_center,
-                    web({minHeight: '60vh', position: 'static'}),
+                    a.justify_center,
+                    web({
+                      width: '100%',
+                      maxWidth: gtMobile ? 600 : '100%',
+                      minHeight: 'auto',
+                      position: 'static',
+                    }),
                   ]}>
                   {children}
                 </View>
+
+
               </View>
             </TouchableWithoutFeedback>
           </Context.Provider>
@@ -194,10 +202,11 @@ export function Inner({
         style={flatten([
           a.relative,
           a.rounded_md,
-          a.w_full,
+          a.align_self_center, // Ensure it centers itself within the parent
           a.border,
           t.atoms.bg,
           {
+            width: '100%',
             maxWidth: 600,
             borderColor: t.palette.contrast_200,
             shadowColor: t.palette.black,
@@ -207,6 +216,8 @@ export function Inner({
           !reduceMotionEnabled && a.zoom_fade_in,
           style,
         ])}>
+
+
         <DismissableLayer.DismissableLayer
           onInteractOutside={preventDefault}
           onFocusOutside={preventDefault}

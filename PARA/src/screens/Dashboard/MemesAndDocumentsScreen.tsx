@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {
   Animated,
   PanResponder,
@@ -121,8 +121,8 @@ export function MemesAndDocumentsScreen({
                   onClearText={() => setQuery('')}
                   placeholder={
                     activeMode === 'Memes'
-                      ? _(msg`Busca memes, autores o comunidades`)
-                      : _(msg`Busca documentos, comunidades o estados`)
+                      ? _(msg`Search memes, authors, or communities`)
+                      : _(msg`Search documents, communities, or states`)
                   }
                 />
               </View>
@@ -136,18 +136,13 @@ export function MemesAndDocumentsScreen({
                   <Trans>Documents</Trans>
                 )}
               </Layout.Header.TitleText>
-              <Layout.Header.SubtitleText>
-                {viewStyle === 'deck'
-                  ? _(msg`Vista superpuesta`)
-                  : _(msg`Vista tablero`)}
-              </Layout.Header.SubtitleText>
             </Layout.Header.Content>
           )}
 
           <View style={styles.headerActions}>
             <Pressable
-              accessibilityHint={_(msg`Abre o cierra la barra de búsqueda`)}
-              accessibilityLabel={_(msg`Mostrar búsqueda`)}
+              accessibilityHint={_(msg`Open or close search`)}
+              accessibilityLabel={_(msg`Toggle search`)}
               accessibilityRole="button"
               onPress={() => {
                 if (isSearchOpen) {
@@ -181,7 +176,7 @@ export function MemesAndDocumentsScreen({
                     : styles.modeChipDocuments,
                 ]}>
                 <Text style={styles.modeChipText}>
-                  {activeMode === 'Memes' ? 'Meme stream' : 'Document archive'}
+                  {viewStyle === 'deck' ? 'Deck view' : 'Board view'}
                 </Text>
               </View>
               <Text style={[styles.modeSummaryTitle, t.atoms.text]}>
@@ -193,15 +188,15 @@ export function MemesAndDocumentsScreen({
                   t.atoms.text_contrast_medium,
                 ]}>
                 {activeMode === 'Memes'
-                  ? 'Humor politico, campaña y comunidad en una sola superficie.'
-                  : 'Reportes, borradores y archivos cívicos con mejor contexto.'}
+                  ? 'Political humor, campaign riffs, and community posts in one board.'
+                  : 'Reports, drafts, and civic files with better context.'}
               </Text>
             </View>
 
             <Pressable
-              accessibilityHint={_(msg`Cambia la presentación de las tarjetas`)}
+              accessibilityHint={_(msg`Change the card presentation`)}
               accessibilityLabel={_(
-                msg`Cambiar entre vista tablero y vista superpuesta`,
+                msg`Switch between board and deck view`,
               )}
               accessibilityRole="button"
               onPress={() =>
@@ -230,12 +225,12 @@ export function MemesAndDocumentsScreen({
             {activeItems.length === 0 ? (
               <EmptyState
                 description={_(
-                  msg`Abre más comunidades o limpia la búsqueda para rellenar esta vista.`,
+                  msg`Open more communities or clear search to fill this view.`,
                 )}
                 title={
                   activeMode === 'Memes'
-                    ? _(msg`No hay memes con esos filtros`)
-                    : _(msg`No hay documentos con esos filtros`)
+                    ? _(msg`No memes match those filters`)
+                    : _(msg`No documents match those filters`)
                 }
               />
             ) : (
@@ -248,6 +243,7 @@ export function MemesAndDocumentsScreen({
                     onVoteChange={vote =>
                       setItemVotes(prev => ({...prev, [item.id]: vote}))
                     }
+                    onExpand={() => setExpandedItem(item)}
                     vote={itemVotes[item.id] ?? 0}
                     width={boardWidth}
                   />
@@ -261,12 +257,12 @@ export function MemesAndDocumentsScreen({
               <View style={styles.contentContainer}>
                 <EmptyState
                   description={_(
-                    msg`Abre más comunidades o limpia la búsqueda para rellenar esta vista.`,
+                    msg`Open more communities or clear search to fill this view.`,
                   )}
                   title={
                     activeMode === 'Memes'
-                      ? _(msg`No hay memes con esos filtros`)
-                      : _(msg`No hay documentos con esos filtros`)
+                      ? _(msg`No memes match those filters`)
+                      : _(msg`No documents match those filters`)
                   }
                 />
               </View>
@@ -319,7 +315,7 @@ function DeckChain({
   onVoteChange: (id: string, vote: 1 | -1 | 0) => void
 }) {
   const t = useTheme()
-  const animation = useRef(new Animated.Value(0)).current
+  const animation = useMemo(() => new Animated.Value(0), [])
   const [startIndex, setStartIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [boundaryNotice, setBoundaryNotice] = useState<string | null>(null)
@@ -358,26 +354,29 @@ function DeckChain({
   const next = items[startIndex + 1]
   const third = items[startIndex + 2]
 
-  const springTo = (toValue: number, velocity = 0, onComplete?: () => void) => {
-    animation.stopAnimation()
-    Animated.spring(animation, {
-      damping: 24,
-      mass: 0.9,
-      overshootClamping: true,
-      restDisplacementThreshold: 0.001,
-      restSpeedThreshold: 0.001,
-      stiffness: 220,
-      toValue,
-      useNativeDriver: true,
-      velocity,
-    }).start(({finished}) => {
-      if (finished) {
-        onComplete?.()
-      }
-    })
-  }
+  const springTo = useCallback(
+    (toValue: number, velocity = 0, onComplete?: () => void) => {
+      animation.stopAnimation()
+      Animated.spring(animation, {
+        damping: 24,
+        mass: 0.9,
+        overshootClamping: true,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+        stiffness: 220,
+        toValue,
+        useNativeDriver: true,
+        velocity,
+      }).start(({finished}) => {
+        if (finished) {
+          onComplete?.()
+        }
+      })
+    },
+    [animation],
+  )
 
-  const advance = (releaseVelocity = 0) => {
+  const advance = useCallback((releaseVelocity = 0) => {
     if (!next || isAnimating) return
     setIsAnimating(true)
     springTo(1, releaseVelocity, () => {
@@ -389,9 +388,9 @@ function DeckChain({
       setIsAnimating(false)
       setTopLayer('current')
     })
-  }
+  }, [animation, isAnimating, items.length, next, onFocusChange, springTo])
 
-  const retreat = (releaseVelocity = 0) => {
+  const retreat = useCallback((releaseVelocity = 0) => {
     if (!prev || isAnimating) return
     setIsAnimating(true)
     springTo(-1, releaseVelocity, () => {
@@ -401,13 +400,13 @@ function DeckChain({
       setIsAnimating(false)
       setTopLayer('current')
     })
-  }
+  }, [animation, isAnimating, onFocusChange, prev, springTo])
 
-  const resetPosition = (releaseVelocity = 0) => {
+  const resetPosition = useCallback((releaseVelocity = 0) => {
     springTo(0, releaseVelocity)
-  }
+  }, [springTo])
 
-  const showBoundaryMessage = (message: string) => {
+  const showBoundaryMessage = useCallback((message: string) => {
     if (boundaryTimeoutRef.current) {
       clearTimeout(boundaryTimeoutRef.current)
     }
@@ -416,10 +415,12 @@ function DeckChain({
       setBoundaryNotice(null)
       boundaryTimeoutRef.current = null
     }, 1200)
-  }
+  }, [])
 
   const panResponder = useMemo(
     () =>
+      // PanResponder invokes these callbacks after render during gestures.
+      // eslint-disable-next-line react-hooks/refs
       PanResponder.create({
         onMoveShouldSetPanResponderCapture: (_, gestureState) => {
           return (
@@ -460,7 +461,7 @@ function DeckChain({
             (gestureState.dy < -24 || gestureState.vy < -0.3) &&
             !next
           ) {
-            showBoundaryMessage('Ya viste la ultima tarjeta')
+            showBoundaryMessage('You have reached the last card')
             resetPosition(normalizedVelocity)
           } else {
             resetPosition(normalizedVelocity)
@@ -608,8 +609,8 @@ function DeckChain({
             prevStyle,
           ]}>
           <Pressable
-            accessibilityHint="Toca para traer al frente"
-            accessibilityLabel="Tarjeta anterior"
+            accessibilityHint="Bring this card to the front"
+            accessibilityLabel="Previous card"
             accessibilityRole="button"
             onPress={() => setTopLayer('current')}
             style={styles.deckCardPressable}>
@@ -643,8 +644,8 @@ function DeckChain({
             topLayer === 'next' && {zIndex: 5},
           ]}>
           <Pressable
-            accessibilityHint="Toca para traer al frente"
-            accessibilityLabel="Siguiente tarjeta"
+            accessibilityHint="Bring this card to the front"
+            accessibilityLabel="Next card"
             accessibilityRole="button"
             onPress={() => setTopLayer('next')}
             style={styles.deckCardPressable}>
@@ -698,9 +699,9 @@ function DeckChain({
 
       {!next ? (
         <View style={styles.deckEndCard}>
-          <Text style={styles.deckEndTitle}>Eso es todo por hoy</Text>
+          <Text style={styles.deckEndTitle}>That is everything for now</Text>
           <Text style={styles.deckEndBody}>
-            Regresa hacia abajo para revisar las tarjetas anteriores.
+            Swipe down to revisit earlier cards.
           </Text>
         </View>
       ) : null}

@@ -25,7 +25,11 @@ import {HomeFeedAPI} from '#/lib/api/feed/home'
 import {LikesFeedAPI} from '#/lib/api/feed/likes'
 import {ListFeedAPI} from '#/lib/api/feed/list'
 import {MergeFeedAPI} from '#/lib/api/feed/merge'
-import {ParaFeedAPI} from '#/lib/api/feed/para'
+import {
+  ParaFeedAPI,
+  ParaTimelineFeedAPI,
+  type ParaTimelineFilters,
+} from '#/lib/api/feed/para'
 import {PostListFeedAPI} from '#/lib/api/feed/posts'
 import {SearchPostsFeedAPI} from '#/lib/api/feed/search'
 import {type FeedAPI, type ReasonFeedSource} from '#/lib/api/feed/types'
@@ -66,6 +70,7 @@ export type FeedDescriptor =
   | 'following'
   | `author|${ActorDid}|${AuthorFilter}`
   | `para|${ActorDid}`
+  | 'para-timeline'
   | `feedgen|${FeedUri}`
   | `likes|${ActorDid}`
   | `list|${ListUri}`
@@ -76,6 +81,7 @@ export interface FeedParams {
   mergeFeedEnabled?: boolean
   mergeFeedSources?: string[]
   feedCacheKey?: 'discover' | 'explore' | undefined
+  paraTimelineFilters?: ParaTimelineFilters
 }
 
 type RQPageParam = {cursor: string | undefined; api: FeedAPI} | undefined
@@ -492,6 +498,12 @@ function createApi({
     const [__, actor] = feedDesc.split('|')
     return new LikesFeedAPI({agent, feedParams: {actor}})
   } else if (feedDesc.startsWith('para')) {
+    if (feedDesc === 'para-timeline') {
+      return new ParaTimelineFeedAPI({
+        agent,
+        filters: feedParams.paraTimelineFilters,
+      })
+    }
     const [__, actor] = feedDesc.split('|')
     return new ParaFeedAPI({
       agent,
@@ -675,7 +687,7 @@ export function resetProfilePostsQueries(
 }
 
 export function isFeedPostSlice(v: unknown): v is FeedPostSlice {
-  return (
+  return !!(
     v && typeof v === 'object' && '_isFeedPostSlice' in v && v._isFeedPostSlice
   )
 }

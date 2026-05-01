@@ -60,7 +60,7 @@ import {PlusLarge_Stroke2_Corner0_Rounded as PlusIcon} from '#/components/icons/
 import {Repost_Stroke2_Corner3_Rounded as RepostIcon} from '#/components/icons/Repost'
 import {StarterPack} from '#/components/icons/StarterPack'
 import {VerifiedCheck} from '#/components/icons/VerifiedCheck'
-import {InlineLinkText, Link} from '#/components/Link'
+import {InlineLinkText, Link, useLink} from '#/components/Link'
 import * as MediaPreview from '#/components/MediaPreview'
 import {ProfileHoverCard} from '#/components/ProfileHoverCard'
 import {Notification as StarterPackCard} from '#/components/StarterPack/StarterPackCard'
@@ -603,8 +603,13 @@ let NotificationFeedItem = ({
   }
   a11yLabel += ` · ${niceTimestamp}`
 
+  const {onPress} = useLink({
+    to: itemHref,
+    displayText: a11yLabel,
+  })
+
   return (
-    <Link
+    <Button
       label={a11yLabel}
       testID={`feedItem-by-${item.notification.author.handle}`}
       style={[
@@ -622,7 +627,10 @@ let NotificationFeedItem = ({
         !hideTopBorder && a.border_t,
         a.overflow_hidden,
       ]}
-      to={itemHref}
+      onPress={(e) => {
+        onBeforePress()
+        onPress(e)
+      }}
       accessible={!isAuthorsExpanded}
       accessibilityActions={
         hasMultipleAuthors
@@ -648,6 +656,8 @@ let NotificationFeedItem = ({
       onAccessibilityAction={e => {
         if (e.nativeEvent.actionName === 'activate') {
           onBeforePress()
+          // @ts-ignore
+          onPress(e)
         }
         if (e.nativeEvent.actionName === 'toggleAuthorsExpanded') {
           onToggleAuthorsExpanded()
@@ -750,7 +760,7 @@ let NotificationFeedItem = ({
           </View>
         </>
       )}
-    </Link>
+    </Button>
   )
 }
 NotificationFeedItem = memo(NotificationFeedItem)

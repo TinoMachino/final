@@ -160,11 +160,10 @@ export function WheelPicker({
         <View style={{height: ITEM_HEIGHT * sideItemCount}} />
         {items.map((item, index) => (
           <View
-            key={item}
+            key={`${item}-${index}`}
             style={[
               styles.wheelPickerItem,
               {height: ITEM_HEIGHT},
-              index === selectedIndex && styles.wheelPickerItemSelected,
             ]}>
             <TouchableOpacity
               accessibilityRole="button"
@@ -177,12 +176,14 @@ export function WheelPicker({
                   styles.wheelPickerItemText,
                   theme.atoms.text,
                   index === selectedIndex && styles.wheelPickerItemTextSelected,
+                  index === selectedIndex && {opacity: 1},
                 ]}>
                 {item}
               </Text>
             </TouchableOpacity>
           </View>
         ))}
+
         <View style={{height: ITEM_HEIGHT * sideItemCount}} />
       </ScrollView>
     </View>
@@ -227,9 +228,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '400',
     opacity: 0.5,
+    textAlign: 'center',
+    lineHeight: ITEM_HEIGHT,
   },
   wheelPickerItemTextSelected: {
     fontWeight: '600',
-    opacity: 1,
+    fontSize: 17,
   },
+
 })

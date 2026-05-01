@@ -106,7 +106,7 @@ const COMMUNITY_INSIGNIAS: Record<string, InsigniaColors> = {
   // National parties (same colors as shield system — unified source of truth)
   morena: ['#610200', '#8B0000', '#B01021'],
   pan: ['#004990', '#005595', '#005EB8'],
-  pri: ['#CE1126', '#CC0000', '#9B1B30'],
+  pri: ['#00843D', '#FFFFFF', '#CE1126'],
   pt: ['#D92027', '#B91C22'],
   mc: ['#FF8300', '#FF8200', '#FF6600'],
   pvem: ['#50B747', '#00AA00'],

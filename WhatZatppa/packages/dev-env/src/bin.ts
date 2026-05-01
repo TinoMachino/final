@@ -27,10 +27,9 @@ const run = async () => {
       publicUrl: 'http://localhost:2584',
     },
     plc: { port: 2582 },
+    chat: { port: 2590 },
     ozone: {
       port: 2587,
-      chatUrl: 'http://localhost:2590', // must run separate chat service
-      chatDid: 'did:example:chat',
       dbMaterializedViewRefreshIntervalMs: 30_000,
     },
     introspect: { port: 2581 },
@@ -50,6 +49,8 @@ const run = async () => {
   )
   console.log(`🗼 Ozone server http://localhost:${network.ozone.port}`)
   console.log(`🗼 Ozone service DID ${network.ozone.ctx.cfg.service.did}`)
+  console.log(`💬 Chat service http://localhost:${network.chat.port}`)
+  console.log(`💬 Chat service DID ${network.chat.did}`)
   console.log(`🌅 Bsky Appview http://localhost:${network.bsky.port}`)
   console.log(`🌅 Bsky Appview DID ${network.bsky.serverDid}`)
   for (const fg of network.feedGens) {

@@ -44,12 +44,12 @@ export function formatDateLabel(value: string) {
 export function formatResultLabel(mode: Mode, count: number) {
   if (mode === 'Memes') {
     return count === 1
-      ? '1 meme listo para explorar'
-      : `${count} memes listos para explorar`
+      ? '1 meme ready to explore'
+      : `${count} memes ready to explore`
   }
   return count === 1
-    ? '1 documento listo para revisar'
-    : `${count} documentos listos para revisar`
+    ? '1 document ready to review'
+    : `${count} documents ready to review`
 }
 
 export function buildSubmetaLabel(item: MediaItem, mode: Mode) {

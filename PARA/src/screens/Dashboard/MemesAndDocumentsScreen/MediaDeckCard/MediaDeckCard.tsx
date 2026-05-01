@@ -1,5 +1,6 @@
 import {View} from 'react-native'
 
+import {useShowPartyShields} from '#/state/preferences/show-party-shields'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
@@ -8,6 +9,7 @@ import {
   DeckExpandButton,
   DeckOptionsButton,
   MediaVisualMeta,
+  PartyInsignia,
   showDeckOptionsAlert,
 } from '../cardPrimitives'
 import {buildSubmetaLabel, DECK_VISUAL_HEIGHT} from '../helpers'
@@ -30,8 +32,8 @@ export function MediaDeckCard({
   showExpand?: boolean
 }) {
   const t = useTheme()
-  const isMeme = mode === 'Memes'
   const isTopLeftExpand = expandPlacement === 'top-left'
+  const showPartyShields = useShowPartyShields() ?? true
 
   return (
     <View style={styles.deckCardShell}>
@@ -53,10 +55,8 @@ export function MediaDeckCard({
           },
         ]}>
         <View style={styles.cardBadgeRow}>
-          <Text style={styles.cardBadge}>
-            {isMeme ? item.community : item.category}
-          </Text>
-          {!isMeme ? (
+          <PartyInsignia party={item.party} visible={showPartyShields} />
+          {mode === 'Documents' ? (
             <View style={styles.documentGlyph}>
               <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
             </View>

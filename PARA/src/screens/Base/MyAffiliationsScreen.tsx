@@ -78,7 +78,9 @@ function VoteAnalysis({navigation}: {navigation: NavigationProp}) {
           color="primary"
           size="small"
           label={_(msg`Browse policies to vote`)}
-          onPress={() => navigation.navigate('CabildeoList')}
+          onPress={() =>
+            navigation.navigate('PoliciesDashboard', {mode: 'Policies'})
+          }
           style={[a.w_full]}>
           <ButtonText>
             <Trans>Browse policies to vote →</Trans>

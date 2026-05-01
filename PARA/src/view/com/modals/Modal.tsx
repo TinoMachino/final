@@ -67,26 +67,43 @@ export function ModalsContainer() {
 
   return (
     <Container>
-      <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={snapPoints}
-        handleHeight={HANDLE_HEIGHT}
-        index={isModalActive ? 0 : -1}
-        enablePanDownToClose
-        android_keyboardInputMode="adjustResize"
-        keyboardBlurBehavior="restore"
-        backdropComponent={
-          isModalActive ? createCustomBackdrop(onClose) : undefined
-        }
-        handleIndicatorStyle={{backgroundColor: pal.text.color}}
-        handleStyle={[styles.handle, pal.view]}
-        backgroundStyle={pal.view}
-        onChange={onBottomSheetChange}>
-        {element}
-      </BottomSheet>
+      <View
+        style={[
+          IS_WEB && a.fixed,
+          IS_WEB && a.inset_0,
+          IS_WEB && a.z_50,
+          IS_WEB && a.align_center,
+          IS_WEB && a.justify_center,
+          IS_WEB && {pointerEvents: 'box-none'},
+        ]}>
+        <View
+          style={[
+            IS_WEB && a.w_full,
+            IS_WEB && {maxWidth: 600, shadowRadius: 10, shadowOpacity: 0.1},
+          ]}>
+          <BottomSheet
+            ref={bottomSheetRef}
+            snapPoints={snapPoints}
+            handleHeight={HANDLE_HEIGHT}
+            index={isModalActive ? 0 : -1}
+            enablePanDownToClose
+            android_keyboardInputMode="adjustResize"
+            keyboardBlurBehavior="restore"
+            backdropComponent={
+              isModalActive ? createCustomBackdrop(onClose) : undefined
+            }
+            handleIndicatorStyle={{backgroundColor: pal.text.color}}
+            handleStyle={[styles.handle, pal.view]}
+            backgroundStyle={pal.view}
+            onChange={onBottomSheetChange}>
+            {element}
+          </BottomSheet>
+        </View>
+      </View>
     </Container>
   )
 }
+
 
 const styles = StyleSheet.create({
   handle: {

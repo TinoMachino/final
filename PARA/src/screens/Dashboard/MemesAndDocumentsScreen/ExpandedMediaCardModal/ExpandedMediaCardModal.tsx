@@ -1,12 +1,13 @@
 import {Modal, Pressable, View} from 'react-native'
 
+import {useShowPartyShields} from '#/state/preferences/show-party-shields'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {ArrowsDiagonalOut_Stroke2_Corner2_Rounded as ExpandIcon} from '#/components/icons/ArrowsDiagonal'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
 import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {RedditVoteButton} from '#/components/PostControls/VoteButton'
-import {ActionButton, MediaVisualMeta} from '../cardPrimitives'
+import {ActionButton, MediaVisualMeta, PartyInsignia} from '../cardPrimitives'
 import {buildSubmetaLabel} from '../helpers'
 import {styles} from '../styles'
 import {type MediaItem, type Mode} from '../types'
@@ -25,13 +26,12 @@ export function ExpandedMediaCardModal({
   onVoteChange: (vote: 1 | -1 | 0) => void
 }) {
   const t = useTheme()
+  const showPartyShields = useShowPartyShields() ?? true
 
   if (!item) return null
 
   const score = item.votes + vote
   const voteState = vote === 1 ? 'upvote' : vote === -1 ? 'downvote' : 'none'
-  const isMeme = mode === 'Memes'
-
   return (
     <Modal
       animationType="fade"
@@ -41,8 +41,8 @@ export function ExpandedMediaCardModal({
       <View style={styles.expandedModalOverlay}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Cerrar vista expandida"
-          accessibilityHint="Cierra la tarjeta expandida"
+          accessibilityLabel="Close expanded view"
+          accessibilityHint="Closes the expanded card"
           onPress={onClose}
           style={styles.expandedModalDismiss}
         />
@@ -57,10 +57,8 @@ export function ExpandedMediaCardModal({
               {backgroundColor: item.color},
             ]}>
             <View style={styles.cardBadgeRow}>
-              <Text style={styles.cardBadge}>
-                {isMeme ? item.community : item.category}
-              </Text>
-              {!isMeme ? (
+              <PartyInsignia party={item.party} visible={showPartyShields} />
+              {mode === 'Documents' ? (
                 <View style={styles.documentGlyph}>
                   <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
                 </View>
@@ -102,7 +100,7 @@ export function ExpandedMediaCardModal({
                 icon={
                   <ExpandIcon size="sm" style={t.atoms.text_contrast_medium} />
                 }
-                label="Cerrar"
+                label="Close"
                 onPress={onClose}
               />
             </View>

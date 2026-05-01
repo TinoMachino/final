@@ -42,7 +42,10 @@ export function CivicInsignia({
 }: CivicInsigniaProps) {
   if (variant === 'shield') {
     const s = SHIELD_SIZE_MAP[size]
-    const bgColor = colors[0] || '#888888'
+    const safeColors = colors.slice(0, 3)
+    if (safeColors.length === 0) {
+      safeColors.push('#888888')
+    }
 
     return (
       <View
@@ -54,14 +57,38 @@ export function CivicInsignia({
             height: s.height,
             paddingHorizontal: s.padH,
             paddingVertical: s.padV,
-            backgroundColor: bgColor,
+            backgroundColor: safeColors[0],
             borderTopLeftRadius: 4,
             borderTopRightRadius: 4,
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
+            overflow: 'hidden',
           },
           style,
         ]}>
+        {safeColors.length > 1 ? (
+          <View
+            style={[
+              a.flex_row,
+              {
+                bottom: 0,
+                left: 0,
+                position: 'absolute',
+                right: 0,
+                top: 0,
+              },
+            ]}>
+            {safeColors.map((color, i) => (
+              <View
+                key={i}
+                style={{
+                  flex: 1,
+                  backgroundColor: color,
+                }}
+              />
+            ))}
+          </View>
+        ) : null}
         {abbreviation ? (
           <Text
             style={[
@@ -73,6 +100,7 @@ export function CivicInsignia({
                 textShadowColor: 'rgba(0,0,0,0.3)',
                 textShadowOffset: {width: 0, height: 0.5},
                 textShadowRadius: 1,
+                zIndex: 1,
               },
             ]}>
             {abbreviation}

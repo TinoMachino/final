@@ -45,15 +45,23 @@ export function VotingButtonHorizontal({
       scale.value = withSpring(1.04)
     })
     .onUpdate(event => {
+      // Constraint clamp
       const clampedTranslation = Math.max(
-        -120,
-        Math.min(120, event.translationX),
+        -80,
+        Math.min(80, event.translationX),
       )
+
       translationX.value = clampedTranslation
 
+      // One-point additive logic
       const step = 35
-      let newVote = Math.round(clampedTranslation / step)
-      newVote = Math.max(-3, Math.min(3, newVote))
+      let delta = 0
+      if (Math.abs(clampedTranslation) > step / 2) {
+        delta = Math.round(clampedTranslation / step)
+      }
+      delta = Math.max(-1, Math.min(1, delta))
+      
+      const newVote = Math.max(-3, Math.min(3, initialVote + delta))
       liveVote.value = newVote
 
       if (newVote !== currentVote) {
@@ -73,22 +81,20 @@ export function VotingButtonHorizontal({
 
   const visualVote = useDerivedValue(() => {
     if (isActive.value) {
-      const step = 35
-      const derivedVote = Math.round(translationX.value / step)
-      return Math.max(-3, Math.min(3, derivedVote))
+      return liveVote.value
     }
     return committedVote.value
   })
 
   const controlStyle = useAnimatedStyle(() => {
-    const normalizedVote = visualVote.value / 3
+    const relativeImpact = currentVote - initialVote
     const bg = interpolateColor(
-      normalizedVote,
+      relativeImpact,
       [-1, 0, 1],
       [DISAGREE + '28', t.palette.contrast_50, AGREE + '28'],
     )
     const border = interpolateColor(
-      normalizedVote,
+      relativeImpact,
       [-1, 0, 1],
       [DISAGREE + '50', t.palette.contrast_100, AGREE + '50'],
     )
@@ -100,9 +106,9 @@ export function VotingButtonHorizontal({
   })
 
   const trackStyle = useAnimatedStyle(() => {
-    const normalizedVote = visualVote.value / 3
+    const relativeImpact = currentVote - initialVote
     const backgroundColor = interpolateColor(
-      normalizedVote,
+      relativeImpact,
       [-1, 0, 1],
       [DISAGREE + '16', t.palette.contrast_25, AGREE + '16'],
     )
@@ -122,8 +128,9 @@ export function VotingButtonHorizontal({
   })
 
   const labelStyle = useAnimatedStyle(() => {
+    const isNeutral = currentVote === 0
     return {
-      opacity: withTiming(currentVote === 0 ? 0.6 : 0),
+      opacity: withTiming(isNeutral ? 0.6 : 0),
     }
   })
 
@@ -164,7 +171,7 @@ export function VotingButtonHorizontal({
           trackStyle,
           {borderColor: t.palette.contrast_100},
         ]}>
-        {/* Tick marks on track */}
+        {/* Tick marks on track (showing full -3 to 3 range again) */}
         <View style={styles.tickContainer}>
           {[-3, -2, -1, 0, 1, 2, 3].map(tick => (
             <View
@@ -184,7 +191,16 @@ export function VotingButtonHorizontal({
 
       {/* Draggable thumb */}
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.control, controlStyle]}>
+        <Animated.View
+          style={[
+            styles.control,
+            controlStyle,
+            Platform.OS === 'web' && {
+              cursor: isActive.value ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              touchAction: 'none',
+            },
+          ]}>
           <View style={styles.textWrapper}>
             <Animated.Text style={[styles.voteText, voteTextStyle]}>
               {currentVote > 0 ? `+${currentVote}` : `${currentVote}`}

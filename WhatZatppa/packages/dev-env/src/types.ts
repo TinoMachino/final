@@ -3,6 +3,7 @@ import * as bsync from '@atproto/bsync'
 import { ExportableKeypair, Keypair } from '@atproto/crypto'
 import * as ozone from '@atproto/ozone'
 import * as pds from '@atproto/pds'
+import type { TestChatConfig } from './chat'
 
 export type IntrospectConfig = {
   port?: number
@@ -48,6 +49,7 @@ export type TestServerParams = {
   dbPostgresSchema: string
   pds: Partial<PdsConfig>
   plc: Partial<PlcConfig>
+  chat: Partial<TestChatConfig>
   bsky: Partial<BskyConfig>
   ozone: Partial<OzoneConfig>
   introspect: Partial<IntrospectConfig>

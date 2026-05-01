@@ -229,6 +229,14 @@ export const PARTY_PROFILES: PartyProfile[] = [
     // Center-liberal: pro-market, urban progressive, civil liberties
     vector: [35, 40, 35, 40, 35, 60, 75, 70, 75, 65, 65, 60],
   },
+  {
+    id: 'migala',
+    name: 'Migala',
+    fullName: 'Proyecto Migala',
+    color: '#106B43',
+    // Libertarian-left: commons, direct democracy, civil liberties, ecology
+    vector: [90, 92, 88, 86, 20, 95, 92, 90, 78, 82, 90, 88],
+  },
 ]
 
 export interface PartyMatch {

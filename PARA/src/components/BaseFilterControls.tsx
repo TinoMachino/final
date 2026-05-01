@@ -45,6 +45,7 @@ const officialParties = [
   {name: 'PVEM', fullName: 'PVEM', color: '#50B747'},
   {name: 'PT', fullName: 'PT', color: '#D92027'},
   {name: 'MC', fullName: 'Movimiento Ciudadano', color: '#FF8300'},
+  {name: 'Migala', fullName: 'Migala', color: '#106B43'},
 ]
 
 const allCommunities = [...ninthCommunities, ...officialParties]

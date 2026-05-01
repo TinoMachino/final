@@ -3,7 +3,6 @@ import {View} from 'react-native'
 import {useShowPartyShields} from '#/state/preferences/show-party-shields'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
-import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {
   CommentChip,
   DeckExpandButton,
@@ -46,7 +45,6 @@ export function MediaDeckCard({
       <View
         style={[
           styles.deckVisual,
-          mode === 'Documents' && styles.documentVisual,
           isTopLeftExpand && styles.deckVisualInsetTopLeft,
           showOptions && styles.deckVisualInsetTopRight,
           {
@@ -56,11 +54,6 @@ export function MediaDeckCard({
         ]}>
         <View style={styles.cardBadgeRow}>
           <PartyInsignia party={item.party} visible={showPartyShields} />
-          {mode === 'Documents' ? (
-            <View style={styles.documentGlyph}>
-              <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
-            </View>
-          ) : null}
         </View>
 
         <View style={styles.deckVisualBottom}>

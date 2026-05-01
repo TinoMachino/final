@@ -2,14 +2,12 @@ import {type ReactNode} from 'react'
 import {Alert, Pressable, View} from 'react-native'
 
 import {getCommunityInsignia} from '#/lib/civic-insignias'
-import {type Document as MediaDocument, type Meme} from '#/lib/mock-data/types'
+import {type Meme} from '#/lib/mock-data/types'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {CivicInsignia} from '#/components/CivicInsignia'
 import {ArrowsDiagonalOut_Stroke2_Corner2_Rounded as ExpandIcon} from '#/components/icons/ArrowsDiagonal'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
-import {CalendarDays_Stroke2_Corner0_Rounded as CalendarIcon} from '#/components/icons/CalendarDays'
-import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {formatDateLabel} from './helpers'
 import {styles} from './styles'
 import {type MediaItem, type Mode} from './types'
@@ -96,24 +94,6 @@ function MetaPill({label, icon}: {label: string; icon?: ReactNode}) {
 }
 
 export function MediaVisualMeta({item, mode}: {item: MediaItem; mode: Mode}) {
-  const t = useTheme()
-
-  if (mode === 'Documents') {
-    const document = item as MediaDocument
-    return (
-      <View style={styles.metaPillRow}>
-        <MetaPill
-          label={document.size}
-          icon={<PageTextIcon size="xs" style={t.atoms.text_contrast_medium} />}
-        />
-        <MetaPill
-          label={formatDateLabel(document.date)}
-          icon={<CalendarIcon size="xs" style={t.atoms.text_contrast_medium} />}
-        />
-      </View>
-    )
-  }
-
   const meme = item as Meme
   return (
     <View style={styles.metaPillRow}>

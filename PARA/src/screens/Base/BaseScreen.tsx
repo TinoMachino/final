@@ -472,9 +472,7 @@ export function BaseScreen() {
                   <DataCard
                     title="Memes"
                     onPress={() =>
-                      navigation.navigate('MemesAndDocuments', {
-                        mode: 'Memes',
-                      })
+                      navigation.navigate('Memes', {})
                     }
                     icon={
                       <ImageIcon
@@ -487,9 +485,7 @@ export function BaseScreen() {
                   <DataCard
                     title="Docs"
                     onPress={() =>
-                      navigation.navigate('MemesAndDocuments', {
-                        mode: 'Documents',
-                      })
+                      navigation.navigate('Documents', {})
                     }
                     icon={
                       <PageTextIcon

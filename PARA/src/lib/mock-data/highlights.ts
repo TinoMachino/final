@@ -1,8 +1,3 @@
-// Re-using the same community constants if possible, or we can inline them if we want to decouple
-// For now, I'll hardcode the colors to break the dependency on 'lib/communities' if the goal is isolation,
-// but usually it's better to keep the dependency if it's a shared constant.
-// Glancing at the original file, it imports NINTHS_COMMUNITIES.
-// Let's import it too to keep data consistent.
 import {NINTHS_COMMUNITIES} from '#/lib/communities'
 import {type Highlight} from './types'
 
@@ -145,8 +140,8 @@ export const HIGHLIGHTS: Highlight[] = [
     avatarUrl: AVATAR_URLS[6],
     postPreview:
       'Debemos desregular el sector fintech para atraer más capital de riesgo...',
-    color: NINTHS_COMMUNITIES.libEconocenter.color,
-    community: NINTHS_COMMUNITIES.libEconocenter.name,
+    color: NINTHS_COMMUNITIES.libCenter.color,
+    community: NINTHS_COMMUNITIES.libCenter.name,
     state: 'Nuevo León',
     createdAt: Date.now() - 12000000,
     upvotes: 320,
@@ -241,8 +236,8 @@ export const HIGHLIGHTS: Highlight[] = [
     avatarUrl: AVATAR_URLS[2],
     postPreview:
       'El comercio informal debe ser ordenado. Necesitamos estado de derecho...',
-    color: NINTHS_COMMUNITIES.authEconocenter.color,
-    community: NINTHS_COMMUNITIES.authEconocenter.name,
+    color: NINTHS_COMMUNITIES.authCenter.color,
+    community: NINTHS_COMMUNITIES.authCenter.name,
     state: 'Ciudad de México',
     party: 'PRI',
     createdAt: Date.now() - 25000000,
@@ -281,8 +276,8 @@ export const HIGHLIGHTS: Highlight[] = [
     avatarUrl: AVATAR_URLS[4],
     postPreview:
       'Nuestra identidad es híbrida y libre. Apoyemos a los artistas locales...',
-    color: NINTHS_COMMUNITIES.libCenter.color || '#FF80FF', // Fallback color if not in map
-    community: 'Lib Center', // Manual override as it might not be in NINTHS_COMMUNITIES keys perfectly
+    color: NINTHS_COMMUNITIES.libCenter.color,
+    community: NINTHS_COMMUNITIES.libCenter.name,
     state: 'Baja California',
     createdAt: Date.now() - 14000000,
     upvotes: 280,
@@ -338,8 +333,8 @@ export const HIGHLIGHTS: Highlight[] = [
     authorName: 'Alegría Jarocha',
     avatarUrl: AVATAR_URLS[7],
     postPreview: 'Más allá de la fiesta, es nuestra identidad cultural...',
-    color: NINTHS_COMMUNITIES.centerEconocenter.color,
-    community: NINTHS_COMMUNITIES.centerEconocenter.name,
+    color: NINTHS_COMMUNITIES.centrist.color,
+    community: NINTHS_COMMUNITIES.centrist.name,
     state: 'Veracruz',
     createdAt: Date.now() - 11000000,
     upvotes: 620,
@@ -398,8 +393,8 @@ export const HIGHLIGHTS: Highlight[] = [
     avatarUrl: AVATAR_URLS[1],
     postPreview:
       'La prohibición ha fallado. Necesitamos un enfoque de salud pública...',
-    color: NINTHS_COMMUNITIES.libCenter.color || '#FF80FF',
-    community: 'Lib Center',
+    color: NINTHS_COMMUNITIES.libCenter.color,
+    community: NINTHS_COMMUNITIES.libCenter.name,
     state: 'Ciudad de México',
     createdAt: Date.now() - 45000000,
     upvotes: 770,

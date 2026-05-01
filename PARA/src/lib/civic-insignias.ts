@@ -103,19 +103,20 @@ export function createDisplayRichText(original: RichTextAPI): {
 const DEFAULT_INSIGNIA: InsigniaColors = ['#888888']
 
 const COMMUNITY_INSIGNIAS: Record<string, InsigniaColors> = {
-  // National parties (same colors as shield system — unified source of truth)
-  morena: ['#610200', '#8B0000', '#B01021'],
-  pan: ['#004990', '#005595', '#005EB8'],
+  // National parties — one brand color each (except PRI: flag tricolor)
+  morena: ['#8B0000'],
+  pan: ['#005EB8'],
   pri: ['#00843D', '#FFFFFF', '#CE1126'],
-  pt: ['#D92027', '#B91C22'],
-  mc: ['#FF8300', '#FF8200', '#FF6600'],
-  pvem: ['#50B747', '#00AA00'],
-  prd: ['#FFCD00', '#FFD700'],
+  pt: ['#D92027'],
+  mc: ['#FF6600'],
+  pvem: ['#50B747'],
+  prd: ['#FFD700'],
+  migala: ['#6B21A8'],
 
   // Demo local communities
-  'presupuesto participativo centro': ['#005EB8', '#00A3E0'],
-  'movilidad sostenible norte': ['#34C759', '#007AFF'],
-  'educacion y cultura sur': ['#AF52DE', '#FF9500'],
+  'presupuesto participativo centro': ['#005EB8'],
+  'movilidad sostenible norte': ['#34C759'],
+  'educacion y cultura sur': ['#AF52DE'],
 }
 
 function slugify(name: string): string {

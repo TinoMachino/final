@@ -5,7 +5,6 @@ import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {ArrowsDiagonalOut_Stroke2_Corner2_Rounded as ExpandIcon} from '#/components/icons/ArrowsDiagonal'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
-import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {RedditVoteButton} from '#/components/PostControls/VoteButton'
 import {ActionButton, MediaVisualMeta, PartyInsignia} from '../cardPrimitives'
 import {buildSubmetaLabel} from '../helpers'
@@ -53,16 +52,10 @@ export function ExpandedMediaCardModal({
           <View
             style={[
               styles.expandedVisual,
-              mode === 'Documents' && styles.documentVisual,
               {backgroundColor: item.color},
             ]}>
             <View style={styles.cardBadgeRow}>
               <PartyInsignia party={item.party} visible={showPartyShields} />
-              {mode === 'Documents' ? (
-                <View style={styles.documentGlyph}>
-                  <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
-                </View>
-              ) : null}
             </View>
 
             <View style={styles.cardVisualBottom}>

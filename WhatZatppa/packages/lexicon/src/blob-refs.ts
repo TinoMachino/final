@@ -1,11 +1,18 @@
-import { CID } from 'multiformats/cid'
 import { z } from 'zod'
-import { check, ipldToJson, schema } from '@atproto/common-web'
+import { ipldToJson, schema } from '@atproto/common-web'
+import { CID } from '@atproto/lex-data'
 
 export const typedJsonBlobRef = z
   .object({
     $type: z.literal('blob'),
-    ref: schema.cid,
+    ref: z.union([
+      schema.cid,
+      z
+        .object({
+          $link: schema.cid,
+        })
+        .transform(({ $link }) => $link),
+    ]),
     mimeType: z.string(),
     size: z.number(),
   })
@@ -41,18 +48,20 @@ export class BlobRef {
   }
 
   static asBlobRef(obj: unknown): BlobRef | null {
-    if (check.is(obj, jsonBlobRef)) {
-      return BlobRef.fromJsonRef(obj)
+    const result = jsonBlobRef.safeParse(obj)
+    if (result.success) {
+      return BlobRef.fromJsonRef(result.data)
     }
     return null
   }
 
   static fromJsonRef(json: JsonBlobRef): BlobRef {
-    if (check.is(json, typedJsonBlobRef)) {
-      return new BlobRef(json.ref, json.mimeType, json.size)
-    } else {
-      return new BlobRef(CID.parse(json.cid), json.mimeType, -1, json)
+    const typed = typedJsonBlobRef.safeParse(json)
+    if (typed.success) {
+      return new BlobRef(typed.data.ref, typed.data.mimeType, typed.data.size)
     }
+    const untyped = untypedJsonBlobRef.parse(json)
+    return new BlobRef(CID.parse(untyped.cid), untyped.mimeType, -1, json)
   }
 
   ipld(): JsonBlobRef {

@@ -1,4 +1,4 @@
-import {type Document as MediaDocument, type Meme} from '#/lib/mock-data/types'
+import {type Meme} from '#/lib/mock-data/types'
 import {type MediaItem, type Mode} from './types'
 
 export const DECK_CARD_HEIGHT = 336
@@ -42,22 +42,12 @@ export function formatDateLabel(value: string) {
 }
 
 export function formatResultLabel(mode: Mode, count: number) {
-  if (mode === 'Memes') {
-    return count === 1
-      ? '1 meme ready to explore'
-      : `${count} memes ready to explore`
-  }
   return count === 1
-    ? '1 document ready to review'
-    : `${count} documents ready to review`
+    ? '1 meme ready to explore'
+    : `${count} memes ready to explore`
 }
 
 export function buildSubmetaLabel(item: MediaItem, mode: Mode) {
-  if (mode === 'Memes') {
-    const meme = item as Meme
-    return `${meme.author} · ${meme.category}`
-  }
-
-  const document = item as MediaDocument
-  return `${document.community} · ${document.size} · ${formatDateLabel(document.date)}`
+  const meme = item as Meme
+  return `${meme.author} · ${meme.category}`
 }

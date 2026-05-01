@@ -15,6 +15,7 @@ const PARTY_AFFILIATIONS: PoliticalAffiliation[] = [
   {id: 'party-pt', type: 'party', name: 'PT', color: '#D92027'},
   {id: 'party-pvem', type: 'party', name: 'PVEM', color: '#00AA00'},
   {id: 'party-prd', type: 'party', name: 'PRD', color: '#FFCD00'},
+  {id: 'party-migala', type: 'party', name: 'Migala', color: '#106B43'},
 ]
 
 const NINTHS_COLORS = {

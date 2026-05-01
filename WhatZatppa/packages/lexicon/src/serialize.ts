@@ -1,12 +1,15 @@
-import { CID } from 'multiformats/cid'
 import {
   IpldValue,
   LegacyJsonValue,
-  check,
   ipldToJson,
   jsonToIpld,
 } from '@atproto/common-web'
-import { LexValue, MAX_PAYLOAD_NESTED_LEVELS } from '@atproto/lex-data'
+import {
+  LexValue,
+  MAX_PAYLOAD_NESTED_LEVELS,
+  isCid,
+  CID,
+} from '@atproto/lex-data'
 import {
   IterativeTransformOptions,
   iterativeTransform,
@@ -58,7 +61,7 @@ function lexObjectToIpld(value: object): IpldValue | void {
     return value.original
   }
 
-  if (CID.asCID(value) || value instanceof Uint8Array) {
+  if (isCid(value) || value instanceof Uint8Array) {
     return value
   }
 }
@@ -74,16 +77,28 @@ export const ipldToLex = (input: IpldValue): LegacyLexValue => {
 function ipldObjectToLex(value: object): LegacyLexValue | void {
   // convert blobs, using hints to avoid expensive is() check
   if ('$type' in value && value.$type !== undefined) {
-    if (check.is(value, typedJsonBlobRef)) {
-      return new BlobRef(value.ref, value.mimeType, value.size, value)
+    const result = typedJsonBlobRef.safeParse(value)
+    if (result.success) {
+      return new BlobRef(
+        result.data.ref,
+        result.data.mimeType,
+        result.data.size,
+        value as any,
+      )
     }
   } else if ('cid' in value && 'mimeType' in value) {
-    if (check.is(value, untypedJsonBlobRef)) {
-      return new BlobRef(CID.parse(value.cid), value.mimeType, -1, value)
+    const result = untypedJsonBlobRef.safeParse(value)
+    if (result.success) {
+      return new BlobRef(
+        CID.parse(result.data.cid),
+        result.data.mimeType,
+        -1,
+        value as any,
+      )
     }
   }
 
-  if (CID.asCID(value) || value instanceof Uint8Array) {
+  if (isCid(value) || value instanceof Uint8Array) {
     return value
   }
 }

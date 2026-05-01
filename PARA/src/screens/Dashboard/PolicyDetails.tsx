@@ -22,8 +22,11 @@ import {
 import {useCommunityGovernanceQuery} from '#/state/queries/community-governance'
 import {useSession} from '#/state/session'
 import {Text} from '#/view/com/util/text/Text'
-import {atoms as a, useTheme} from '#/alf'
-import {Button, ButtonText} from '#/components/Button'
+import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
+import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import {CompassMini} from '#/components/CompassMini'
+import {ArrowShareRight_Stroke2_Corner2_Rounded as ShareIcon} from '#/components/icons/ArrowShareRight'
+import {LinearGradientBackground} from '#/components/LinearGradientBackground'
 import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {type PolicyItem} from './types'
@@ -78,6 +81,8 @@ type DetailModel = {
   positions: DetailPositionRow[]
   cabildeoUri?: string
   governanceCommunity?: string
+  communityImpact?: CabildeoCommunityBreakdown[]
+  canParticipate?: boolean
 }
 
 const STANCE_META: Record<
@@ -145,7 +150,35 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
     return null
   }, [cabildeo, legacyItem, positions])
 
-  if (cabildeoUri && !cabildeo && (isLoading || !isFetched || isError)) {
+  const {gtMobile} = useBreakpoints()
+
+  if (cabildeoUri && !cabildeo && (isLoading || !isFetched)) {
+    return (
+      <Layout.Screen>
+        <Layout.Header.Outer>
+          <Layout.Header.BackButton />
+          <Layout.Header.Content>
+            <Layout.Header.TitleText>
+              <Trans>Details</Trans>
+            </Layout.Header.TitleText>
+          </Layout.Header.Content>
+        </Layout.Header.Outer>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+          <Layout.Center>
+            <View style={[styles.skeletonHero, t.atoms.bg_contrast_25]} />
+            <View style={styles.metricGrid}>
+              {[1, 2, 3, 4].map(i => (
+                <View key={i} style={[styles.skeletonMetric, t.atoms.bg_contrast_25]} />
+              ))}
+            </View>
+            <View style={[styles.skeletonSection, t.atoms.bg_contrast_25]} />
+          </Layout.Center>
+        </ScrollView>
+      </Layout.Screen>
+    )
+  }
+
+  if (cabildeoUri && isError) {
     return (
       <Layout.Screen>
         <Layout.Header.Outer>
@@ -157,8 +190,8 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
           </Layout.Header.Content>
         </Layout.Header.Outer>
         <ListMaybePlaceholder
-          isLoading={isLoading || !isFetched}
-          isError={isError}
+          isLoading={false}
+          isError={true}
           emptyType="page"
           emptyTitle="Debate unavailable"
           emptyMessage="We could not load this debate."
@@ -204,6 +237,19 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
             {model.eyebrow}
           </Layout.Header.SubtitleText>
         </Layout.Header.Content>
+        <Layout.Header.Slot>
+          <Button
+            label="Share"
+            size="small"
+            variant="ghost"
+            color="secondary"
+            shape="round"
+            onPress={() => {
+              // Share logic
+            }}>
+            <ButtonIcon icon={ShareIcon} size="lg" />
+          </Button>
+        </Layout.Header.Slot>
       </Layout.Header.Outer>
 
       <ScrollView
@@ -212,72 +258,91 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
           styles.contentContainer,
           {paddingBottom: insets.bottom + 48},
         ]}>
-        <Layout.Center>
-          <View
-            style={[
-              styles.heroCard,
-              t.atoms.bg_contrast_25,
-              t.atoms.border_contrast_low,
-            ]}>
-            <View style={styles.heroTopRow}>
-              <View
-                style={[
-                  styles.heroBadge,
-                  {backgroundColor: model.categoryBackground},
-                ]}>
-                <Text
-                  style={[styles.heroBadgeText, {color: model.categoryColor}]}>
-                  {model.categoryLabel}
-                </Text>
-              </View>
-              {model.phaseLabel ? (
-                <Text style={[styles.heroPhase, {color: model.phaseColor}]}>
-                  {model.phaseLabel}
-                </Text>
-              ) : null}
-            </View>
-
-            <Text style={[styles.heroTitle, t.atoms.text]}>{model.title}</Text>
-            <Text style={[styles.heroSummary, t.atoms.text_contrast_medium]}>
-              {model.summary}
-            </Text>
-
-            {model.viewerParticipation ? (
-              <View
-                style={[
-                  styles.viewerChip,
-                  {backgroundColor: model.viewerParticipation.accentBackground},
-                ]}>
-                <Text
+        <Layout.Center style={a.fade_in}>
+          {/* HERO SECTION V2 */}
+          <View style={[styles.heroWrapper, gtMobile && styles.heroWrapperWeb]}>
+            <LinearGradientBackground
+              colors={[
+                model.categoryColor + '40',
+                model.categoryColor + '10',
+                t.palette.contrast_25,
+              ]}
+              style={[StyleSheet.absoluteFill, {borderRadius: 32}]}
+            />
+            <View style={styles.heroContent}>
+              <View style={styles.heroTopRow}>
+                <View
                   style={[
-                    styles.viewerChipText,
-                    {color: model.viewerParticipation.accentColor},
+                    styles.heroBadge,
+                    {backgroundColor: model.categoryBackground},
                   ]}>
-                  {model.viewerParticipation.optionLabel
-                    ? `${model.viewerParticipation.label}: ${model.viewerParticipation.optionLabel}`
-                    : model.viewerParticipation.label}
-                </Text>
-              </View>
-            ) : null}
-
-            {model.communities.length > 0 ? (
-              <View style={styles.communityWrap}>
-                {model.communities.map(value => (
+                  <Text
+                    style={[styles.heroBadgeText, {color: model.categoryColor}]}>
+                    {model.categoryLabel}
+                  </Text>
+                </View>
+                {model.phaseLabel ? (
                   <View
-                    key={value}
                     style={[
-                      styles.communityChip,
-                      {backgroundColor: t.palette.contrast_100},
+                      styles.phaseBadge,
+                      {backgroundColor: model.phaseColor + '20'},
                     ]}>
-                    <Text style={[styles.communityChipText, t.atoms.text]}>
-                      {value}
+                    <Text style={[styles.phaseText, {color: model.phaseColor}]}>
+                      {model.phaseLabel}
                     </Text>
                   </View>
-                ))}
+                ) : null}
               </View>
-            ) : null}
+
+              <Text style={[styles.heroTitle, t.atoms.text]}>{model.title}</Text>
+              <Text style={[styles.heroSummary, t.atoms.text_contrast_medium]}>
+                {model.summary}
+              </Text>
+
+              <View style={styles.heroFooter}>
+                {model.viewerParticipation ? (
+                  <View
+                    style={[
+                      styles.viewerChip,
+                      {
+                        backgroundColor:
+                          model.viewerParticipation.accentBackground,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.viewerChipText,
+                        {color: model.viewerParticipation.accentColor},
+                      ]}>
+                      {model.viewerParticipation.optionLabel
+                        ? `${model.viewerParticipation.label}: ${model.viewerParticipation.optionLabel}`
+                        : model.viewerParticipation.label}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {model.communities.length > 0 ? (
+                  <View style={styles.communityWrap}>
+                    {model.communities.map(value => (
+                      <View
+                        key={value}
+                        style={[
+                          styles.communityChip,
+                          t.atoms.bg_contrast_25,
+                          t.atoms.border_contrast_low,
+                        ]}>
+                        <Text style={[styles.communityChipText, t.atoms.text]}>
+                          {value}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+            </View>
           </View>
 
+          {/* METRIC GRID V2 */}
           <View style={styles.metricGrid}>
             {model.metrics.map(metric => (
               <View
@@ -286,6 +351,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   styles.metricCard,
                   t.atoms.bg_contrast_25,
                   t.atoms.border_contrast_low,
+                  gtMobile && styles.metricCardWeb,
                 ]}>
                 <Text
                   style={[
@@ -301,33 +367,78 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
             ))}
           </View>
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, t.atoms.text]}>
-              <Trans>Discussion snapshot</Trans>
-            </Text>
-            <View style={styles.summaryChipRow}>
-              {model.summaryChips.map(chip => (
-                <View
-                  key={chip.label}
-                  style={[
-                    styles.summaryChip,
-                    {backgroundColor: chip.background},
-                  ]}>
-                  <Text style={[styles.summaryChipLabel, {color: chip.color}]}>
-                    {chip.label}
-                  </Text>
-                  <Text style={[styles.summaryChipValue, {color: chip.color}]}>
-                    {chip.value}
-                  </Text>
-                </View>
-              ))}
+          {/* QUICK PARTICIPATION V2.1 */}
+          {model.canParticipate && (
+            <View style={[styles.participationSection, t.atoms.border_contrast_low, t.atoms.bg_contrast_25]}>
+              <View style={a.flex_1}>
+                <Text style={[a.font_bold, a.text_lg, t.atoms.text, a.mb_xs]}>
+                  <Trans>Have your voice heard</Trans>
+                </Text>
+                <Text style={[t.atoms.text_contrast_medium, a.text_sm, a.mb_md]}>
+                  <Trans>You haven't participated in this debate yet. Weigh in to influence the consensus.</Trans>
+                </Text>
+              </View>
+              <View style={[a.flex_row, a.gap_sm, a.flex_wrap]}>
+                <Button
+                  label="Vote now"
+                  onPress={() => {
+                    if (model.cabildeoUri) {
+                      navigation.navigate('CabildeoDetail', {cabildeoUri: model.cabildeoUri})
+                    }
+                  }}
+                  size="small"
+                  variant="solid"
+                  color="primary">
+                  <ButtonText><Trans>Vote now</Trans></ButtonText>
+                </Button>
+                <Button
+                  label="Write position"
+                  onPress={() => {
+                     // Navigate to position editor (mock or real)
+                  }}
+                  size="small"
+                  variant="outline"
+                  color="secondary">
+                  <ButtonText><Trans>Write position</Trans></ButtonText>
+                </Button>
+              </View>
             </View>
-          </View>
+          )}
 
+          {/* COMMUNITY IMPACT V2.1 */}
+          {model.communityImpact && model.communityImpact.length > 0 && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, t.atoms.text]}>
+                <Trans>Community alignment</Trans>
+              </Text>
+              <View style={[styles.impactContainer, t.atoms.bg_contrast_25, t.atoms.border_contrast_low]}>
+                {model.communityImpact.map(impact => (
+                  <View key={impact.community} style={styles.impactRow}>
+                    <View style={a.flex_1}>
+                      <Text style={[a.font_bold, t.atoms.text]}>{impact.community}</Text>
+                      <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
+                        {impact.participation} participation
+                      </Text>
+                    </View>
+                    <View style={[styles.impactBadge, t.atoms.bg_contrast_50]}>
+                      <Text style={[styles.impactBadgeText, t.atoms.text]}>
+                        Option #{impact.dominantOption + 1}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+
+          {/* OPTIONS V2 */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, t.atoms.text]}>
-              <Trans>Option breakdown</Trans>
-            </Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionTitle, t.atoms.text]}>
+                <Trans>Option breakdown</Trans>
+              </Text>
+            </View>
             {model.options.length === 0 ? (
               <View
                 style={[
@@ -350,7 +461,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   <View
                     key={option.key}
                     style={[
-                      styles.optionCard,
+                      styles.optionCardV2,
                       t.atoms.bg_contrast_25,
                       t.atoms.border_contrast_low,
                     ]}>
@@ -386,9 +497,18 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                           </Text>
                         ) : null}
                       </View>
-                      <Text style={[styles.optionValue, t.atoms.text]}>
-                        {option.valueLabel}
-                      </Text>
+                      <View style={a.align_end}>
+                        <Text style={[styles.optionValue, t.atoms.text]}>
+                          {Math.round(option.share * 100)}%
+                        </Text>
+                        <Text
+                          style={[
+                            styles.optionSecondary,
+                            t.atoms.text_contrast_medium,
+                          ]}>
+                          {option.valueLabel.split(' ')[0]}
+                        </Text>
+                      </View>
                     </View>
 
                     <View
@@ -409,22 +529,13 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                         ]}
                       />
                     </View>
-
-                    {option.secondaryLabel ? (
-                      <Text
-                        style={[
-                          styles.optionSecondary,
-                          t.atoms.text_contrast_medium,
-                        ]}>
-                        {option.secondaryLabel}
-                      </Text>
-                    ) : null}
                   </View>
                 ))}
               </View>
             )}
           </View>
 
+          {/* POSITIONS V2 */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, t.atoms.text]}>
               <Trans>Recent positions</Trans>
@@ -454,7 +565,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   <View
                     key={position.id}
                     style={[
-                      styles.positionCard,
+                      styles.positionCardV2,
                       t.atoms.bg_contrast_25,
                       t.atoms.border_contrast_low,
                     ]}>
@@ -491,6 +602,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
             )}
           </View>
 
+          {/* GOVERNANCE V2 */}
           {model.governanceCommunity ? (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, t.atoms.text]}>
@@ -498,15 +610,27 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
               </Text>
               <View
                 style={[
-                  styles.governanceCard,
+                  styles.governanceCardV2,
                   t.atoms.bg_contrast_25,
                   t.atoms.border_contrast_low,
                 ]}>
-                <Text style={[styles.governanceLead, t.atoms.text]}>
-                  {governance
-                    ? `Published governance is active for ${model.governanceCommunity}.`
-                    : `No published governance record was found yet for ${model.governanceCommunity}.`}
-                </Text>
+                <View style={[a.flex_row, a.align_center, a.gap_md, a.mb_md]}>
+                  <CompassMini
+                    size={40}
+                    affiliations={[]}
+                    compact
+                  />
+                  <View style={a.flex_1}>
+                    <Text style={[a.font_bold, t.atoms.text]}>
+                      {model.governanceCommunity}
+                    </Text>
+                    <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                      {governance
+                        ? `Published governance is active.`
+                        : `No published governance record found.`}
+                    </Text>
+                  </View>
+                </View>
 
                 <View style={styles.permissionChipRow}>
                   {(permissions.roles.length > 0
@@ -517,7 +641,8 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                       key={role}
                       style={[
                         styles.permissionChip,
-                        {backgroundColor: t.palette.contrast_100},
+                        t.atoms.bg_contrast_25,
+                        t.atoms.border_contrast_low,
                       ]}>
                       <Text style={[styles.permissionChipText, t.atoms.text]}>
                         {role}
@@ -527,33 +652,37 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                 </View>
 
                 <View style={styles.permissionList}>
-                  <Text style={[styles.permissionText, t.atoms.text]}>
-                    {permissions.canPropose
-                      ? 'Can propose policy drafts'
-                      : 'Cannot propose official policy drafts yet'}
-                  </Text>
-                  <Text style={[styles.permissionText, t.atoms.text]}>
-                    {permissions.canVote
-                      ? 'Can vote in weighted policy consensus'
-                      : 'Cannot cast official weighted votes yet'}
-                  </Text>
-                  <Text style={[styles.permissionText, t.atoms.text]}>
-                    {permissions.canCertify
-                      ? 'Can certify outcomes'
-                      : 'Cannot certify outcomes'}
-                  </Text>
-                  <Text style={[styles.permissionText, t.atoms.text]}>
-                    {permissions.canMarkOfficial
-                      ? 'Can mark a passed policy as official'
-                      : 'Cannot mark policy as official'}
-                  </Text>
+                  <PermissionItem
+                    label={
+                      permissions.canPropose
+                        ? 'Can propose policy drafts'
+                        : 'Cannot propose official policy drafts'
+                    }
+                    active={permissions.canPropose}
+                  />
+                  <PermissionItem
+                    label={
+                      permissions.canVote
+                        ? 'Can vote in weighted consensus'
+                        : 'Cannot cast weighted votes'
+                    }
+                    active={permissions.canVote}
+                  />
+                  <PermissionItem
+                    label={
+                      permissions.canCertify
+                        ? 'Can certify outcomes'
+                        : 'Cannot certify outcomes'
+                    }
+                    active={permissions.canCertify}
+                  />
                 </View>
               </View>
             </View>
           ) : null}
 
           {model.cabildeoUri ? (
-            <View style={styles.section}>
+            <View style={[styles.section, a.mt_lg]}>
               <Button
                 label="Open full debate"
                 onPress={() =>
@@ -564,8 +693,9 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                 size="large"
                 variant="solid"
                 color="primary"
-                shape="default">
-                <ButtonText>
+                shape="default"
+                style={styles.fullDebateButton}>
+                <ButtonText style={a.font_bold}>
                   <Trans>Open full debate</Trans>
                 </ButtonText>
               </Button>
@@ -574,6 +704,31 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
         </Layout.Center>
       </ScrollView>
     </Layout.Screen>
+  )
+}
+
+function PermissionItem({label, active}: {label: string; active: boolean}) {
+  const t = useTheme()
+  return (
+    <View style={[a.flex_row, a.align_center, a.gap_sm, a.py_xs]}>
+      <View
+        style={[
+          {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: active ? t.palette.positive_500 : t.palette.contrast_200,
+          },
+        ]}
+      />
+      <Text
+        style={[
+          a.text_sm,
+          active ? t.atoms.text : t.atoms.text_contrast_medium,
+        ]}>
+        {label}
+      </Text>
+    </View>
   )
 }
 
@@ -684,6 +839,11 @@ function buildLiveDetailModel({
       }),
     cabildeoUri: cabildeo.uri,
     governanceCommunity: cabildeo.community,
+    communityImpact: cabildeo.outcome?.communityBreakdown,
+    canParticipate:
+      cabildeo.phase !== 'resolved' &&
+      cabildeo.phase !== 'draft' &&
+      !cabildeo.userContext?.viewerVoteOption,
   }
 }
 
@@ -745,12 +905,21 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
   },
-  heroCard: {
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 20,
-    gap: 12,
-    marginBottom: 16,
+  heroWrapper: {
+    borderRadius: 32,
+    marginBottom: 24,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  heroWrapperWeb: {
+    padding: 8,
+  },
+  heroContent: {
+    padding: 24,
+    gap: 16,
+    ...web({
+      backdropFilter: 'blur(20px)',
+    }),
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -760,34 +929,48 @@ const styles = StyleSheet.create({
   },
   heroBadge: {
     borderRadius: 999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
   },
   heroBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  heroPhase: {
+  phaseBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  phaseText: {
     fontSize: 12,
     fontWeight: '700',
   },
   heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    lineHeight: 34,
+    fontSize: 32,
+    fontWeight: '900',
+    lineHeight: 38,
+    letterSpacing: -0.5,
   },
   heroSummary: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  heroFooter: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
   },
   viewerChip: {
-    borderRadius: 999,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    alignSelf: 'flex-start',
   },
   viewerChipText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   communityWrap: {
@@ -796,9 +979,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   communityChip: {
-    borderRadius: 999,
+    borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 6,
+    borderWidth: 1,
   },
   communityChipText: {
     fontSize: 12,
@@ -808,67 +992,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   metricCard: {
-    width: '48%',
-    borderRadius: 18,
+    flex: 1,
+    minWidth: 140,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    gap: 6,
+    padding: 20,
+    gap: 4,
+    ...web({
+      transition: 'transform 0.2s ease',
+      ':hover': {
+        transform: 'translateY(-4px)',
+      },
+    }),
+  },
+  metricCardWeb: {
+    minWidth: 120,
   },
   metricCardLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   metricCardValue: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '800',
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 32,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    marginBottom: 12,
-  },
-  summaryChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  summaryChip: {
-    minWidth: '31%',
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4,
-  },
-  summaryChipLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  summaryChipValue: {
-    fontSize: 18,
-    fontWeight: '800',
+    marginBottom: 16,
   },
   optionList: {
     gap: 12,
   },
-  optionCard: {
-    borderRadius: 18,
+  optionCardV2: {
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    gap: 10,
+    padding: 20,
+    gap: 16,
   },
   optionHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
+    justifyContent: 'space-between',
+    gap: 16,
   },
   optionTitleRow: {
     flexDirection: 'row',
@@ -877,20 +1056,33 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    flex: 1,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  leadingBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  leadingBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   optionDescription: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 20,
   },
   optionValue: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  optionSecondary: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   optionBarTrack: {
-    height: 10,
+    height: 8,
     borderRadius: 999,
     overflow: 'hidden',
   },
@@ -898,95 +1090,131 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 999,
   },
-  optionSecondary: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  leadingBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  leadingBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
   positionList: {
     gap: 12,
   },
-  positionCard: {
-    borderRadius: 18,
+  positionCardV2: {
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    gap: 10,
+    padding: 20,
+    gap: 12,
   },
   positionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
+    gap: 12,
   },
   positionBadge: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   positionBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   positionOptionLabel: {
     fontSize: 12,
     fontWeight: '600',
   },
   positionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 22,
   },
-  governanceCard: {
-    borderRadius: 18,
+  governanceCardV2: {
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    gap: 12,
-  },
-  governanceLead: {
-    fontSize: 14,
-    lineHeight: 21,
+    padding: 24,
   },
   permissionChipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 20,
   },
   permissionChip: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
     paddingVertical: 6,
+    borderWidth: 1,
   },
   permissionChipText: {
     fontSize: 12,
     fontWeight: '700',
-    textTransform: 'capitalize',
   },
   permissionList: {
     gap: 8,
   },
-  permissionText: {
-    fontSize: 13,
-    lineHeight: 19,
+  fullDebateButton: {
+    borderRadius: 20,
+    height: 56,
   },
   emptyStateCard: {
-    borderRadius: 18,
+    borderRadius: 24,
     borderWidth: 1,
-    padding: 18,
-    gap: 6,
+    padding: 32,
+    alignItems: 'center',
+    gap: 8,
   },
   emptyStateTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
   },
   emptyStateText: {
     fontSize: 14,
+    textAlign: 'center',
     lineHeight: 20,
+  },
+  skeletonHero: {
+    height: 240,
+    borderRadius: 32,
+    marginBottom: 24,
+  },
+  skeletonMetric: {
+    flex: 1,
+    minWidth: 140,
+    height: 100,
+    borderRadius: 24,
+  },
+  skeletonSection: {
+    height: 160,
+    borderRadius: 24,
+    marginBottom: 24,
+  },
+  participationSection: {
+    borderRadius: 28,
+    borderWidth: 1,
+    padding: 24,
+    marginBottom: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    ...web({
+      flexWrap: 'wrap',
+    }),
+  },
+  impactContainer: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    gap: 12,
+  },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  impactBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  impactBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 })

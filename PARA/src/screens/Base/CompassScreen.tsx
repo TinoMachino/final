@@ -183,6 +183,11 @@ const hexToRgb = (hex: string) => {
   }
 }
 
+const withAlpha = (hex: string, alpha: number) => {
+  const {r, g, b} = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 const rgbToHex = (r: number, g: number, b: number) => {
   const toHex = (value: number) =>
     Math.round(Math.max(0, Math.min(255, value)))
@@ -418,10 +423,11 @@ export function CompassScreen({navigation, route}: Props) {
   // Custom darker background for cards to match user preference
   // Assuming hex colors for palette, adding alpha for transparency
   // 40 = 25% opacity, 80 = 50% opacity
+  // Custom glassmorphism background for cards
   const cardBgColor = {
-    backgroundColor: t.palette.contrast_25 + '30', // Very subtle dark background
+    backgroundColor: t.name === 'light' ? 'rgba(255,255,255,0.75)' : 'rgba(15,18,24,0.75)',
     borderWidth: 1,
-    borderColor: t.palette.contrast_50 + '40',
+    borderColor: t.name === 'light' ? 'rgba(200,200,200,0.3)' : 'rgba(255,255,255,0.1)',
   }
 
   const [is25ths, setIs25ths] = useState(false)
@@ -472,27 +478,12 @@ export function CompassScreen({navigation, route}: Props) {
   const highlightPulse = useMemo(() => new Animated.Value(0), [])
 
   // Subtle light pulse for selected cell highlight
+  // Simplified selection: No more pulsing animation
   useEffect(() => {
     if (!selectedQuadrant) {
       highlightPulse.setValue(0)
       return
     }
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(highlightPulse, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: false,
-        }),
-        Animated.timing(highlightPulse, {
-          toValue: 0,
-          duration: 1200,
-          useNativeDriver: false,
-        }),
-      ]),
-    )
-    pulse.start()
-    return () => pulse.stop()
   }, [selectedQuadrant, highlightPulse])
 
   // Track current scale for gesture calculations
@@ -632,9 +623,10 @@ export function CompassScreen({navigation, route}: Props) {
     navigation.goBack()
   }
 
-  const webLeftMargin = {
+  const webContentStyle = {
     marginLeft: 'calc(50% - 300px)',
     minHeight: '100%',
+    flex: 1,
   }
 
   const {width} = Dimensions.get('window')
@@ -650,10 +642,8 @@ export function CompassScreen({navigation, route}: Props) {
       <Header.Outer noBottomBorder>
         <Header.BackButton />
         <Header.Content>
-          <Header.TitleText>
-            {isAffiliateMode
-              ? translate(msg`Find your position`)
-              : translate(msg`Political Compass`)}
+          <Header.TitleText style={[a.text_center]}>
+            <Trans>Political Compass</Trans>
           </Header.TitleText>
         </Header.Content>
         {isAffiliateMode ? (
@@ -675,17 +665,18 @@ export function CompassScreen({navigation, route}: Props) {
         )}
       </Header.Outer>
 
-      <View style={[a.flex_1, gtMobile && web(webLeftMargin)]}>
-        <View style={[a.flex_1, a.relative, a.overflow_hidden]}>
-          {/* Toggle Button (hidden in affiliate mode — keep 9ths only) */}
+      <View style={[a.flex_1, gtMobile && web(webContentStyle), t.atoms.bg]}>
+        <View style={[a.flex_1, a.w_full, a.relative, a.overflow_hidden]}>
+          <View style={[a.flex_1, a.w_full, a.align_center, a.justify_center]}>
+            <View style={[{width: 600}, a.relative, a.align_center]}>
+          {/* Toggle Buttons Area - Centered and Styled */}
           {!isAffiliateMode && (
             <View
               style={[
                 a.absolute,
-                {left: 20, top: 20, zIndex: 10},
-                gtMobile && {left: 80},
+                {top: 20, left: 0, right: 0, zIndex: 10, alignItems: 'center'},
               ]}>
-              <View style={[a.gap_sm]}>
+              <View style={[a.flex_row, a.gap_sm, a.p_xs, a.rounded_full, cardBgColor, a.shadow_sm]}>
                 <TouchableOpacity
                   accessibilityRole="button"
                   onPress={() => {
@@ -696,8 +687,13 @@ export function CompassScreen({navigation, route}: Props) {
                     ideologyPromptControl.close()
                     handleRecenter()
                   }}
-                  style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
-                  <Text style={[a.font_bold, t.atoms.text]}>
+                  style={[
+                    a.px_md,
+                    a.py_sm,
+                    a.rounded_full,
+                    is25ths ? t.atoms.bg_contrast_25 : {backgroundColor: 'transparent'},
+                  ]}>
+                  <Text style={[a.font_bold, t.atoms.text, {opacity: is25ths ? 1 : 0.6}]}>
                     {is25ths ? <Trans>9ths</Trans> : <Trans>25ths</Trans>}
                   </Text>
                 </TouchableOpacity>
@@ -711,8 +707,13 @@ export function CompassScreen({navigation, route}: Props) {
                     ideologyPromptControl.close()
                     handleRecenter()
                   }}
-                  style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
-                  <Text style={[a.font_bold, t.atoms.text]}>
+                  style={[
+                    a.px_md,
+                    a.py_sm,
+                    a.rounded_full,
+                    show69ths ? t.atoms.bg_contrast_25 : {backgroundColor: 'transparent'},
+                  ]}>
+                  <Text style={[a.font_bold, t.atoms.text, {opacity: show69ths ? 1 : 0.6}]}>
                     69ths:{' '}
                     {show69ths ? translate(msg`On`) : translate(msg`Off`)}
                   </Text>
@@ -727,7 +728,7 @@ export function CompassScreen({navigation, route}: Props) {
                 style={[
                   styles.axisLabel,
                   t.atoms.text_contrast_medium,
-                  {top: 10, alignSelf: 'center'},
+                  {top: 80, alignSelf: 'center'},
                 ]}>
                 <Trans>Authoritarian</Trans>
               </Text>
@@ -735,26 +736,43 @@ export function CompassScreen({navigation, route}: Props) {
                 style={[
                   styles.axisLabel,
                   t.atoms.text_contrast_medium,
-                  {bottom: 60 + insets.bottom, alignSelf: 'center'},
+                  {bottom: 20, alignSelf: 'center'},
                 ]}>
                 <Trans>Libertarian</Trans>
               </Text>
-              <Text
+              {/* Horizontal labels closer to center */}
+              <View
+                pointerEvents="none"
                 style={[
-                  styles.axisLabel,
-                  t.atoms.text_contrast_medium,
-                  {left: 22, top: '50%', marginTop: -10},
+                  a.absolute,
+                  {
+                    left: 0,
+                    right: 0,
+                    top: '50%',
+                    height: 40,
+                    marginTop: -20,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: 0,
+                  },
                 ]}>
-                Left
-              </Text>
-              <Text
-                style={[
-                  styles.axisLabel,
-                  t.atoms.text_contrast_medium,
-                  {right: 22, top: '50%', marginTop: -10},
-                ]}>
-                Right
-              </Text>
+                <Text
+                  style={[
+                    styles.axisLabel,
+                    t.atoms.text_contrast_medium,
+                    {position: 'relative', top: 0},
+                  ]}>
+                  Left
+                </Text>
+                <Text
+                  style={[
+                    styles.axisLabel,
+                    t.atoms.text_contrast_medium,
+                    {position: 'relative', top: 0},
+                  ]}>
+                  Right
+                </Text>
+              </View>
             </>
           ) : null}
 
@@ -1017,50 +1035,49 @@ export function CompassScreen({navigation, route}: Props) {
                               0.65,
                           },
                         ]}
-                      />
+                      />  
                     )}
-                    {/* Pending selection ring in affiliate mode */}
+                    {/* Pending selection ring in affiliate mode - Clean Solid Highlight */}
                     {isAffiliateMode && pendingNinthId === quadrant.id && (
                       <View
                         pointerEvents="none"
                         style={[
                           styles.cellFill,
                           {
-                            borderWidth: 3,
+                            borderWidth: 4,
                             borderColor: t.palette.primary_500,
+                            shadowColor: t.palette.primary_500,
+                            shadowOffset: {width: 0, height: 0},
+                            shadowOpacity: 0.8,
+                            shadowRadius: 10,
+                            elevation: 8,
                           },
-                        ]}
-                      />
+                        ]}>
+                        <View
+                          style={[
+                            StyleSheet.absoluteFill,
+                            {
+                              backgroundColor: t.palette.primary_500,
+                              opacity: 0.15,
+                            },
+                          ]}
+                        />
+                      </View>
                     )}
-                    {/* Subtle light highlight on selected quadrant */}
+                     {/* Subtle highlight on selected quadrant - Solid Clean State */}
                     {!isAffiliateMode &&
                       selectedQuadrant?.id === quadrant.id && (
-                        <Animated.View
+                        <View
                           pointerEvents="none"
                           style={[
                             styles.cellFill,
                             {
-                              borderWidth: 2,
-                              borderColor: highlightPulse.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [
-                                  'rgba(255,255,255,0.4)',
-                                  'rgba(255,255,255,0.85)',
-                                ],
-                              }),
-                              backgroundColor: highlightPulse.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [
-                                  'rgba(255,255,255,0)',
-                                  'rgba(255,255,255,0.18)',
-                                ],
-                              }),
-                              shadowColor: '#fff',
+                              borderWidth: 3,
+                              borderColor: selectedQuadrant.color,
+                              backgroundColor: withAlpha(selectedQuadrant.color, 0.1),
+                              shadowColor: selectedQuadrant.color,
                               shadowOffset: {width: 0, height: 0},
-                              shadowOpacity: highlightPulse.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0, 0.4],
-                              }),
+                              shadowOpacity: 0.4,
                               shadowRadius: 8,
                               elevation: 4,
                             },
@@ -1091,14 +1108,17 @@ export function CompassScreen({navigation, route}: Props) {
               </View>
             )}
           </Animated.View>
+        </View>
+      </View>
+    </View>
 
-          {/* Zoom Controls */}
-          {!gtMobile && (
-            <View
+          {/* Absolute Overlays at edges */}
+          <View
               style={[
                 a.absolute,
                 {right: 20, bottom: 60 + insets.bottom},
                 a.gap_md,
+                {zIndex: 20},
               ]}>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -1131,36 +1151,11 @@ export function CompassScreen({navigation, route}: Props) {
                 <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>-</Text>
               </TouchableOpacity>
             </View>
-          )}
 
-          {/* Recenter Button */}
+          {/* Recenter & Palette Buttons */}
           <View
-            style={[a.absolute, {right: 20, top: 20}, gtMobile && {right: 40}]}>
+            style={[a.absolute, {right: 20, top: 20}, {zIndex: 20}]}>
             <View style={[a.gap_sm]}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={`${translate(msg`Palette`)}: ${palette.name}`}
-                accessibilityHint={translate(
-                  msg`Changes the compass color palette.`,
-                )}
-                onPress={() => {
-                  setPaletteIndex(
-                    current => (current + 1) % COLOR_PALETTES.length,
-                  )
-                  setSelectedQuadrant(null)
-                  setSelectedQuadrantStats(null)
-                }}
-                style={[
-                  cardBgColor,
-                  a.align_center,
-                  a.justify_center,
-                  {width: 44, height: 44},
-                ]}>
-                <PaletteIcon
-                  size="lg"
-                  style={[{color: t.palette.primary_500}]}
-                />
-              </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
                 onPress={handleRecenter}
@@ -1168,7 +1163,8 @@ export function CompassScreen({navigation, route}: Props) {
                   cardBgColor,
                   a.align_center,
                   a.justify_center,
-                  {width: 44, height: 44},
+                  a.shadow_sm,
+                  {width: 44, height: 44, borderRadius: 22},
                 ]}>
                 <Text style={[a.text_md, a.font_bold, t.atoms.text]}>⌖</Text>
               </TouchableOpacity>
@@ -1284,10 +1280,9 @@ export function CompassScreen({navigation, route}: Props) {
                     : gtMobile
                       ? 40
                       : 60 + insets.bottom,
-                  left: 20,
                 },
-                gtMobile && {left: 40, width: 350},
-                !gtMobile && {right: 20},
+                gtMobile && {right: 40, width: 350},
+                !gtMobile && {left: 20, right: 20},
                 a.p_lg,
                 a.rounded_xl,
                 cardBgColor,
@@ -1319,8 +1314,14 @@ export function CompassScreen({navigation, route}: Props) {
                 </View>
                 <TouchableOpacity
                   accessibilityRole="button"
-                  onPress={() => setSelectedQuadrant(null)}>
-                  <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                  onPress={() => setSelectedQuadrant(null)}
+                  style={[
+                    a.p_xs,
+                    a.rounded_full,
+                    t.atoms.bg_contrast_25,
+                    {width: 28, height: 28, alignItems: 'center', justifyContent: 'center'},
+                  ]}>
+                  <Text style={[a.text_sm, t.atoms.text_contrast_medium, {lineHeight: 14}]}>
                     ✕
                   </Text>
                 </TouchableOpacity>
@@ -1329,7 +1330,7 @@ export function CompassScreen({navigation, route}: Props) {
               {isAffiliateMode ? (
                 <>
                   {/* Party breakdown for this quadrant */}
-                  <View style={[a.gap_xs, a.mb_md]}>
+                  <View style={[a.gap_sm, a.mb_md]}>
                     {formatNinthPartyBreakdown(selectedQuadrant.id)
                       .slice(0, 4)
                       .map(
@@ -1342,26 +1343,40 @@ export function CompassScreen({navigation, route}: Props) {
                         }) => (
                           <View
                             key={party.id}
-                            style={[a.flex_row, a.align_center, a.gap_sm]}>
-                            <View
-                              style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: 4,
-                                backgroundColor: party.color,
-                              }}
-                            />
-                            <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
-                              {party.name}
-                            </Text>
-                            <Text
-                              style={[
-                                a.text_sm,
-                                a.font_bold,
-                                t.atoms.text_contrast_medium,
-                              ]}>
-                              {share}%
-                            </Text>
+                            style={[a.flex_row, a.align_center, a.gap_md, a.mb_sm]}>
+                            <View style={[a.flex_1]}>
+                              <View style={[a.flex_row, a.justify_between, a.mb_xs]}>
+                                <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
+                                  {party.name}
+                                </Text>
+                                <Text
+                                  style={[
+                                    a.text_xs,
+                                    a.font_bold,
+                                    t.atoms.text_contrast_medium,
+                                  ]}>
+                                  {share}%
+                                </Text>
+                              </View>
+                              <View
+                                style={[
+                                  {
+                                    height: 6,
+                                    backgroundColor: t.palette.contrast_100,
+                                    borderRadius: 3,
+                                    overflow: 'hidden',
+                                  },
+                                ]}>
+                                <View
+                                  style={{
+                                    width: `${share}%`,
+                                    height: '100%',
+                                    backgroundColor: party.color,
+                                    borderRadius: 3,
+                                  }}
+                                />
+                              </View>
+                            </View>
                           </View>
                         ),
                       )}
@@ -1371,18 +1386,16 @@ export function CompassScreen({navigation, route}: Props) {
                     onPress={() => {
                       setPendingNinthId(selectedQuadrant.id)
                     }}
-                    color={
-                      pendingNinthId === selectedQuadrant.id
-                        ? 'primary'
-                        : 'secondary'
-                    }
-                    size="small"
-                    shape="round">
-                    <ButtonText>
+                    variant={pendingNinthId === selectedQuadrant.id ? 'solid' : 'outline'}
+                    color={pendingNinthId === selectedQuadrant.id ? 'primary' : 'secondary'}
+                    size="large"
+                    shape="round"
+                    style={[a.mt_md]}>
+                    <ButtonText style={[a.font_bold]}>
                       {pendingNinthId === selectedQuadrant.id ? (
-                        <Trans>✓ Selected</Trans>
+                        <Trans>✓ Posición confirmada</Trans>
                       ) : (
-                        <Trans>Set as my position</Trans>
+                        <Trans>Fijar como mi posición</Trans>
                       )}
                     </ButtonText>
                   </Button>
@@ -1513,7 +1526,6 @@ export function CompassScreen({navigation, route}: Props) {
             </Prompt.Content>
           </Prompt.Outer>
         </View>
-      </View>
     </Screen>
   )
 }

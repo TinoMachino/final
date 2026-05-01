@@ -96,12 +96,14 @@ import {CreatePositionScreen} from '#/screens/Communities/CreatePositionScreen'
 import {DelegateVoteScreen} from '#/screens/Communities/DelegateVoteScreen'
 import {MyCommunitiesScreen} from '#/screens/Communities/MyCommunitiesScreen'
 import {DiscourseAnalysisScreen} from '#/screens/Dashboard/DiscourseAnalysis'
-import {MemesAndDocumentsScreen} from '#/screens/Dashboard/MemesAndDocumentsScreen'
+import {DocumentsScreen} from '#/screens/Dashboard/DocumentsScreen'
+import {MemesScreen} from '#/screens/Dashboard/MemesScreen'
 import {PoliciesDashboard} from '#/screens/Dashboard/PoliciesAndMatters'
 import {PolicyDetailsScreen} from '#/screens/Dashboard/PolicyDetails'
 import {RepresentativesScreen} from '#/screens/Dashboard/Representatives'
 import {VSScreen} from '#/screens/Dashboard/VSScreenV2'
 import {SharedPreferencesTesterScreen} from '#/screens/E2E/SharedPreferencesTesterScreen'
+import {PartyFeedScreen} from '#/screens/Feeds/PartyFeed'
 import {FindContactsFlowScreen} from '#/screens/FindContactsFlowScreen'
 import HashtagScreen from '#/screens/Hashtag'
 import {HighlightsScreen} from '#/screens/Highlights/HighlightsScreen'
@@ -703,6 +705,11 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         getComponent={() => FeedsScreen}
         options={{title: title(msg`Feeds`)}}
       />
+      <Stack.Screen
+        name="PartyFeed"
+        getComponent={() => PartyFeedScreen}
+        options={{title: title(msg`Party feed`)}}
+      />
 
       <Stack.Screen
         name="VideoFeed"
@@ -730,9 +737,14 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         }}
       />
       <Stack.Screen
-        name="MemesAndDocuments"
-        getComponent={() => MemesAndDocumentsScreen}
-        options={{title: title(msg`Memes & Documents`)}}
+        name="Memes"
+        getComponent={() => MemesScreen}
+        options={{title: title(msg`Memes`)}}
+      />
+      <Stack.Screen
+        name="Documents"
+        getComponent={() => DocumentsScreen}
+        options={{title: title(msg`Documents`)}}
       />
       <Stack.Screen
         name="DiscourseAnalysis"

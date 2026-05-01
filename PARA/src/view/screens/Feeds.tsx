@@ -12,6 +12,10 @@ import {usePalette} from '#/lib/hooks/usePalette'
 import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
 import {ComposeIcon2} from '#/lib/icons'
 import {
+  PARTY_FEED_PROFILES,
+  type PartyFeedProfile,
+} from '#/lib/party-feeds'
+import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
 } from '#/lib/routes/types'
@@ -80,6 +84,15 @@ type FlatlistSlice =
   | {
       type: 'popularFeedsHeader'
       key: string
+    }
+  | {
+      type: 'partyFeedsHeader'
+      key: string
+    }
+  | {
+      type: 'partyFeed'
+      key: string
+      party: PartyFeedProfile
     }
   | {
       type: 'popularFeedsLoading'
@@ -290,6 +303,20 @@ export function FeedsScreen(_props: Props) {
       }
     }
 
+    if (!isUserSearching) {
+      slices.push({
+        key: 'partyFeedsHeader',
+        type: 'partyFeedsHeader',
+      })
+      slices = slices.concat(
+        PARTY_FEED_PROFILES.map(party => ({
+          key: `partyFeed:${party.id}`,
+          type: 'partyFeed',
+          party,
+        })),
+      )
+    }
+
     if (!hasSession || (hasSession && canShowDiscoverSection)) {
       slices.push({
         key: 'popularFeedsHeader',
@@ -454,6 +481,10 @@ export function FeedsScreen(_props: Props) {
             </View>
           </>
         )
+      } else if (item.type === 'partyFeedsHeader') {
+        return <PartyFeedsHeader />
+      } else if (item.type === 'partyFeed') {
+        return <PartyFeedCard party={item.party} />
       } else if (item.type === 'popularFeedsLoading') {
         return <FeedFeedLoadingPlaceholder />
       } else if (item.type === 'popularFeed') {
@@ -673,6 +704,103 @@ function SavedFeedPlaceholder() {
         <FeedCard.AvatarPlaceholder size={28} />
         <FeedCard.TitleAndBylinePlaceholder />
       </FeedCard.Header>
+    </View>
+  )
+}
+
+function PartyFeedCard({party}: {party: PartyFeedProfile}) {
+  const t = useTheme()
+
+  return (
+    <Link
+      testID={`party-feed-${party.id}`}
+      to={`/feeds/party/${party.id}`}
+      label={`${party.name} feed`}
+      style={[a.flex_col]}>
+      {({hovered, pressed}) => (
+        <View
+          style={[
+            a.w_full,
+            a.flex_1,
+            a.px_lg,
+            a.py_md,
+            a.border_b,
+            t.atoms.border_contrast_low,
+            (hovered || pressed) && t.atoms.bg_contrast_25,
+          ]}>
+          <FeedCard.Header>
+            <View
+              style={[
+                a.align_center,
+                a.justify_center,
+                {
+                  width: 28,
+                  height: 28,
+                  borderRadius: 4,
+                  backgroundColor: party.color,
+                  borderWidth: 2,
+                  borderColor: party.accentColor,
+                },
+              ]}>
+              <Text style={[a.text_xs, a.font_bold, {color: 'white'}]}>
+                {party.logo}
+              </Text>
+            </View>
+            <View style={[a.flex_1, a.gap_2xs]}>
+              <Text
+                style={[a.text_md, a.font_semi_bold, a.leading_snug]}
+                numberOfLines={1}>
+                {party.name}
+              </Text>
+              <Text
+                style={[a.text_sm, a.leading_snug, t.atoms.text_contrast_medium]}
+                numberOfLines={2}>
+                {party.description}
+              </Text>
+            </View>
+            <ChevronRight size="sm" fill={t.atoms.text_contrast_low.color} />
+          </FeedCard.Header>
+        </View>
+      )}
+    </Link>
+  )
+}
+
+function PartyFeedsHeader() {
+  const t = useTheme()
+
+  return (
+    <View
+      style={
+        IS_WEB
+          ? [
+              a.flex_row,
+              a.px_md,
+              a.py_lg,
+              a.gap_md,
+              a.border_b,
+              t.atoms.border_contrast_low,
+            ]
+          : [
+              {flexDirection: 'row-reverse'},
+              a.p_lg,
+              a.gap_md,
+              a.border_b,
+              t.atoms.border_contrast_low,
+            ]
+      }>
+      <IconCircle icon={ListSparkle_Stroke2_Corner0_Rounded} size="lg" />
+      <View style={[a.flex_1, a.gap_xs]}>
+        <Text style={[a.flex_1, a.text_2xl, a.font_bold, t.atoms.text]}>
+          <Trans>Party Feeds</Trans>
+        </Text>
+        <Text style={[t.atoms.text_contrast_high]}>
+          <Trans>
+            Follow each political current as its own timeline, from party
+            machines to the new Migala mycelium.
+          </Trans>
+        </Text>
+      </View>
     </View>
   )
 }

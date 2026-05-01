@@ -4,7 +4,6 @@ import {useShowPartyShields} from '#/state/preferences/show-party-shields'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {Bubble_Stroke2_Corner2_Rounded as CommentIcon} from '#/components/icons/Bubble'
-import {PageText_Stroke2_Corner0_Rounded as PageTextIcon} from '#/components/icons/PageText'
 import {RedditVoteButton} from '#/components/PostControls/VoteButton'
 import {ActionButton, MediaVisualMeta, PartyInsignia} from '../cardPrimitives'
 import {buildSubmetaLabel} from '../helpers'
@@ -27,7 +26,6 @@ export function MediaBoardCard({
   width?: number
 }) {
   const t = useTheme()
-  const isMeme = mode === 'Memes'
   const score = item.votes + vote
   const voteState = vote === 1 ? 'upvote' : vote === -1 ? 'downvote' : 'none'
   const showPartyShields = useShowPartyShields() ?? true
@@ -46,16 +44,10 @@ export function MediaBoardCard({
         onPress={onExpand}
         style={[
           styles.cardVisual,
-          mode === 'Documents' && styles.documentVisual,
           {backgroundColor: item.color, minHeight: 196},
         ]}>
         <View style={styles.cardBadgeRow}>
           <PartyInsignia party={item.party} visible={showPartyShields} />
-          {!isMeme ? (
-            <View style={styles.documentGlyph}>
-              <PageTextIcon size="sm" style={{color: '#FFFFFF'}} />
-            </View>
-          ) : null}
         </View>
 
         <View style={styles.cardVisualBottom}>

@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect, useNavigation} from '@react-navigation/native'
@@ -66,7 +67,8 @@ const COLOR_FILTERS = [
 ]
 
 // Helper function to determine contrasting text color
-const getContrastingTextColor = (hexColor: string): string => {
+const getContrastingTextColor = (color: string | string[]): string => {
+  const hexColor = Array.isArray(color) ? color[0] : color
   const hex = hexColor.replace('#', '')
   const r = parseInt(hex.substring(0, 2), 16)
   const g = parseInt(hex.substring(2, 4), 16)
@@ -174,17 +176,46 @@ function FeedSection({
             style={({pressed}) => [
               styles.highlightCard,
               t.atoms.bg_contrast_25,
-              {borderLeftWidth: 4, borderLeftColor: highlight.color},
               pressed && {opacity: 0.85},
             ]}>
+            {Array.isArray(highlight.color) ? (
+              <LinearGradient
+                colors={highlight.color as unknown as readonly [string, string, ...string[]]}
+                start={{x: 0, y: 0}}
+                end={{x: 0, y: 1}}
+                style={[StyleSheet.absoluteFill, {width: 4, borderRadius: 0}]}
+              />
+            ) : (
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {width: 4, backgroundColor: highlight.color as string},
+                ]}
+              />
+            )}
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <View
-                  style={[
-                    styles.tagBadge,
-                    {backgroundColor: highlight.color + '30'},
-                  ]}>
-                  <Text style={[styles.tagText, {color: highlight.color}]}>
+                <View style={[styles.tagBadge, {overflow: 'hidden'}]}>
+                  {Array.isArray(highlight.color) ? (
+                    <LinearGradient
+                      colors={highlight.color as unknown as readonly [string, string, ...string[]]}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 0}}
+                      style={[StyleSheet.absoluteFill, {opacity: 0.25}]}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        StyleSheet.absoluteFill,
+                        {backgroundColor: highlight.color as string, opacity: 0.25},
+                      ]}
+                    />
+                  )}
+                  <Text
+                    style={[
+                      styles.tagText,
+                      {color: Array.isArray(highlight.color) ? highlight.color[0] : highlight.color},
+                    ]}>
                     {highlight.community}
                   </Text>
                 </View>
@@ -241,11 +272,22 @@ function FeedSection({
               </TouchableOpacity>
             </View>
 
-            <View
-              style={[
-                styles.highlightedTextContainer,
-                {backgroundColor: highlight.color},
-              ]}>
+            <View style={[styles.highlightedTextContainer, {overflow: 'hidden'}]}>
+              {Array.isArray(highlight.color) ? (
+                <LinearGradient
+                  colors={highlight.color as unknown as readonly [string, string, ...string[]]}
+                  start={{x: 0, y: 0.5}}
+                  end={{x: 1, y: 0.5}}
+                  style={StyleSheet.absoluteFill}
+                />
+              ) : (
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    {backgroundColor: highlight.color as string},
+                  ]}
+                />
+              )}
               <Text
                 style={[
                   styles.highlightedText,
@@ -268,7 +310,10 @@ function FeedSection({
                   source={{uri: highlight.avatarUrl}}
                   style={[
                     styles.cardAvatar,
-                    {borderColor: highlight.color, borderWidth: 2},
+                    {
+                      borderColor: Array.isArray(highlight.color) ? highlight.color[0] : highlight.color,
+                      borderWidth: 2,
+                    },
                   ]}
                 />
                 <View style={{flex: 1}}>
@@ -282,20 +327,34 @@ function FeedSection({
                       style={[
                         styles.cardAuthorFlair,
                         {
-                          backgroundColor: highlight.color + '18',
-                          borderColor: highlight.color + '40',
+                          borderColor: (Array.isArray(highlight.color) ? highlight.color[0] : highlight.color) + '40',
                         },
                       ]}>
+                      {Array.isArray(highlight.color) ? (
+                        <LinearGradient
+                          colors={highlight.color as unknown as readonly [string, string, ...string[]]}
+                          start={{x: 0, y: 0}}
+                          end={{x: 1, y: 0}}
+                          style={[StyleSheet.absoluteFill, {opacity: 0.12}]}
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            StyleSheet.absoluteFill,
+                            {backgroundColor: highlight.color as string, opacity: 0.12},
+                          ]}
+                        />
+                      )}
                       <View
                         style={[
                           styles.cardFlairDotInline,
-                          {backgroundColor: highlight.color},
+                          {backgroundColor: Array.isArray(highlight.color) ? highlight.color[0] : highlight.color},
                         ]}
                       />
                       <Text
                         style={[
                           styles.cardFlairText,
-                          {color: highlight.color},
+                          {color: Array.isArray(highlight.color) ? highlight.color[0] : highlight.color},
                         ]}>
                         {highlight.community}
                       </Text>
@@ -607,11 +666,23 @@ export function HighlightsScreen() {
                       <View
                         style={[
                           styles.filterPill,
-                          {
-                            backgroundColor:
-                              filter.color || t.palette.primary_500,
-                          },
+                          {overflow: 'hidden'},
                         ]}>
+                        {Array.isArray(filter.color) ? (
+                          <LinearGradient
+                            colors={filter.color as unknown as readonly [string, string, ...string[]]}
+                            start={{x: 0, y: 0}}
+                            end={{x: 1, y: 0}}
+                            style={StyleSheet.absoluteFill}
+                          />
+                        ) : (
+                          <View
+                            style={[
+                              StyleSheet.absoluteFill,
+                              {backgroundColor: (filter.color as string) || t.palette.primary_500},
+                            ]}
+                          />
+                        )}
                         <Text
                           style={[
                             styles.filterPillText,

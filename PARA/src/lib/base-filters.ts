@@ -8,6 +8,7 @@ const PARTY_FILTERS = new Map([
   ['pt', 'PT'],
   ['pvem', 'PVEM'],
   ['prd', 'PRD'],
+  ['migala', 'Migala'],
 ])
 
 const NINTH_FILTERS = new Set([

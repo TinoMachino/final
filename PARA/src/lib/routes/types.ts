@@ -95,6 +95,7 @@ export type CommonNavigatorParams = {
   NotificationsActivityList: {posts: string}
   LegacyNotificationSettings: undefined
   Feeds: undefined
+  PartyFeed: {partyId: string}
   Start: {name: string; rkey: string}
   StarterPack: {name: string; rkey: string; new?: boolean}
   StarterPackShort: {code: string}
@@ -107,7 +108,8 @@ export type CommonNavigatorParams = {
   VideoFeed: VideoFeedSourceContext
   Bookmarks: undefined
   FindContactsFlow: undefined
-  MemesAndDocuments: {mode?: 'Memes' | 'Documents'; view?: 'board' | 'deck'}
+  Memes: {view?: 'board' | 'deck'}
+  Documents: {category?: string}
   DiscourseAnalysis: undefined
   VSScreenV2: {entities?: string[]; matter?: string}
   AgentChat: {agentId: string}
@@ -178,7 +180,8 @@ export type BaseTabNavigatorParams = CommonNavigatorParams & {
     mode?: 'Policies' | 'Matters'
   }
   PolicyDetails: {item?: Record<string, unknown>; cabildeoUri?: string}
-  MemesAndDocuments: {mode?: 'Memes' | 'Documents'; view?: 'board' | 'deck'}
+  Memes: {view?: 'board' | 'deck'}
+  Documents: {category?: string}
   DistrictProfile: {districtId: number; initialTab?: 'overview' | 'activity'}
 }
 
@@ -186,6 +189,7 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   Home: undefined
   Search: {q?: string; tab?: 'user' | 'profile' | 'feed'}
   Feeds: undefined
+  PartyFeed: {partyId: string}
   Notifications: undefined
   CommunityProfile: {communityId: string; communityName: string}
   CommunityRoles: {communityId: string; communityName: string}
@@ -199,7 +203,8 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   CreatePost: undefined
   MyBase: undefined
   MyAffiliations: undefined
-  MemesAndDocuments: {mode?: 'Memes' | 'Documents'; view?: 'board' | 'deck'}
+  Memes: {view?: 'board' | 'deck'}
+  Documents: {category?: string}
   RAQ: undefined
   ProposedRAQList: undefined
   OpenQuestionsList: undefined
@@ -220,6 +225,7 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   SearchTab: undefined
   Search: {q?: string; tab?: 'user' | 'profile' | 'feed'}
   Feeds: undefined
+  PartyFeed: {partyId: string}
   NotificationsTab: {screen?: string; params?: object} | undefined
   Notifications: undefined
   MyProfileTab: undefined

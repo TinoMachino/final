@@ -11,7 +11,7 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
-import {DOCUMENTS as MOCK_DOCS, MEMES as MOCK_MEMES} from '#/lib/mock-data'
+import {MEMES as MOCK_MEMES} from '#/lib/mock-data'
 import {type NavigationProp} from '#/lib/routes/types'
 import {useBaseFilter} from '#/state/shell/base-filter'
 import {Text} from '#/view/com/util/text/Text'
@@ -22,7 +22,7 @@ import {MagnifyingGlass_Stroke2_Corner0_Rounded as SearchIcon} from '#/component
 import {SquareBehindSquare4_Stroke2_Corner0_Rounded as DeckIcon} from '#/components/icons/SquareBehindSquare4'
 import * as Layout from '#/components/Layout'
 import {RedditVoteButton} from '#/components/PostControls/VoteButton'
-import {ExpandedMediaCardModal} from './MemesAndDocumentsScreen/ExpandedMediaCardModal/ExpandedMediaCardModal'
+import {ExpandedMediaCardModal} from './MemesScreen/ExpandedMediaCardModal/ExpandedMediaCardModal'
 import {
   DECK_CARD_HEIGHT,
   DECK_CURRENT_X_DRIFT,
@@ -32,20 +32,20 @@ import {
   formatResultLabel,
   matchesCompassFilter,
   matchesSearch,
-} from './MemesAndDocumentsScreen/helpers'
-import {MediaBoardCard} from './MemesAndDocumentsScreen/MediaBoardCard/MediaBoardCard'
-import {MediaDeckCard} from './MemesAndDocumentsScreen/MediaDeckCard/MediaDeckCard'
-import {styles} from './MemesAndDocumentsScreen/styles'
+} from './MemesScreen/helpers'
+import {MediaBoardCard} from './MemesScreen/MediaBoardCard/MediaBoardCard'
+import {MediaDeckCard} from './MemesScreen/MediaDeckCard/MediaDeckCard'
+import {styles} from './MemesScreen/styles'
 import {
   type MediaItem,
   type Mode,
   type ViewStyleMode,
-} from './MemesAndDocumentsScreen/types'
+} from './MemesScreen/types'
 
-export function MemesAndDocumentsScreen({
+export function MemesScreen({
   route,
 }: {
-  route: {params?: {mode?: Mode; view?: ViewStyleMode}}
+  route: {params?: {view?: ViewStyleMode}}
 }) {
   const t = useTheme()
   const {_} = useLingui()
@@ -53,8 +53,7 @@ export function MemesAndDocumentsScreen({
   const {width} = useWindowDimensions()
   const {activeFilters} = useBaseFilter()
 
-  const activeMode: Mode =
-    route.params?.mode === 'Documents' ? 'Documents' : 'Memes'
+  const activeMode: Mode = 'Memes'
   const [viewStyle, setViewStyle] = useState<ViewStyleMode>(
     route.params?.view === 'deck' ? 'deck' : 'board',
   )
@@ -69,11 +68,7 @@ export function MemesAndDocumentsScreen({
     () => [...MOCK_MEMES].sort((a, b) => b.votes - a.votes),
     [],
   )
-  const documents = useMemo(
-    () =>
-      [...MOCK_DOCS].sort((a, b) => Date.parse(b.date) - Date.parse(a.date)),
-    [],
-  )
+
 
   const filteredMemes = useMemo(() => {
     return memes.filter(item => {
@@ -87,28 +82,16 @@ export function MemesAndDocumentsScreen({
     })
   }, [activeFilters, memes, query])
 
-  const filteredDocuments = useMemo(() => {
-    return documents.filter(item => {
-      return (
-        matchesCompassFilter(item, activeFilters) &&
-        matchesSearch(
-          [item.title, item.category, item.community, item.party, item.state],
-          query,
-        )
-      )
-    })
-  }, [activeFilters, documents, query])
-
-  const activeItems = activeMode === 'Memes' ? filteredMemes : filteredDocuments
+  const activeItems = filteredMemes
   const boardWidth = width > 900 ? (width - 44) / 2 : undefined
 
   const setNextView = (next: ViewStyleMode) => {
     setViewStyle(next)
-    navigation.setParams({mode: activeMode, view: next})
+    navigation.setParams({view: next})
   }
 
   return (
-    <Layout.Screen testID="memesAndDocumentsScreen">
+    <Layout.Screen testID="memesScreen">
       <View style={[styles.topChrome, t.atoms.bg]}>
         <Layout.Header.Outer noBottomBorder>
           <Layout.Header.BackButton />
@@ -119,22 +102,14 @@ export function MemesAndDocumentsScreen({
                   value={query}
                   onChangeText={setQuery}
                   onClearText={() => setQuery('')}
-                  placeholder={
-                    activeMode === 'Memes'
-                      ? _(msg`Search memes, authors, or communities`)
-                      : _(msg`Search documents, communities, or states`)
-                  }
+                  placeholder={_(msg`Search memes, authors, or communities`)}
                 />
               </View>
             </Layout.Header.Content>
           ) : (
             <Layout.Header.Content>
               <Layout.Header.TitleText>
-                {activeMode === 'Memes' ? (
-                  <Trans>Memes</Trans>
-                ) : (
-                  <Trans>Documents</Trans>
-                )}
+                <Trans>Memes</Trans>
               </Layout.Header.TitleText>
             </Layout.Header.Content>
           )}
@@ -171,25 +146,21 @@ export function MemesAndDocumentsScreen({
               <View
                 style={[
                   styles.modeChip,
-                  activeMode === 'Memes'
-                    ? styles.modeChipMemes
-                    : styles.modeChipDocuments,
+                  styles.modeChipMemes,
                 ]}>
                 <Text style={styles.modeChipText}>
                   {viewStyle === 'deck' ? 'Deck view' : 'Board view'}
                 </Text>
               </View>
               <Text style={[styles.modeSummaryTitle, t.atoms.text]}>
-                {formatResultLabel(activeMode, activeItems.length)}
+                {formatResultLabel('Memes', activeItems.length)}
               </Text>
               <Text
                 style={[
                   styles.modeSummarySubtitle,
                   t.atoms.text_contrast_medium,
                 ]}>
-                {activeMode === 'Memes'
-                  ? 'Political humor, campaign riffs, and community posts in one board.'
-                  : 'Reports, drafts, and civic files with better context.'}
+                Political humor, campaign riffs, and community posts in one board.
               </Text>
             </View>
 
@@ -227,11 +198,7 @@ export function MemesAndDocumentsScreen({
                 description={_(
                   msg`Open more communities or clear search to fill this view.`,
                 )}
-                title={
-                  activeMode === 'Memes'
-                    ? _(msg`No memes match those filters`)
-                    : _(msg`No documents match those filters`)
-                }
+                title={_(msg`No memes match those filters`)}
               />
             ) : (
               <View style={styles.boardGrid}>
@@ -259,11 +226,7 @@ export function MemesAndDocumentsScreen({
                   description={_(
                     msg`Open more communities or clear search to fill this view.`,
                   )}
-                  title={
-                    activeMode === 'Memes'
-                      ? _(msg`No memes match those filters`)
-                      : _(msg`No documents match those filters`)
-                  }
+                  title={_(msg`No memes match those filters`)}
                 />
               </View>
             ) : (

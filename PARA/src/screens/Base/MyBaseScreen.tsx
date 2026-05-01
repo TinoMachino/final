@@ -1,6 +1,5 @@
 import {useCallback, useMemo, useState} from 'react'
 import {StyleSheet, TouchableOpacity, View} from 'react-native'
-import {LinearGradient} from 'expo-linear-gradient'
 import {type AppBskyActorDefs, AtUri} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
@@ -36,10 +35,7 @@ import {toClout} from '#/analytics/metrics'
 
 type MetricKey = 'Influence' | 'Votes' | 'Posts' | 'Followers' | 'Following'
 
-const MY_BASE_SURFACE = '#1F2937' // Sleek dark surface
-const MY_BASE_BORDER = 'rgba(255,255,255,0.1)'
-const MY_BASE_TEXT = '#F9FAFB'
-const MY_BASE_MUTED = '#9CA3AF'
+// No hardcoded colors used
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -96,51 +92,47 @@ function MyBaseHeader({
   const profileDisplayName = profile?.displayName || profile?.handle || 'User'
 
   return (
-    <View>
-      {/* Premium Gradient Banner */}
-      <LinearGradient
-        colors={['#4F46E5', '#7C3AED', '#DB2777']}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 1}}
-        style={styles.headerTopBar}>
-        <Layout.Center style={a.flex_row}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={onPressBack}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <BackIcon size="md" style={{color: 'white'}} />
-          </TouchableOpacity>
-          <View style={{flex: 1}} />
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={onPressCommunities}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-            style={{marginRight: 12}}>
-            <CommunityIcon size="md" style={{color: 'white'}} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={onPressSettings}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <SettingsIcon size="md" style={{color: 'white'}} />
-          </TouchableOpacity>
-        </Layout.Center>
-      </LinearGradient>
+    <Layout.Center>
+      <View style={t.atoms.bg}>
+        {/* Banner / top bar */}
+        <View
+          style={[
+            styles.headerTopBar,
+            {backgroundColor: t.palette.primary_500}, // Brand color for banner
+          ]}>
+          <View style={[a.flex_row, {width: '100%', alignItems: 'center'}]}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPressBack}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <BackIcon size="md" style={{color: 'white'}} />
+            </TouchableOpacity>
+            <View style={{flex: 1}} />
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPressCommunities}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+              style={{marginRight: 12}}>
+              <CommunityIcon size="md" style={{color: 'white'}} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPressSettings}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <SettingsIcon size="md" style={{color: 'white'}} />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      {/* Profile block */}
-      <Layout.Center>
+        {/* Profile block */}
         <View
           style={[
             styles.headerProfileBlock,
-            {
-              backgroundColor: t.atoms.bg_contrast_25.backgroundColor,
-              borderColor: t.atoms.border_contrast_low.borderColor,
-            },
             gtMobile && styles.headerProfileBlockWeb,
           ]}>
           {/* Top row: Avatar + Identity + Compass */}
           <View style={[styles.headerTopRow, gtMobile && a.align_center]}>
-            <View style={styles.headerAvatarWrap}>
+            <View style={[styles.headerAvatarWrap, {borderColor: t.atoms.bg.backgroundColor}]}>
               <UserAvatar
                 avatar={profile?.avatar}
                 size={84}
@@ -149,9 +141,60 @@ function MyBaseHeader({
             </View>
 
             <View style={styles.headerIdentityColumn}>
-              <Text style={[styles.headerName, t.atoms.text]}>
-                {profileDisplayName}
-              </Text>
+              <View style={[a.flex_row, a.align_center, {flexWrap: 'wrap', gap: 6}]}>
+                <Text style={[styles.headerName, t.atoms.text]}>
+                  {profileDisplayName}
+                </Text>
+                {/* Flair Inline */}
+                {activeFlair ? (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    style={[
+                      styles.flairBadge,
+                      {backgroundColor: activeFlair.color + '20', borderColor: activeFlair.color + '40', borderWidth: 1},
+                    ]}
+                    onPress={onPressPoliticalAffiliation}>
+                    <View
+                      style={[
+                        styles.flairDot,
+                        {backgroundColor: activeFlair.color},
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.flairText,
+                        {color: activeFlair.color},
+                        a.font_bold,
+                      ]}>
+                      {activeFlair.label}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    style={[
+                      styles.flairBadge,
+                      t.atoms.bg_contrast_50,
+                    ]}
+                    onPress={onPressPoliticalAffiliation}>
+                    <View
+                      style={[
+                        styles.flairDot,
+                        {backgroundColor: t.atoms.text_contrast_medium.color},
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.flairText,
+                        t.atoms.text_contrast_medium,
+                        a.font_bold,
+                      ]}>
+                      Set position →
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
               <Text style={[styles.headerHandle, t.atoms.text_contrast_medium]}>
                 {profileHandleText}
               </Text>
@@ -169,55 +212,6 @@ function MyBaseHeader({
                   onPress={() => onPressMetric('Following')}
                 />
               </View>
-
-              {/* Flair */}
-              {activeFlair ? (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  style={[
-                    styles.flairBadge,
-                    {backgroundColor: activeFlair.color + '20', borderColor: activeFlair.color + '40', borderWidth: 1},
-                  ]}
-                  onPress={onPressPoliticalAffiliation}>
-                  <View
-                    style={[
-                      styles.flairDot,
-                      {backgroundColor: activeFlair.color},
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.flairText,
-                      {color: activeFlair.color},
-                      a.font_bold,
-                    ]}>
-                    {activeFlair.label}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  style={[
-                    styles.flairBadge,
-                    t.atoms.bg_contrast_50,
-                  ]}
-                  onPress={onPressPoliticalAffiliation}>
-                  <View
-                    style={[
-                      styles.flairDot,
-                      {backgroundColor: t.atoms.text_contrast_medium.color},
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.flairText,
-                      t.atoms.text_contrast_medium,
-                      a.font_bold,
-                    ]}>
-                    Set position →
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
 
             <CompassMini
@@ -229,12 +223,11 @@ function MyBaseHeader({
           </View>
 
           {/* Metrics */}
-          <View style={[styles.metricsRow, {borderTopColor: t.atoms.border_contrast_low.borderColor}, gtMobile && styles.metricsRowWeb]}>
+          <View style={[styles.metricsRow, {borderTopColor: t.atoms.border_contrast_low.borderColor}]}>
             <MetricItem
               label="Influence"
               value={formatCount(influenceScore)}
               onPress={() => onPressMetric('Influence')}
-              isWeb={gtMobile}
             />
             <MetricItem
               label="Votes"
@@ -248,9 +241,8 @@ function MyBaseHeader({
             />
           </View>
         </View>
-      </Layout.Center>
-    </View>
-
+      </View>
+    </Layout.Center>
   )
 }
 
@@ -279,12 +271,10 @@ function MetricItem({
   label,
   value,
   onPress,
-  isWeb,
 }: {
   label: string
   value: string
   onPress: () => void
-  isWeb?: boolean
 }) {
   const t = useTheme()
   return (
@@ -293,7 +283,7 @@ function MetricItem({
       onPress={onPress}
       style={[
         styles.metricItem,
-        isWeb && [t.atoms.bg_contrast_25, styles.metricItemWeb],
+        t.atoms.bg_contrast_25,
       ]}>
       <Text style={[styles.metricValue, t.atoms.text]}>{value}</Text>
       <Text style={[styles.metricLabel, t.atoms.text_contrast_medium]}>
@@ -377,7 +367,10 @@ function MyBaseSummaryTab({
   return (
     <Layout.Content
       style={styles.tabScroll}
-      contentContainerStyle={styles.tabScrollContent}>
+      contentContainerStyle={[
+        styles.tabScrollContent,
+        gtMobile && {paddingHorizontal: 32} // Added Web horizontal padding
+      ]}>
       {/* ── UPCOMING ACTIONS ── */}
       {upcoming.length > 0 && (
         <View style={styles.section}>
@@ -918,41 +911,26 @@ export function MyBaseScreen() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  darkSurface: {
-    backgroundColor: MY_BASE_SURFACE,
-    borderColor: MY_BASE_BORDER,
-  },
-  darkSoftSurface: {
-    backgroundColor: MY_BASE_SURFACE_SOFT,
-    borderColor: MY_BASE_BORDER,
-  },
   // Header
   headerTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 52,
+    paddingBottom: 64, // extended for a nicer banner height
   },
   headerProfileBlock: {
-    marginTop: -42,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 8},
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    elevation: 5,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   headerProfileBlockWeb: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   headerAvatarWrap: {
-    marginTop: -42,
-    borderWidth: 3,
-    borderColor: 'white',
+    marginTop: -48,
+    borderWidth: 4,
     borderRadius: 44,
   },
   headerTopRow: {
@@ -990,13 +968,11 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   socialMetricValue: {
-    color: MY_BASE_TEXT,
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 16,
   },
   socialMetricLabel: {
-    color: MY_BASE_MUTED,
     fontSize: 10,
     fontWeight: '700',
     lineHeight: 13,
@@ -1054,11 +1030,9 @@ const styles = StyleSheet.create({
   flairBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 10,
-    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 16,
   },
   flairDot: {
     width: 10,

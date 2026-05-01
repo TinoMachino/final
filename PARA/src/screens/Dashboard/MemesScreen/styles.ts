@@ -66,9 +66,6 @@ export const styles = StyleSheet.create({
   modeChipMemes: {
     backgroundColor: '#E8F2FF',
   },
-  modeChipDocuments: {
-    backgroundColor: '#EAF6EE',
-  },
   modeChipText: {
     color: '#0F172A',
     fontSize: 12,
@@ -122,10 +119,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 18,
   },
-  documentVisual: {
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.34)',
-  },
   cardBadgeRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -144,14 +137,6 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 4,
     width: 32,
-  },
-  documentGlyph: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.22)',
-    borderRadius: 8,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
   },
   cardTitle: {
     color: '#121212',

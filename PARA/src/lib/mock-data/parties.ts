@@ -6,6 +6,7 @@ export const PARTIES: Party[] = [
   {id: 'MORENA', name: 'MORENA', color: '#B01021', logo: 'M'},
   {id: 'MC', name: 'MC', color: '#FF8200', logo: 'MC'},
   {id: 'PRD', name: 'PRD', color: '#FFCD00', logo: 'PR'},
+  {id: 'MIGALA', name: 'Migala', color: '#106B43', logo: 'MI'},
   {id: 'DERECHA', name: 'Derecha Aut.', color: '#474652', logo: 'DA'},
 ]
 

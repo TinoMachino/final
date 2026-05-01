@@ -141,6 +141,23 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     descriptors: ['Social democratic', 'Progressive', 'Pluralist'],
     topCommunities: ['Pluralismo', 'Derechos Humanos', 'Socialdemocracia'],
   },
+  {
+    id: 'party-migala',
+    name: 'Migala',
+    color: '#106B43',
+    totalMembers: 369,
+    ninthDistribution: {
+      'lib-left': 58,
+      'center-left': 18,
+      'lib-center': 12,
+      'auth-left': 6,
+      center: 4,
+      'center-right': 2,
+    },
+    avgInfluence: 47,
+    descriptors: ['Horizontalist', 'Ecological', 'Anti-capitalist'],
+    topCommunities: ['Ciencia Tierra Libertad', 'Micelio', 'Comunes'],
+  },
 ]
 
 export const PARTY_COMPASS_PROFILE_BY_ID = Object.fromEntries(

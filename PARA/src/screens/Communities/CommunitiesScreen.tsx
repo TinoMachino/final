@@ -19,6 +19,7 @@ import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
 import {type NavigationProp} from '#/lib/routes/types'
+import {PARTY_FEED_PROFILES} from '#/lib/party-feeds'
 import {POST_FLAIRS, type PostFlair} from '#/lib/tags'
 import {
   clearRecentCommunities,
@@ -127,9 +128,41 @@ export function CommunitiesScreen() {
   const stateMatches = stateMatchesData?.boards ?? []
   const recentCommunities = useRecentCommunities()
   const recentLiveBoards = recentCommunities.slice(0, 3)
-  const politicalBoards = liveBoards.filter(
-    board => board.quadrant === 'political',
-  )
+  
+  const politicalBoards = useMemo(() => {
+    const livePoliticalBoards = liveBoards.filter(
+      board => board.quadrant === 'political',
+    )
+    
+    return PARTY_FEED_PROFILES.map(party => {
+      const liveBoard = livePoliticalBoards.find(b => b.name === party.name)
+      if (liveBoard) return liveBoard
+      
+      return {
+        uri: `mock-${party.id}`,
+        cid: '',
+        creatorDid: '',
+        communityId: party.name,
+        slug: party.id,
+        name: party.name,
+        description: party.description,
+        quadrant: 'political',
+        delegatesChatId: '',
+        subdelegatesChatId: '',
+        memberCount: 0,
+        viewerMembershipState: 'none' as const,
+        createdAt: '',
+      }
+    })
+  }, [liveBoards])
+
+  const chunkedPoliticalBoards = useMemo(() => {
+    const chunks = []
+    for (let i = 0; i < politicalBoards.length; i += 2) {
+      chunks.push(politicalBoards.slice(i, i + 2))
+    }
+    return chunks
+  }, [politicalBoards])
 
   useEffect(() => {
     if (trackedCreatorEntryMetric.current || !liveBoardsData) return
@@ -231,6 +264,76 @@ export function CommunitiesScreen() {
               </View>
             </View>
 
+
+
+            {liveBoards.length > 0 ? (
+              <View style={styles.section}>
+                <Text
+                  style={[
+                    styles.sectionEyebrow,
+                    {color: t.palette.primary_500},
+                  ]}>
+                  <Trans>Created in PARA</Trans>
+                </Text>
+                <Text style={[styles.sectionHeading, t.atoms.text]}>
+                  <Trans>Live community boards</Trans>
+                </Text>
+
+                <View style={styles.liveBoardsGrid}>
+                  {liveBoards.map(board => (
+                    <LiveCommunityCard
+                      key={board.uri}
+                      board={board}
+                      theme={t}
+                      onPress={() => navigateToLiveCommunityProfile(board)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.section}>
+              <Text style={[styles.sectionHeading, t.atoms.text]}>
+                <Trans>Browse communities</Trans>
+              </Text>
+
+              <View style={styles.directoryStack}>
+                <DirectoryModule title="Parties" description="" theme={t}>
+                  {politicalBoards.length === 0 ? (
+                    <EmptyLiveDirectoryCard
+                      theme={t}
+                      title="No party communities yet"
+                      body="Published party communities will appear here once they exist in the live directory."
+                    />
+                  ) : (
+                    <View style={{position: 'relative'}}>
+                      <WebScrollControls scrollViewRef={politicalScrollRef} />
+                      <ScrollView
+                        ref={politicalScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.cardsScroll}
+                        contentContainerStyle={styles.directoryRail}>
+                        {chunkedPoliticalBoards.map((pair, index) => (
+                          <View key={`pair-${index}`} style={{gap: 12}}>
+                            {pair.map(board => (
+                              <LiveCommunityCard
+                                key={board.uri}
+                                board={board}
+                                theme={t}
+                                style={{width: 260}}
+                                onPress={() => navigateToLiveCommunityProfile(board)}
+                              />
+                            ))}
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </DirectoryModule>
+              </View>
+            </View>
+
             <View style={styles.section}>
               <View
                 style={[
@@ -292,77 +395,6 @@ export function CommunitiesScreen() {
                     </Text>
                   </TouchableOpacity>
                 ) : null}
-              </View>
-            </View>
-
-            {liveBoards.length > 0 ? (
-              <View style={styles.section}>
-                <Text
-                  style={[
-                    styles.sectionEyebrow,
-                    {color: t.palette.primary_500},
-                  ]}>
-                  <Trans>Created in PARA</Trans>
-                </Text>
-                <Text style={[styles.sectionHeading, t.atoms.text]}>
-                  <Trans>Live community boards</Trans>
-                </Text>
-
-                <View style={styles.liveBoardsGrid}>
-                  {liveBoards.map(board => (
-                    <LiveCommunityCard
-                      key={board.uri}
-                      board={board}
-                      theme={t}
-                      onPress={() => navigateToLiveCommunityProfile(board)}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-
-            <View style={styles.section}>
-              <Text style={[styles.sectionHeading, t.atoms.text]}>
-                <Trans>Browse communities</Trans>
-              </Text>
-
-              <View style={styles.directoryStack}>
-                <DirectoryModule title="Parties" description="" theme={t}>
-                  {politicalBoards.length === 0 ? (
-                    <EmptyLiveDirectoryCard
-                      theme={t}
-                      title="No party communities yet"
-                      body="Published party communities will appear here once they exist in the live directory."
-                    />
-                  ) : IS_WEB ? (
-                    <View style={styles.politicalGrid}>
-                      {politicalBoards.map(board => (
-                        <LiveCommunityCard
-                          key={board.uri}
-                          board={board}
-                          theme={t}
-                          onPress={() => navigateToLiveCommunityProfile(board)}
-                        />
-                      ))}
-                    </View>
-                  ) : (
-                    <ScrollView
-                      ref={politicalScrollRef}
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      style={styles.cardsScroll}
-                      contentContainerStyle={styles.directoryRail}>
-                      {politicalBoards.map(board => (
-                        <LiveCommunityCard
-                          key={board.uri}
-                          board={board}
-                          theme={t}
-                          onPress={() => navigateToLiveCommunityProfile(board)}
-                        />
-                      ))}
-                    </ScrollView>
-                  )}
-                </DirectoryModule>
               </View>
             </View>
 
@@ -647,10 +679,12 @@ function buildParticipationFilter(
 function LiveCommunityCard({
   board,
   theme,
+  style,
   onPress,
 }: {
   board: CommunityBoardView
   theme: ThemeShape
+  style?: StyleProp<ViewStyle>
   onPress: () => void
 }) {
   return (
@@ -660,6 +694,7 @@ function LiveCommunityCard({
       style={[
         styles.liveBoardCard,
         {backgroundColor: theme.palette.contrast_25},
+        style,
       ]}>
       <View style={styles.liveBoardHeader}>
         <View
@@ -679,13 +714,15 @@ function LiveCommunityCard({
           <Text style={[styles.liveBoardTitle, theme.atoms.text]}>
             {board.name}
           </Text>
-          <Text
-            style={[
-              styles.liveBoardSubtitle,
-              theme.atoms.text_contrast_medium,
-            ]}>
-            {board.quadrant}
-          </Text>
+          {board.quadrant && board.quadrant.toLowerCase() !== 'political' ? (
+            <Text
+              style={[
+                styles.liveBoardSubtitle,
+                theme.atoms.text_contrast_medium,
+              ]}>
+              {board.quadrant}
+            </Text>
+          ) : null}
         </View>
       </View>
       <Text numberOfLines={3} style={[styles.liveBoardBody, theme.atoms.text]}>

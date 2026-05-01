@@ -1,4 +1,5 @@
 import {StyleSheet, TouchableOpacity, View} from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 import {Trans} from '@lingui/react/macro'
 
 import {getPartyNinthId} from '#/lib/compass/party-distributions'
@@ -11,9 +12,9 @@ import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 
 const MINI_GRID_COLORS = [
-  ['#efb9bb', '#cda7d8', '#99d0ea'],
-  ['#d8d9be', '#efe7d6', '#bfd7e8'],
-  ['#c7e4c2', '#dfe498', '#f6efb3'],
+  ['#efb9bb', ['#efb9bb', '#99d0ea'], '#99d0ea'],
+  [['#efb9bb', '#c7e4c2'], '#efe7d6', ['#99d0ea', '#f6efb3']],
+  ['#c7e4c2', ['#c7e4c2', '#f6efb3'], '#f6efb3'],
 ]
 
 const NINTH_COMPASS_IDS = [
@@ -91,11 +92,40 @@ export function CompassMini({
                 key={colIdx}
                 style={[
                   styles.cell,
-                  {backgroundColor: color},
-                  isActive && styles.cellActive,
+                  isActive && {
+                    transform: [{scale: 1.15}],
+                    borderWidth: 2,
+                    borderColor: Array.isArray(color) ? color[0] : color,
+                    shadowColor: Array.isArray(color) ? color[0] : color,
+                    shadowOffset: {width: 0, height: 0},
+                    shadowOpacity: 0.5,
+                    shadowRadius: 6,
+                    elevation: 6,
+                    zIndex: 1,
+                  },
                   !hasPosition && {opacity: 0.5},
-                ]}
-              />
+                ]}>
+                {Array.isArray(color) ? (
+                  <LinearGradient
+                    colors={color as unknown as readonly [string, string, ...string[]]}
+                    start={rowIdx === 0 || rowIdx === 2 ? {x: 0, y: 0.5} : {x: 0.5, y: 0}}
+                    end={rowIdx === 0 || rowIdx === 2 ? {x: 1, y: 0.5} : {x: 0.5, y: 1}}
+                    style={StyleSheet.absoluteFill}
+                  />
+                ) : (
+                  <View
+                    style={[StyleSheet.absoluteFill, {backgroundColor: color}]}
+                  />
+                )}
+                {isActive && (
+                  <View
+                    style={[
+                      StyleSheet.absoluteFill,
+                      {borderWidth: 2, borderColor: '#ffffff80'},
+                    ]}
+                  />
+                )}
+              </View>
             )
           })}
         </View>
@@ -210,13 +240,6 @@ const styles = StyleSheet.create({
   },
   cellActive: {
     transform: [{scale: 1.15}],
-    borderWidth: 2,
-    borderColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
     zIndex: 1,
   },
   partyDots: {

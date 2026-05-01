@@ -26,6 +26,27 @@ run-dev-env: ## Run a "development environment" shell
 run-dev-env-logged: ## Run a "development environment" shell (with logging)
 	cd packages/dev-env; LOG_ENABLED=true NODE_ENV=development pnpm run start | pnpm exec pino-pretty
 
+.PHONY: run-dev-env-persistent
+run-dev-env-persistent: ## Run a persistent development environment shell
+	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore}
+	cd packages/dev-env; \
+	ENV=shared-demo \
+	NODE_ENV=development \
+	DEV_ENV_PDS_DATA_DIRECTORY=$${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} \
+	DEV_ENV_PDS_BLOBSTORE_DIRECTORY=$${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} \
+	../dev-infra/with-redis-and-db.sh node --enable-source-maps dist/bin.js
+
+.PHONY: run-dev-env-persistent-logged
+run-dev-env-persistent-logged: ## Run a persistent development environment shell (with logging)
+	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore}
+	cd packages/dev-env; \
+	ENV=shared-demo \
+	LOG_ENABLED=true \
+	NODE_ENV=development \
+	DEV_ENV_PDS_DATA_DIRECTORY=$${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} \
+	DEV_ENV_PDS_BLOBSTORE_DIRECTORY=$${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} \
+	../dev-infra/with-redis-and-db.sh node --enable-source-maps dist/bin.js | pnpm exec pino-pretty
+
 .PHONY: codegen
 codegen: ## Re-generate packages from lexicon/ files
 	pnpm codegen

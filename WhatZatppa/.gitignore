@@ -11,6 +11,7 @@ test.sqlite
 *.tsbuildinfo
 .*.env
 .env.*
+!.env.*.example
 .env
 \#*\#
 *~

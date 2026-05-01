@@ -49,10 +49,14 @@ export class TestNetwork extends TestNetworkNoAppView {
     const pdsPort = params.pds?.port ?? (await getPort())
     const ozonePort = params.ozone?.port ?? (await getPort())
     const chatUrl = `http://localhost:${chatPort}`
+    const thirdPartyPdsParams = { ...(params.pds ?? {}) }
+    delete thirdPartyPdsParams.dataDirectory
+    delete thirdPartyPdsParams.blobstoreDiskLocation
+    delete thirdPartyPdsParams.accountDbLocation
 
     const thirdPartyPds = await TestPds.create({
       didPlcUrl: plc.url,
-      ...params.pds,
+      ...thirdPartyPdsParams,
       inviteRequired: false,
       port: await getPort(),
     })

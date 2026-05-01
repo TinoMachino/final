@@ -22,6 +22,17 @@ make build          # genera dist/
 make run-dev-env    # levanta PDS + AppView + Ozone local
 ```
 
+Para conservar la base de datos, Redis y el storage del PDS entre reinicios, usa el launcher persistente:
+
+```bash
+cd WhatZatppa
+cp -n .env.shared-demo.example .env.shared-demo
+make build
+make run-dev-env-persistent
+```
+
+Este modo guarda Postgres/Redis en volúmenes Docker persistentes y los datos/blobs del PDS en `~/.paramx-demo/` por defecto.
+
 > **Datos de prueba automáticos**: `make run-dev-env` ahora ejecuta un seed PARA que crea:
 > - 5 usuarios (alice, bob, carla, dan, eva)
 > - 3 comunidades

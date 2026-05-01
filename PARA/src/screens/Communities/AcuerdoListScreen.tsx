@@ -278,8 +278,8 @@ function JoinAcuerdoModal({
     try {
       await joinAcuerdo(acuerdoUri, type)
       onClose()
-    } catch (e: any) {
-      setError(e.message || 'Error al unirse')
+    } catch (e: unknown) {
+      setError((e as Error)?.message || 'Error al unirse')
     } finally {
       setIsLoading(false)
     }

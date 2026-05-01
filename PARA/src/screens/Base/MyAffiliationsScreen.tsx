@@ -184,7 +184,7 @@ function VoteAnalysis({navigation}: {navigation: NavigationProp}) {
           <TouchableOpacity
             accessibilityRole="button"
             onPress={() => {
-              ;(navigation as any).navigate('SeeVotes')
+              ;(navigation as NavigationProp).navigate('SeeVotes' as never)
             }}>
             <Text
               style={[

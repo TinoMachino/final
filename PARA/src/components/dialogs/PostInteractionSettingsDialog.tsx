@@ -759,9 +759,9 @@ export function usePrefetchPostInteractionSettings({
           staleTime: STALE.SECONDS.THIRTY,
         }),
       ])
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error(`Failed to prefetch post interaction settings`, {
-        safeMessage: e.message,
+        safeMessage: (e as Error)?.message || String(e),
       })
     }
   }, [queryClient, agent, postUri, rootPostUri, getPost])

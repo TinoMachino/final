@@ -10,7 +10,7 @@ import {useLanguagePrefs} from '#/state/preferences'
  * We do a dynamic import of just the catalog that we need
  */
 export async function dynamicActivate(locale: AppLanguage) {
-  let mod: any
+  let mod: { messages: Record<string, unknown> }
   let dateLocale: Locale = defaultLocale
 
   switch (locale) {

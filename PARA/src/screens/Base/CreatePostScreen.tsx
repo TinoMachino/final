@@ -202,9 +202,9 @@ export function CreatePostScreen() {
       )
 
       navigation.goBack()
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error(e, {message: `CreatePostScreen: create post failed`})
-      const cleanErr = cleanError(e.message) // Renamed from 'err' to 'cleanErr' for clarity
+      const cleanErr = cleanError((e as Error)?.message || String(e)) // Renamed from 'err' to 'cleanErr' for clarity
       setError(cleanErr)
       setIsPublishing(false)
     }
@@ -316,9 +316,9 @@ export function CreatePostScreen() {
           mime: 'image/jpeg',
         })
         onImageAdd([composerImage])
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(`CreatePostScreen: onPhotoPasted failed`, {
-          message: e.message,
+          message: (e as Error)?.message || String(e),
         })
       }
     },

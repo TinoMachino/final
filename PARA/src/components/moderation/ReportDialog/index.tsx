@@ -229,7 +229,7 @@ function Inner(props: ReportDialogProps) {
           onAfterSubmit?.()
         })
       }, 1e3)
-    } catch (e: any) {
+    } catch (e: unknown) {
       ax.metric('reportDialog:failure', {})
       logger.error(e, {
         source: 'ReportDialog',

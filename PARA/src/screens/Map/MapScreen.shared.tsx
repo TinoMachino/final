@@ -1,5 +1,6 @@
 import {
   type ComponentType,
+  type ReactNode,
   useCallback,
   useMemo,
   useRef,
@@ -57,6 +58,56 @@ type Coordinate = {
   longitude: number
 }
 
+export type MapViewProps = {
+  style?: unknown
+  initialRegion?: MapRegion
+  provider?: string | null
+  onRegionChangeComplete?: (region: MapRegion) => void
+  onPress?: () => void
+  children?: ReactNode
+}
+
+export type MarkerProps = {
+  coordinate: Coordinate
+  title?: string
+  description?: string
+  anchor?: {x: number; y: number}
+  tappable?: boolean
+  tracksViewChanges?: boolean
+  zIndex?: number
+  onPress?: () => void
+  children?: ReactNode
+}
+
+export type MarkerClustererProps = {
+  region: MapRegion
+  children?: ReactNode
+}
+
+export type PolygonProps = {
+  coordinates: Coordinate[]
+  fillColor?: string
+  strokeColor?: string
+  strokeWidth?: number
+  tappable?: boolean
+  zIndex?: number
+  onPress?: () => void
+}
+
+export type MapViewRef = {
+  fitToCoordinates?: (
+    coordinates: Coordinate[],
+    options?: {edgePadding?: unknown; animated?: boolean},
+  ) => void
+  animateToRegion?: (region: MapRegion, duration?: number) => void
+  animateCamera?: (camera: {
+    center?: Coordinate
+    zoom?: number
+    altitude?: number
+  }) => void
+  getCamera?: () => Promise<{zoom?: number; altitude?: number}>
+}
+
 type GeoFeature = {
   geometry?: {
     type?: string
@@ -69,10 +120,10 @@ type GeoFeature = {
 }
 
 type MapScreenImplProps = Props & {
-  MapViewComponent?: ComponentType<any>
-  PolygonComponent?: ComponentType<any>
-  MarkerComponent?: ComponentType<any>
-  MarkerClustererComponent?: ComponentType<any>
+  MapViewComponent?: ComponentType<MapViewProps>
+  PolygonComponent?: ComponentType<PolygonProps>
+  MarkerComponent?: ComponentType<MarkerProps>
+  MarkerClustererComponent?: ComponentType<MarkerClustererProps>
   unavailableMessage?: string
 }
 
@@ -241,7 +292,7 @@ export function MapScreenImpl({
   const t = useTheme()
   const {gtMobile} = useBreakpoints()
   const insets = useSafeAreaInsets()
-  const mapRef = useRef<ComponentType<any> | null>(null)
+  const mapRef = useRef<MapViewRef | null>(null)
 
   const [selectedState, setSelectedState] = useState<{name: string} | null>(
     null,
@@ -573,7 +624,7 @@ export function MapScreenImpl({
         <View style={[a.flex_1, a.relative]}>
           {MapViewComponent && PolygonComponent ? (
             <MapViewComponent
-              ref={mapRef}
+              ref={mapRef as never}
               style={StyleSheet.absoluteFill}
               initialRegion={INITIAL_REGION}
               provider={web('google')}

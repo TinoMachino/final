@@ -87,11 +87,11 @@ export async function resolve() {
         )
         cacheResponseOrThrow(config)
         success = true
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.debug(
           `resolve(): fetchGeolocationServiceData failed initial request`,
           {
-            safeMessage: e.message,
+            safeMessage: (e as Error)?.message || String(e),
           },
         )
 
@@ -103,12 +103,12 @@ export async function resolve() {
             cacheResponseOrThrow(config)
             success = true
           })
-          .catch((e: any) => {
+          .catch((e: unknown) => {
             // complete fail closed
             logger.debug(
               `resolve(): fetchGeolocationServiceData failed retries`,
               {
-                safeMessage: e.message,
+                safeMessage: (e as Error)?.message || String(e),
               },
             )
           })

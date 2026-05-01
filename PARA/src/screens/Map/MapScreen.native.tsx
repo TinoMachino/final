@@ -1,11 +1,18 @@
 import {type ComponentType} from 'react'
 
-import {MapScreenImpl, type Props} from './MapScreen.shared'
+import {
+  MapScreenImpl,
+  type MapViewProps,
+  type MarkerClustererProps,
+  type MarkerProps,
+  type PolygonProps,
+  type Props,
+} from './MapScreen.shared'
 
-let MapViewComponent: ComponentType<any>
-let MarkerComponent: ComponentType<any>
-let MarkerClustererComponent: ComponentType<any>
-let PolygonComponent: ComponentType<any>
+let MapViewComponent: ComponentType<MapViewProps>
+let MarkerComponent: ComponentType<MarkerProps>
+let MarkerClustererComponent: ComponentType<MarkerClustererProps>
+let PolygonComponent: ComponentType<PolygonProps>
 let unavailableMessage = ''
 
 try {

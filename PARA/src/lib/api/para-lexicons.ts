@@ -36,7 +36,7 @@ export interface ParaPostRecord {
    * Facets for rich text (mentions, links).
    * Reusing standard Bsky definition for compatibility.
    */
-  facets?: any[] // Simplified for now to avoid deep type lookup issues
+  facets?: unknown[] // Simplified for now to avoid deep type lookup issues
   /**
    * Embeds (images, external links, etc).
    * Reusing standard Bsky definition.
@@ -194,8 +194,8 @@ export function isParaPost(v: unknown): v is ParaPostRecord {
   return (
     typeof v === 'object' &&
     v !== null &&
-    typeof (v as any).text === 'string' &&
-    typeof (v as any).createdAt === 'string'
+    typeof (v as Record<string, unknown>).text === 'string' &&
+    typeof (v as Record<string, unknown>).createdAt === 'string'
   )
 }
 

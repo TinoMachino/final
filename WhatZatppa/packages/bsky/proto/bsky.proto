@@ -1108,6 +1108,7 @@ message SearchPostsRequest {
   string term = 1;
   int32 limit = 2;
   string cursor = 3;
+  repeated string tags = 4;
 }
 
 message SearchPostsResponse {
@@ -1376,6 +1377,408 @@ message GetSitemapPageResponse {
 message PingRequest {}
 message PingResponse {}
 
+// ParaAuthorFeedItem
+message ParaAuthorFeedItem {
+  string uri = 1;
+  string cid = 2;
+  string author = 3;
+  string text = 4;
+  string created_at = 5;
+  string reply_root = 6;
+  string reply_parent = 7;
+  repeated string langs = 8;
+  repeated string tags = 9;
+  repeated string flairs = 10;
+  string post_type = 11;
+}
+
+// Para Feeds
+message GetParaAuthorFeedRequest {
+  string actor_did = 1;
+  string party = 2;
+  string community = 3;
+  int32 limit = 4;
+  string cursor = 5;
+}
+message GetParaAuthorFeedResponse {
+  repeated ParaAuthorFeedItem items = 1;
+  string cursor = 2;
+}
+
+message GetParaTimelineRequest {
+  string actor_did = 1;
+  string party = 2;
+  string community = 3;
+  int32 limit = 4;
+  string cursor = 5;
+}
+message GetParaTimelineResponse {
+  repeated ParaAuthorFeedItem items = 1;
+  string cursor = 2;
+}
+
+message GetParaPostsRequest {
+  repeated string uris = 1;
+}
+message GetParaPostsResponse {
+  repeated ParaAuthorFeedItem items = 1;
+}
+
+message GetParaThreadRequest {
+  string post_uri = 1;
+  int32 above = 2;
+  int32 below = 3;
+}
+message GetParaThreadResponse {
+  ParaAuthorFeedItem post = 1;
+  repeated ParaAuthorFeedItem parents = 2;
+  repeated ParaAuthorFeedItem replies = 3;
+}
+
+// ParaPostMeta
+message ParaPostMeta {
+  string uri = 1;
+  string author = 2;
+  string post_type = 3;
+  string official = 4;
+  string party = 5;
+  string community = 6;
+  string category = 7;
+  repeated string tags = 8;
+  repeated string flairs = 9;
+  int32 vote_score = 10;
+  string interaction_mode = 11;
+  string created_at = 12;
+}
+
+message GetParaPostMetaRequest {
+  string post_uri = 1;
+}
+message GetParaPostMetaResponse {
+  ParaPostMeta post = 1;
+}
+
+// ParaPolicyTally
+message ParaPolicySignalBucket {
+  int32 signal = 1;
+  int32 count = 2;
+}
+message ParaPolicyTally {
+  string subject = 1;
+  string subject_type = 2;
+  string community = 3;
+  int32 vote_count = 4;
+  int32 direct_vote_count = 5;
+  int32 delegated_vote_count = 6;
+  int32 signal_sum = 7;
+  double signal_average = 8;
+  int32 eligible_voter_count = 9;
+  int32 quorum_target = 10;
+  bool quorum_met = 11;
+  bool official = 12;
+  bool certified = 13;
+  string outcome = 14;
+  string state = 15;
+  repeated ParaPolicySignalBucket breakdown = 16;
+  string computed_at = 17;
+}
+message GetParaPolicyTallyRequest {
+  string post_uri = 1;
+}
+message GetParaPolicyTallyResponse {
+  ParaPolicyTally tally = 1;
+}
+
+// ParaProfileStats
+message GetParaProfileStatsRequest {
+  string actor_did = 1;
+}
+message GetParaProfileStatsResponse {
+  // just a placeholder, real fields TBD
+}
+
+// PostSubscription
+message PostSubscription {
+  string subscriber_did = 1;
+  string post_uri = 2;
+  bool reply = 3;
+  bool quote = 4;
+  google.protobuf.Timestamp indexed_at = 5;
+}
+message GetPostSubscriptionRequest {
+  string subscriber_did = 1;
+  string post_uri = 2;
+}
+message GetPostSubscriptionResponse {
+  PostSubscription subscription = 1;
+}
+message PutPostSubscriptionRequest {
+  string subscriber_did = 1;
+  string post_uri = 2;
+  bool reply = 3;
+  bool quote = 4;
+}
+message PutPostSubscriptionResponse {
+  PostSubscription subscription = 1;
+}
+
+// Para Community
+message ParaCommunityMember {
+  string did = 1;
+  string handle = 2;
+  string display_name = 3;
+  string avatar = 4;
+}
+message ParaCommunityMemberView {
+  string did = 1;
+  string handle = 2;
+  string display_name = 3;
+  string avatar = 4;
+  string membership_state = 5;
+  repeated string roles = 6;
+  string joined_at = 7;
+  int32 votes_cast = 8;
+  int32 delegations_received = 9;
+  int32 policy_posts = 10;
+  int32 matter_posts = 11;
+}
+message ParaCommunityModerator {
+  ParaCommunityMember member = 1;
+  string role = 2;
+  string badge = 3;
+}
+message ParaCommunityOfficial {
+  ParaCommunityMember member = 1;
+  string office = 2;
+  string mandate = 3;
+}
+message ParaCommunityDeputyRole {
+  int32 tier = 1;
+  string role = 2;
+  ParaCommunityMember active_holder = 3;
+  int32 votes_backing_role = 4;
+  repeated string applicants = 5;
+}
+message ParaCommunityGovernanceMetadata {
+  int32 term_length_days = 1;
+  string review_cadence = 2;
+  string escalation_path = 3;
+  string public_contact = 4;
+  string last_published_at = 5;
+  string state = 6;
+  repeated string matter_flair_ids = 7;
+  repeated string policy_flair_ids = 8;
+}
+message ParaCommunityGovernanceHistoryEntry {
+  string id = 1;
+  string action = 2;
+  string actor_did = 3;
+  string actor_handle = 4;
+  string created_at = 5;
+  string summary = 6;
+}
+message ParaCommunitySummary {
+  int32 members = 1;
+  int32 visible_posters = 2;
+  int32 policy_posts = 3;
+  int32 matter_posts = 4;
+  int32 badge_holders = 5;
+}
+message ParaCommunityGovernanceSummary {
+  int32 moderator_count = 1;
+  int32 official_count = 2;
+  int32 deputy_role_count = 3;
+  string last_published_at = 4;
+}
+message ParaCommunityBoardView {
+  string uri = 1;
+  string cid = 2;
+  string creator_did = 3;
+  string creator_handle = 4;
+  string creator_display_name = 5;
+  string community_id = 6;
+  string slug = 7;
+  string name = 8;
+  string description = 9;
+  string quadrant = 10;
+  string delegates_chat_id = 11;
+  string subdelegates_chat_id = 12;
+  int32 member_count = 13;
+  string viewer_membership_state = 14;
+  repeated string viewer_roles = 15;
+  string status = 16;
+  ParaCommunityGovernanceSummary governance_summary = 17;
+  string created_at = 18;
+}
+
+message GetParaCommunityBoardRequest {
+  string community_id = 1;
+  string uri = 2;
+  string viewer_did = 3;
+}
+message GetParaCommunityBoardResponse {
+  ParaCommunityBoardView board = 1;
+  ParaCommunityGovernanceSummary governance_summary = 2;
+}
+
+message GetParaCommunityBoardsRequest {
+  int32 limit = 1;
+  string cursor = 2;
+  string query = 3;
+  string state = 4;
+  string participation_kind = 5;
+  string flair_id = 6;
+  string sort = 7;
+  string quadrant = 8;
+  string viewer_did = 9;
+}
+message GetParaCommunityBoardsResponse {
+  repeated ParaCommunityBoardView boards = 1;
+  string cursor = 2;
+}
+
+message GetParaCommunityMembersRequest {
+  string community_id = 1;
+  string viewer_did = 2;
+  bool viewer_is_admin = 3;
+  string membership_state = 4;
+  string role = 5;
+  string sort = 6;
+  int32 limit = 7;
+  string cursor = 8;
+}
+message GetParaCommunityMembersResponse {
+  repeated ParaCommunityMemberView members = 1;
+  string cursor = 2;
+}
+
+message GetParaCommunityGovernanceRequest {
+  string community = 1;
+}
+message GetParaCommunityGovernanceResponse {
+  string community = 1;
+  ParaCommunitySummary summary = 2;
+  repeated ParaCommunityModerator moderators = 3;
+  repeated ParaCommunityOfficial officials = 4;
+  repeated ParaCommunityDeputyRole deputies = 5;
+  string computed_at = 6;
+  ParaCommunityGovernanceMetadata metadata = 7;
+  repeated ParaCommunityGovernanceHistoryEntry edit_history = 8;
+}
+
+message GetParaCommunityPostsRequest {
+  string community = 1;
+  string post_type = 2;
+  int32 limit = 3;
+  string cursor = 4;
+}
+message GetParaCommunityPostsResponse {
+  repeated ParaAuthorFeedItem items = 1;
+  string cursor = 2;
+}
+
+// Cabildeo
+message GetParaCabildeosRequest {
+  string community = 1;
+  string phase = 2;
+  int32 limit = 3;
+  string cursor = 4;
+  string viewer_did = 5;
+}
+message GetParaCabildeosResponse {
+  // items are complex objects returned as plain JSON
+  string cursor = 1;
+}
+
+message GetParaCabildeoRequest {
+  string cabildeo_uri = 1;
+  string viewer_did = 2;
+}
+message GetParaCabildeoResponse {
+  // cabildeo is a complex object returned as plain JSON
+}
+
+message GetParaCabildeoPositionsRequest {
+  string cabildeo_uri = 1;
+  string stance = 2;
+  int32 limit = 3;
+  string cursor = 4;
+}
+message GetParaCabildeoPositionsResponse {
+  // positions are complex objects returned as plain JSON
+  string cursor = 1;
+}
+
+message GetParaDelegationCandidatesRequest {
+  string cabildeo_uri = 1;
+  string community_id = 2;
+  string viewer_did = 3;
+  bool viewer_is_admin = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+message GetParaDelegationCandidatesResponse {
+  string cursor = 1;
+}
+
+message PutParaCabildeoLivePresenceRequest {
+  string cabildeo_uri = 1;
+  string actor_did = 2;
+  string session_id = 3;
+  bool present = 4;
+  string host_live_uri = 5;
+}
+message PutParaCabildeoLivePresenceResponse {
+  string cabildeo_uri = 1;
+  bool present = 2;
+  string expires_at = 3;
+}
+
+// Highlights
+message GetParaHighlightsRequest {
+  string community = 1;
+  string state = 2;
+  string subject_uri = 3;
+  string creator = 4;
+  int32 limit = 5;
+  string cursor = 6;
+}
+message GetParaHighlightsResponse {
+  string cursor = 1;
+}
+
+message GetParaHighlightRequest {
+  string highlight_uri = 1;
+}
+message GetParaHighlightResponse {
+  // highlight is a complex object
+}
+
+// Discourse
+message GetParaDiscourseSnapshotRequest {
+  string community = 1;
+  string timeframe = 2;
+}
+message GetParaDiscourseSnapshotResponse {
+  // snapshots are complex objects
+}
+
+message GetParaDiscourseTopicsRequest {
+  string community = 1;
+  string timeframe = 2;
+}
+message GetParaDiscourseTopicsResponse {
+  // topics are complex objects
+}
+
+message GetParaDiscourseSentimentRequest {
+  string community = 1;
+  string timeframe = 2;
+}
+message GetParaDiscourseSentimentResponse {
+  // sentiment is a complex object
+}
+
 message StashRef {
   string actor_did = 1;
   string namespace = 2;
@@ -1544,7 +1947,41 @@ service Service {
   // Ping
   rpc Ping(PingRequest) returns (PingResponse);
 
+  // Para Feeds
+  rpc GetParaAuthorFeed(GetParaAuthorFeedRequest) returns (GetParaAuthorFeedResponse);
+  rpc GetParaTimeline(GetParaTimelineRequest) returns (GetParaTimelineResponse);
+  rpc GetParaPosts(GetParaPostsRequest) returns (GetParaPostsResponse);
+  rpc GetParaThread(GetParaThreadRequest) returns (GetParaThreadResponse);
+  rpc GetParaPostMeta(GetParaPostMetaRequest) returns (GetParaPostMetaResponse);
+  rpc GetParaPolicyTally(GetParaPolicyTallyRequest) returns (GetParaPolicyTallyResponse);
+  rpc GetParaProfileStats(GetParaProfileStatsRequest) returns (GetParaProfileStatsResponse);
 
+  // Para Community
+  rpc GetParaCommunityGovernance(GetParaCommunityGovernanceRequest) returns (GetParaCommunityGovernanceResponse);
+  rpc GetParaCommunityBoard(GetParaCommunityBoardRequest) returns (GetParaCommunityBoardResponse);
+  rpc GetParaCommunityBoards(GetParaCommunityBoardsRequest) returns (GetParaCommunityBoardsResponse);
+  rpc GetParaCommunityMembers(GetParaCommunityMembersRequest) returns (GetParaCommunityMembersResponse);
+  rpc GetParaCommunityPosts(GetParaCommunityPostsRequest) returns (GetParaCommunityPostsResponse);
+
+  // Cabildeo
+  rpc GetParaCabildeos(GetParaCabildeosRequest) returns (GetParaCabildeosResponse);
+  rpc GetParaCabildeo(GetParaCabildeoRequest) returns (GetParaCabildeoResponse);
+  rpc GetParaCabildeoPositions(GetParaCabildeoPositionsRequest) returns (GetParaCabildeoPositionsResponse);
+  rpc GetParaDelegationCandidates(GetParaDelegationCandidatesRequest) returns (GetParaDelegationCandidatesResponse);
+  rpc PutParaCabildeoLivePresence(PutParaCabildeoLivePresenceRequest) returns (PutParaCabildeoLivePresenceResponse);
+
+  // Post Subscription
+  rpc GetPostSubscription(GetPostSubscriptionRequest) returns (GetPostSubscriptionResponse);
+  rpc PutPostSubscription(PutPostSubscriptionRequest) returns (PutPostSubscriptionResponse);
+
+  // Highlights
+  rpc GetParaHighlights(GetParaHighlightsRequest) returns (GetParaHighlightsResponse);
+  rpc GetParaHighlight(GetParaHighlightRequest) returns (GetParaHighlightResponse);
+
+  // Discourse
+  rpc GetParaDiscourseSnapshot(GetParaDiscourseSnapshotRequest) returns (GetParaDiscourseSnapshotResponse);
+  rpc GetParaDiscourseTopics(GetParaDiscourseTopicsRequest) returns (GetParaDiscourseTopicsResponse);
+  rpc GetParaDiscourseSentiment(GetParaDiscourseSentimentRequest) returns (GetParaDiscourseSentimentResponse);
 
 
   //

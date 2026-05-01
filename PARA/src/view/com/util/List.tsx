@@ -17,7 +17,7 @@ import {IS_IOS} from '#/env'
 import {FlatList_INTERNAL} from './Views'
 
 export type ListMethods = FlatList_INTERNAL
-export type ListProps<ItemT = any> = Omit<
+export type ListProps<ItemT = unknown> = Omit<
   FlatListPropsWithLayout<ItemT>,
   | 'onMomentumScrollBegin' // Use ScrollContext instead.
   | 'onMomentumScrollEnd' // Use ScrollContext instead.
@@ -57,7 +57,7 @@ let List = forwardRef<ListMethods, ListProps>(
       ...props
     },
     ref,
-  ): React.ReactElement<any> => {
+  ): React.ReactElement => {
     const isScrolledDown = useSharedValue(false)
     const t = useTheme()
     const dedupe = useDedupe(400)

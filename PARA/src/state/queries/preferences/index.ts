@@ -68,7 +68,8 @@ export function usePreferencesQuery() {
         const preferences: UsePreferencesQueryResponse = {
           ...res,
           savedFeeds: res.savedFeeds.filter(
-            f => f.type !== 'unknown' && (!IS_LOCAL_DEV_MODE || f.type !== 'feed'),
+            f =>
+              f.type !== 'unknown' && (!IS_LOCAL_DEV_MODE || f.type !== 'feed'),
           ),
           /**
            * Special preference, only used for following feed, previously

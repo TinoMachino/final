@@ -14,7 +14,7 @@ export function ResendEmailText({
   onPress,
   style,
 }: TextStyleProp & {
-  onPress: () => Promise<any>
+  onPress: () => Promise<void>
 }) {
   const t = useTheme()
   const {_} = useLingui()

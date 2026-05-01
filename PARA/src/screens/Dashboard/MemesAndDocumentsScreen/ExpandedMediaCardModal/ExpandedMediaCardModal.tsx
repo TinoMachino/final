@@ -91,13 +91,17 @@ export function ExpandedMediaCardModal({
               />
 
               <ActionButton
-                icon={<CommentIcon size="sm" style={t.atoms.text_contrast_medium} />}
+                icon={
+                  <CommentIcon size="sm" style={t.atoms.text_contrast_medium} />
+                }
                 label={String(item.comments)}
                 onPress={() => {}}
               />
 
               <ActionButton
-                icon={<ExpandIcon size="sm" style={t.atoms.text_contrast_medium} />}
+                icon={
+                  <ExpandIcon size="sm" style={t.atoms.text_contrast_medium} />
+                }
                 label="Cerrar"
                 onPress={onClose}
               />

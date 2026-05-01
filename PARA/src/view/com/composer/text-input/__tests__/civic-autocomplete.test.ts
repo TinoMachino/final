@@ -1,4 +1,4 @@
-import {getOpenQuestionSearchQuery,POST_FLAIRS, POST_TYPES} from '#/lib/tags'
+import {getOpenQuestionSearchQuery, POST_FLAIRS, POST_TYPES} from '#/lib/tags'
 import {
   applyCivicAutocompleteItem,
   getCivicAutocompleteItems,
@@ -33,10 +33,18 @@ describe('civic autocomplete', () => {
     )
 
     expect(
-      items.some(item => item.type === 'policyFlair' && item.key === POST_FLAIRS.transporte_publico_pol.id),
+      items.some(
+        item =>
+          item.type === 'policyFlair' &&
+          item.key === POST_FLAIRS.transporte_publico_pol.id,
+      ),
     ).toBe(true)
     expect(
-      items.some(item => item.type === 'matterFlair' && item.key === POST_FLAIRS.transporte_publico_matter.id),
+      items.some(
+        item =>
+          item.type === 'matterFlair' &&
+          item.key === POST_FLAIRS.transporte_publico_matter.id,
+      ),
     ).toBe(true)
   })
 
@@ -91,7 +99,10 @@ describe('civic autocomplete', () => {
     const context = getComposerAutocompleteContext('Pregunta /raq', 13)
     const item = getCivicAutocompleteItems(
       context as Extract<typeof context, {type: 'command'}>,
-    ).find(candidate => candidate.type === 'composerCommand' && candidate.command === 'raq')
+    ).find(
+      candidate =>
+        candidate.type === 'composerCommand' && candidate.command === 'raq',
+    )
 
     const once = applyCivicAutocompleteItem({
       item: item!,
@@ -108,7 +119,10 @@ describe('civic autocomplete', () => {
   })
 
   it('applies the open-question command exactly once and stays query-compatible', () => {
-    const context = getComposerAutocompleteContext('Pregunta /open-question', 23)
+    const context = getComposerAutocompleteContext(
+      'Pregunta /open-question',
+      23,
+    )
     const item = getCivicAutocompleteItems(
       context as Extract<typeof context, {type: 'command'}>,
     ).find(

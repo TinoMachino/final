@@ -1,4 +1,11 @@
-import {type ComponentProps, useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   Modal,
   type NativeScrollEvent,
@@ -13,7 +20,10 @@ import {useNavigation} from '@react-navigation/native'
 
 import {type NavigationProp} from '#/lib/routes/types'
 import {POST_FLAIRS, type PostFlair} from '#/lib/tags'
-import {useRecentCommunities} from '#/state/persisted/recent-communities'
+import {
+  clearRecentCommunities,
+  useRecentCommunities,
+} from '#/state/persisted/recent-communities'
 import {
   type CommunityBoardView,
   useCommunityBoardsQuery,
@@ -117,7 +127,9 @@ export function CommunitiesScreen() {
   const stateMatches = stateMatchesData?.boards ?? []
   const recentCommunities = useRecentCommunities()
   const recentLiveBoards = recentCommunities.slice(0, 3)
-  const politicalBoards = liveBoards.filter(board => board.quadrant === 'political')
+  const politicalBoards = liveBoards.filter(
+    board => board.quadrant === 'political',
+  )
 
   useEffect(() => {
     if (trackedCreatorEntryMetric.current || !liveBoardsData) return
@@ -183,6 +195,21 @@ export function CommunitiesScreen() {
           contentContainerStyle={styles.scrollContent}>
           <View style={[styles.contentShell, IS_WEB && styles.contentShellWeb]}>
             <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionHeading, t.atoms.text, {marginBottom: 0}]}>
+                  <Trans>Recent communities</Trans>
+                </Text>
+                {recentCommunities.length > 0 && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => clearRecentCommunities()}
+                    style={[styles.clearButton, {backgroundColor: t.palette.contrast_100}]}>
+                    <Text style={[styles.clearButtonText, {color: t.palette.primary_600}]}>
+                      <Trans>Clear</Trans>
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               <View style={[styles.resumeGrid, IS_WEB && styles.resumeGridWeb]}>
                 {recentLiveBoards.length > 0 ? (
@@ -205,7 +232,6 @@ export function CommunitiesScreen() {
             </View>
 
             <View style={styles.section}>
-
               <View
                 style={[
                   styles.creatorEntryCard,
@@ -247,12 +273,20 @@ export function CommunitiesScreen() {
                     onPress={navigateToCreateCommunity}
                     style={[
                       styles.creatorEntryButton,
-                      {backgroundColor: canCreateCommunity ? '#fff' : t.palette.contrast_100},
+                      {
+                        backgroundColor: canCreateCommunity
+                          ? '#fff'
+                          : t.palette.contrast_100,
+                      },
                     ]}>
                     <Text
                       style={[
                         styles.creatorEntryButtonText,
-                        {color: canCreateCommunity ? t.palette.primary_600 : t.atoms.text.color},
+                        {
+                          color: canCreateCommunity
+                            ? t.palette.primary_600
+                            : t.atoms.text.color,
+                        },
                       ]}>
                       Create community
                     </Text>
@@ -293,11 +327,7 @@ export function CommunitiesScreen() {
               </Text>
 
               <View style={styles.directoryStack}>
-
-                <DirectoryModule
-                  title="Parties"
-                  description=""
-                  theme={t}>
+                <DirectoryModule title="Parties" description="" theme={t}>
                   {politicalBoards.length === 0 ? (
                     <EmptyLiveDirectoryCard
                       theme={t}
@@ -547,7 +577,7 @@ export function CommunitiesScreen() {
                         )
                       : []
                   }
-                  setSelectedFlairs={(flairs: any[]) => {
+                  setSelectedFlairs={(flairs: PostFlair[]) => {
                     if (flairs.length > 0) {
                       const flair = flairs[0] as PostFlair
                       setParticipationType(
@@ -637,7 +667,11 @@ function LiveCommunityCard({
             styles.liveBoardAvatar,
             {backgroundColor: theme.palette.primary_100},
           ]}>
-          <Text style={[styles.liveBoardAvatarText, {color: theme.palette.primary_600}]}>
+          <Text
+            style={[
+              styles.liveBoardAvatarText,
+              {color: theme.palette.primary_600},
+            ]}>
             {board.name.charAt(0).toUpperCase()}
           </Text>
         </View>
@@ -645,7 +679,11 @@ function LiveCommunityCard({
           <Text style={[styles.liveBoardTitle, theme.atoms.text]}>
             {board.name}
           </Text>
-          <Text style={[styles.liveBoardSubtitle, theme.atoms.text_contrast_medium]}>
+          <Text
+            style={[
+              styles.liveBoardSubtitle,
+              theme.atoms.text_contrast_medium,
+            ]}>
             {board.quadrant}
           </Text>
         </View>
@@ -655,8 +693,8 @@ function LiveCommunityCard({
           'Seeded community with live governance scaffolding and creator membership.'}
       </Text>
       <Text style={[styles.liveBoardFooter, theme.atoms.text_contrast_medium]}>
-        {board.memberCount} members • {board.governanceSummary?.moderatorCount ?? 0}{' '}
-        moderators
+        {board.memberCount} members •{' '}
+        {board.governanceSummary?.moderatorCount ?? 0} moderators
       </Text>
     </TouchableOpacity>
   )

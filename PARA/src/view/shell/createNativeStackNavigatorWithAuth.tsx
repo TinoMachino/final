@@ -81,7 +81,7 @@ function NativeStackNavigator({
   useEffect(
     () =>
       // @ts-expect-error: there may not be a tab navigator in parent
-      navigation?.addListener?.('tabPress', (e: any) => {
+      navigation?.addListener?.('tabPress', (e: EventArg<'tabPress', true>) => {
         const isFocused = navigation.isFocused()
 
         // Run the operation in the next frame so we're sure all listeners have been run
@@ -148,7 +148,9 @@ function NativeStackNavigator({
 
   // Show the bottom bar if we have a session only on mobile web. If we don't have a session, we want to show it
   // on both tablet and mobile web so that we see the create account CTA.
-  const showBottomBar = hasSession ? isMobile : leftNavMinimal && !isLoggedOutHome
+  const showBottomBar = hasSession
+    ? isMobile
+    : leftNavMinimal && !isLoggedOutHome
 
   return (
     <NavigationContent>

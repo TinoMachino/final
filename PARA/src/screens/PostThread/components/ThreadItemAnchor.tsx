@@ -20,7 +20,7 @@ import {useActorStatus} from '#/lib/actor-status'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {useTranslate} from '#/lib/hooks/useTranslate'
-import {getPostBadges} from '#/lib/post-flairs'
+import {getPostBadges, type PostBadgeRecord} from '#/lib/post-flairs'
 import {makeProfileLink} from '#/lib/routes/links'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
@@ -210,7 +210,7 @@ const ThreadItemAnchorInner = memo(function ThreadItemAnchorInner({
       }),
     [record],
   )
-  const postBadges = useMemo(() => getPostBadges(record as any), [record])
+  const postBadges = useMemo(() => getPostBadges(record as PostBadgeRecord), [record])
 
   const threadRootUri = record.reply?.root?.uri || post.uri
   const authorHref = makeProfileLink(post.author)
@@ -475,7 +475,11 @@ const ThreadItemAnchorInner = memo(function ThreadItemAnchorInner({
                     <Text style={[a.text_md, a.font_semi_bold, t.atoms.text]}>
                       {formatPostStatCount(paraSummaryMetrics.votes)}
                     </Text>{' '}
-                    <Plural value={paraSummaryMetrics.votes} one="vote" other="votes" />
+                    <Plural
+                      value={paraSummaryMetrics.votes}
+                      one="vote"
+                      other="votes"
+                    />
                   </Text>
                 </Link>
               ) : null}
@@ -494,7 +498,9 @@ const ThreadItemAnchorInner = memo(function ThreadItemAnchorInner({
                 </Text>
               ) : null}
               {paraSummaryMetrics.highlights !== 0 ? (
-                <Link to={highlightsHref} label={_(msg`Highlights on this post`)}>
+                <Link
+                  to={highlightsHref}
+                  label={_(msg`Highlights on this post`)}>
                   <Text
                     testID="highlightCount-expanded"
                     style={[a.text_md, t.atoms.text_contrast_medium]}>
@@ -533,7 +539,11 @@ const ThreadItemAnchorInner = memo(function ThreadItemAnchorInner({
                   <Text style={[a.text_md, a.font_semi_bold, t.atoms.text]}>
                     {formatPostStatCount(paraSummaryMetrics.saves)}
                   </Text>{' '}
-                  <Plural value={paraSummaryMetrics.saves} one="save" other="saves" />
+                  <Plural
+                    value={paraSummaryMetrics.saves}
+                    one="save"
+                    other="saves"
+                  />
                 </Text>
               ) : null}
             </View>

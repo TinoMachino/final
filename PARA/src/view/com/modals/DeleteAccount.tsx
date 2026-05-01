@@ -55,7 +55,7 @@ export function Component({}: {}) {
     try {
       await agent.com.atproto.server.requestAccountDelete()
       setIsEmailSent(true)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(cleanError(e))
     }
     setIsProcessing(false)
@@ -89,7 +89,7 @@ export function Component({}: {}) {
       resetToTab('HomeTab')
       removeAccount(currentAccount)
       closeModal()
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(cleanError(e))
     }
     setIsProcessing(false)

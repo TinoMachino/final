@@ -56,7 +56,7 @@ function DebugInner({
   const pal = usePalette('default')
   const {_} = useLingui()
 
-  const renderItem = (item: any) => {
+  const renderItem = (item: {currentView: number}) => {
     return (
       <View key={`view-${item.currentView}`}>
         <View style={[s.pt10, s.pl10, s.pr10]}>

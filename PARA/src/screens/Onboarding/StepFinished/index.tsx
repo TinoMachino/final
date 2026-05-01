@@ -168,9 +168,9 @@ export function StepFinished() {
         })(),
         requestNotificationsPermission('AfterOnboarding'),
       ])
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.info(`onboarding: bulk save failed`)
-      logger.error(e)
+      logger.error(String(e))
       // don't alert the user, just let them into their account
     }
 

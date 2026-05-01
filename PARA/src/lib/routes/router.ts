@@ -1,6 +1,6 @@
 import {type Route, type RouteParams} from './types'
 
-export class Router<T extends Record<string, any>> {
+export class Router<T extends Record<string, string | string[]>> {
   routes: [string, Route][] = []
   constructor(description: Record<keyof T, string | string[]>) {
     for (const [screen, pattern] of Object.entries(description)) {

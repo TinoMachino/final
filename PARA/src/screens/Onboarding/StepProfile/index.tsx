@@ -262,8 +262,8 @@ export function StepProfile() {
           </OnboardingTitleText>
           <OnboardingDescriptionText>
             <Trans>
-              People participate more openly when they know who is speaking.
-              Add a photo or create an avatar that feels like you.
+              People participate more openly when they know who is speaking. Add
+              a photo or create an avatar that feels like you.
             </Trans>
           </OnboardingDescriptionText>
         </View>

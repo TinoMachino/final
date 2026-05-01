@@ -138,10 +138,9 @@ export function Toasts() {
         <Pressable
           accessibilityRole="button"
           onPress={() =>
-            deprecatedShow(
-              `This is a test of the deprecated API`,
-              {type: 'warning'},
-            )
+            deprecatedShow(`This is a test of the deprecated API`, {
+              type: 'warning',
+            })
           }>
           <DefaultToast
             content="This is a test of the deprecated API"

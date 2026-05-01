@@ -68,7 +68,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         uri: post.uri,
         author: post.creator,
         postType: meta?.postType ?? post.postType ?? undefined,
-        official: meta?.official ?? undefined,
+        official: meta?.official != null ? String(meta.official) : undefined,
         party: meta?.party ?? undefined,
         community: meta?.community ?? undefined,
         category: meta?.category ?? undefined,
@@ -121,10 +121,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         .selectFrom('para_policy_vote')
         .where('subject', '=', req.postUri)
         .where('subjectType', '=', 'policy')
-        .select([
-          'signal',
-          sql<number>`count(*)`.as('count'),
-        ])
+        .select(['signal', sql<number>`count(*)`.as('count')])
         .groupBy('signal')
         .orderBy('signal', 'asc')
         .execute(),
@@ -264,7 +261,11 @@ const getEligiblePolicyVoterCount = async (
     .select('uri')
     .where((qb) =>
       qb
-        .where(sql`lower(regexp_replace(coalesce("slug", ''), '^p/', ''))`, '=', normalizedCommunity)
+        .where(
+          sql`lower(regexp_replace(coalesce("slug", ''), '^p/', ''))`,
+          '=',
+          normalizedCommunity,
+        )
         .orWhere(
           sql`lower(regexp_replace(coalesce("name", ''), '^p/', ''))`,
           '=',
@@ -355,7 +356,9 @@ const isPassedOutcome = (outcome: string) =>
 const buildSignalBreakdown = (
   rows: Array<{ signal: number; count: number }>,
 ) => {
-  const counts = new Map(rows.map((row) => [Number(row.signal), Number(row.count)]))
+  const counts = new Map(
+    rows.map((row) => [Number(row.signal), Number(row.count)]),
+  )
   const buckets: ParaPolicySignalBucket[] = []
   for (let signal = -3; signal <= 3; signal++) {
     buckets.push(

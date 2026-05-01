@@ -73,7 +73,10 @@ export type AppNux = BaseNux<
     }
 >
 
-export const NuxSchemas: Record<Nux, zod.ZodObject<any> | undefined> = {
+export const NuxSchemas: Record<
+  Nux,
+  zod.ZodObject<zod.ZodRawShape> | undefined
+> = {
   [Nux.NeueTypography]: undefined,
   [Nux.ExploreInterestsCard]: undefined,
   [Nux.InitialVerificationAnnouncement]: undefined,

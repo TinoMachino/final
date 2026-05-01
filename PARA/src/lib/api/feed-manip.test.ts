@@ -72,7 +72,10 @@ describe('FeedTuner Debug', () => {
     const tuner = new FeedTuner(feedTuners)
 
     console.log('Running tune in TEST...')
-    const slices = tuner.tune([mockFeedItemRaw as any], {dryRun: false})
+    const slices = tuner.tune(
+      [mockFeedItemRaw as unknown as AppBskyFeedDefs.FeedViewPost],
+      {dryRun: false},
+    )
 
     console.log('Test Result slices:', slices.length)
     expect(slices.length).toBeGreaterThan(0)

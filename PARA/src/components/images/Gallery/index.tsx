@@ -48,7 +48,7 @@ interface GalleryProps {
   images: AppBskyEmbedImages.ViewImage[]
   onPress?: (
     index: number,
-    containerRefs: AnimatedRef<any>[],
+    containerRefs: AnimatedRef<View>[],
     fetchedDims: (Dimensions | null)[],
   ) => void
   onPressIn?: (index: number) => void
@@ -71,7 +71,7 @@ export function GalleryBleed({children}: {children: React.ReactNode}) {
     throw new Error('GalleryBleed children must be a single React element')
   }
 
-  const node = children as React.ReactElement<any>
+  const node = children as React.ReactElement<Record<string, unknown>>
 
   return (
     <Context.Provider value={{bleedRef: ref, bleedWidth}}>
@@ -152,7 +152,7 @@ export function Gallery({
   const flatListRef = useRef<FlatList>(null)
   const itemWidthsRef = useRef<Map<number, number>>(new Map())
   const itemRefsRef = useRef<Map<number, View>>(new Map())
-  const containerRefsRef = useRef<Map<number, AnimatedRef<any>>>(new Map())
+  const containerRefsRef = useRef<Map<number, AnimatedRef<View>>>(new Map())
   const thumbDimsRef = useRef<Map<number, Dimensions>>(new Map())
   const currentIndexRef = useRef(0)
 
@@ -295,7 +295,7 @@ export function Gallery({
                           fromImage: index + 1, // convert to 1-based index for easier analysis
                           totalImages: images.length,
                         })
-                        const refs: AnimatedRef<any>[] = []
+                        const refs: AnimatedRef<View>[] = []
                         const dims: (Dimensions | null)[] = []
                         for (let i = 0; i < images.length; i++) {
                           refs.push(containerRefsRef.current.get(i)!)
@@ -387,7 +387,7 @@ function GalleryImage({
   itemRef: (node: View | null) => void
   hideBadges?: boolean
   largeAltBadge?: boolean
-  onContainerRef: (index: number, ref: AnimatedRef<any>) => void
+  onContainerRef: (index: number, ref: AnimatedRef<View>) => void
   onThumbDims: (index: number, dims: Dimensions) => void
   onPress?: () => void
   onPressIn?: () => void

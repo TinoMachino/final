@@ -1,4 +1,4 @@
-import {memo, type ReactNode, useCallback} from 'react'
+import {memo, useCallback} from 'react'
 import {Keyboard, View} from 'react-native'
 import {type ChatBskyConvoDefs, type ModerationCause} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
@@ -25,9 +25,9 @@ import {AfterReportDialog} from '#/components/dms/AfterReportDialog'
 import {BlockedByListDialog} from '#/components/dms/BlockedByListDialog'
 import {LeaveConvoPrompt} from '#/components/dms/LeaveConvoPrompt'
 import {ReportConversationPrompt} from '#/components/dms/ReportConversationPrompt'
-import {ArrowBoxLeft_Stroke2_Corner0_Rounded as ArrowBoxLeft} from '#/components/icons/ArrowBoxLeft'
-import {Bubble_Stroke2_Corner2_Rounded as Bubble} from '#/components/icons/Bubble'
-import {DotGrid3x1_Stroke2_Corner0_Rounded as DotsHorizontal} from '#/components/icons/DotGrid'
+import {ArrowBoxLeft_Stroke2_Corner0_Rounded as ArrowBoxLeftIcon} from '#/components/icons/ArrowBoxLeft'
+import {Bubble_Stroke2_Corner2_Rounded as BubbleIcon} from '#/components/icons/Bubble'
+import {DotGrid3x1_Stroke2_Corner0_Rounded as DotsHorizontalIcon} from '#/components/icons/DotGrid'
 import {Flag_Stroke2_Corner0_Rounded as Flag} from '#/components/icons/Flag'
 import {Mute_Stroke2_Corner0_Rounded as Mute} from '#/components/icons/Mute'
 import {
@@ -65,7 +65,7 @@ let ConvoMenu = ({
   }
   latestReportableMessage?: ChatBskyConvoDefs.MessageView
   style?: ViewStyleProp['style']
-}): ReactNode => {
+}): React.ReactNode => {
   const {_} = useLingui()
   const queryClient = useQueryClient()
 
@@ -95,7 +95,7 @@ let ConvoMenu = ({
                   shape="round"
                   variant="ghost"
                   style={[a.bg_transparent]}>
-                  <ButtonIcon icon={DotsHorizontal} size="md" />
+                  <ButtonIcon icon={DotsHorizontalIcon} size="md" />
                 </Button>
               )}
             </Menu.Trigger>
@@ -220,9 +220,9 @@ function MenuContent({
     }
 
     if (userBlock) {
-      queueUnblock()
+      void queueUnblock()
     } else {
-      queueBlock()
+      void queueBlock()
     }
   }, [userBlock, listBlocks, blockedByListControl, queueBlock, queueUnblock])
 
@@ -233,7 +233,7 @@ function MenuContent({
       <Menu.ItemText>
         <Trans>Leave conversation</Trans>
       </Menu.ItemText>
-      <Menu.ItemIcon icon={ArrowBoxLeft} />
+      <Menu.ItemIcon icon={ArrowBoxLeftIcon} />
     </Menu.Item>
   ) : (
     <>
@@ -245,7 +245,7 @@ function MenuContent({
             <Menu.ItemText>
               <Trans>Mark as read</Trans>
             </Menu.ItemText>
-            <Menu.ItemIcon icon={Bubble} />
+            <Menu.ItemIcon icon={BubbleIcon} />
           </Menu.Item>
         )}
         <Menu.Item
@@ -296,7 +296,7 @@ function MenuContent({
           <Menu.ItemText>
             <Trans>Leave conversation</Trans>
           </Menu.ItemText>
-          <Menu.ItemIcon icon={ArrowBoxLeft} />
+          <Menu.ItemIcon icon={ArrowBoxLeftIcon} />
         </Menu.Item>
       </Menu.Group>
     </>

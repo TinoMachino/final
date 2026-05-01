@@ -204,6 +204,7 @@ export function InviteLinkDialog({
                 {whoCanJoinOptions.map(option => (
                   <Toggle.Item
                     key={option.name}
+                    highlightRow={true}
                     label={isOwner ? option.owner : option.member}
                     name={option.name}
                     style={[a.flex_1]}>

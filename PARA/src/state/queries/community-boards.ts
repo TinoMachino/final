@@ -124,7 +124,9 @@ export const communityBoardsQueryKey = (opts: CommunityBoardsQueryOptions) => [
   opts.cursor ?? '',
 ]
 
-export const communityMembersQueryKey = (opts: CommunityMembersQueryOptions) => [
+export const communityMembersQueryKey = (
+  opts: CommunityMembersQueryOptions,
+) => [
   RQKEY_ROOT,
   'members',
   opts.communityId ?? '',
@@ -143,7 +145,9 @@ export const communityBoardQueryKey = ({
   uri?: string
 }) => [RQKEY_ROOT, 'detail', communityId || '', uri || '']
 
-export function useCommunityBoardsQuery(opts: CommunityBoardsQueryOptions = {}) {
+export function useCommunityBoardsQuery(
+  opts: CommunityBoardsQueryOptions = {},
+) {
   const agent = useAgent()
   const options = {limit: 12, ...opts}
 
@@ -173,9 +177,7 @@ export function useCommunityBoardQuery({
   })
 }
 
-export function useCommunityMembersQuery(
-  opts: CommunityMembersQueryOptions,
-) {
+export function useCommunityMembersQuery(opts: CommunityMembersQueryOptions) {
   const agent = useAgent()
   const options = {limit: 50, membershipState: 'active', ...opts}
 
@@ -330,7 +332,11 @@ async function createCommunity({
   agent: ReturnType<typeof useAgent>
   input: CreateCommunityInput
 }): Promise<CreateCommunityResponse> {
-  const res = await agent.call('com.para.community.createBoard', undefined, input)
+  const res = await agent.call(
+    'com.para.community.createBoard',
+    undefined,
+    input,
+  )
 
   const json = asRecord(res.data)
   return {
@@ -366,7 +372,9 @@ function normalizeCommunityMembersResponse(
   }
 }
 
-function normalizeCommunityBoardResponse(json: unknown): CommunityBoardResponse {
+function normalizeCommunityBoardResponse(
+  json: unknown,
+): CommunityBoardResponse {
   const data = asRecord(json) ?? {}
   return {
     board: normalizeBoard(data.board),
@@ -451,22 +459,6 @@ function normalizeMembershipState(
   }
 }
 
-async function extractErrorMessage(res: Response) {
-  try {
-    const json = asRecord(await res.json())
-    const message = readString(json?.message)
-    if (message?.trim()) {
-      return message
-    }
-    const error = readString(json?.error)
-    if (error?.trim()) {
-      return error
-    }
-  } catch {}
-
-  return `Request failed (${res.status})`
-}
-
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>
@@ -487,29 +479,13 @@ function normalizeNumber(value: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-function buildIdempotencyKey() {
-  return `community-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-function normalizeStatus(
-  value: unknown,
-): CommunityBoardView['status'] {
+function normalizeStatus(value: unknown): CommunityBoardView['status'] {
   switch (value) {
     case 'draft':
     case 'active':
       return value
     default:
       return undefined
-  }
-}
-
-function setParam(
-  params: URLSearchParams,
-  key: string,
-  value: string | undefined,
-) {
-  if (value && value.trim()) {
-    params.set(key, value)
   }
 }
 
@@ -520,11 +496,7 @@ async function joinCommunity({
   agent: ReturnType<typeof useAgent>
   input: JoinCommunityInput
 }): Promise<JoinCommunityResponse> {
-  const res = await agent.call(
-    'com.para.community.join',
-    undefined,
-    input,
-  )
+  const res = await agent.call('com.para.community.join', undefined, input)
 
   const json = asRecord(res.data)
   return {
@@ -545,11 +517,7 @@ async function leaveCommunity({
   agent: ReturnType<typeof useAgent>
   input: LeaveCommunityInput
 }): Promise<LeaveCommunityResponse> {
-  const res = await agent.call(
-    'com.para.community.leave',
-    undefined,
-    input,
-  )
+  const res = await agent.call('com.para.community.leave', undefined, input)
 
   const json = asRecord(res.data)
   return {
@@ -579,7 +547,6 @@ async function acceptDraftInvite({
   const json = asRecord(res.data)
   return {
     status: (readString(json?.status) as 'draft' | 'active') ?? 'draft',
-    memberCount:
-      typeof json?.memberCount === 'number' ? json.memberCount : 0,
+    memberCount: typeof json?.memberCount === 'number' ? json.memberCount : 0,
   }
 }

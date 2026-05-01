@@ -47,8 +47,9 @@ function DeactivateAccountDialogInner({
       control.close(() => {
         logoutCurrentAccount('Deactivated')
       })
-    } catch (e: any) {
-      switch (e.message) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      switch (message) {
         case 'Bad token scope':
           setError(
             _(

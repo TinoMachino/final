@@ -51,7 +51,12 @@ export function MyLists({
   const isEmpty = !isFetching && !data?.length
 
   const items = useMemo(() => {
-    let items: any[] = []
+    let items: (
+      | GraphDefs.ListView
+      | typeof LOADING
+      | typeof EMPTY
+      | typeof ERROR_ITEM
+    )[] = []
     if (isError && isEmpty) {
       items = items.concat([ERROR_ITEM])
     }
@@ -99,7 +104,17 @@ export function MyLists({
   // =
 
   const renderItemInner = useCallback(
-    ({item, index}: {item: any; index: number}) => {
+    ({
+      item,
+      index,
+    }: {
+      item:
+        | GraphDefs.ListView
+        | typeof LOADING
+        | typeof EMPTY
+        | typeof ERROR_ITEM
+      index: number
+    }) => {
       if (item === EMPTY) {
         return (
           <View style={[a.flex_1, a.align_center, a.gap_sm, a.px_xl, a.pt_3xl]}>

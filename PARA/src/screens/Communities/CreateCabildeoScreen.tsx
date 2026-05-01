@@ -91,9 +91,11 @@ export function CreateCabildeoScreen(_props: Props) {
       await publishCabildeo(agent, recordData)
       Toast.show('Cabildeo creado exitosamente')
       navigation.goBack()
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e)
-      Toast.show('Error al publicar: ' + e.message)
+      Toast.show(
+        'Error al publicar: ' + (e instanceof Error ? e.message : String(e)),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -221,7 +223,9 @@ export function CreateCabildeoScreen(_props: Props) {
                     <Text
                       style={[
                         styles.toggleLabel,
-                        geoRestricted ? {color: t.palette.negative_500} : t.atoms.text,
+                        geoRestricted
+                          ? {color: t.palette.negative_500}
+                          : t.atoms.text,
                       ]}>
                       Restringir a residentes de {region}
                     </Text>
@@ -353,7 +357,8 @@ export function CreateCabildeoScreen(_props: Props) {
                     : t.palette.primary_500,
                 },
               ]}>
-              <Text style={[styles.submitBtnText, {color: t.palette.contrast_100}]}>
+              <Text
+                style={[styles.submitBtnText, {color: t.palette.contrast_100}]}>
                 {isSubmitting
                   ? 'Publicando...'
                   : 'Publicar Cabildeo (Fase Borrador)'}

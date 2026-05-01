@@ -267,6 +267,7 @@ export function CompassSettingsButton() {
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel="View settings"
+        accessibilityHint="Opens filter and sort options"
         style={styles.filterButton}
         onPress={() => setShowSettings(true)}
         hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
@@ -471,7 +472,7 @@ export function CommunityFilterList({
   applyFilters?: () => void
   filterCount?: number
   hideBorder?: boolean
-  style?: any
+  style?: StyleProp<ViewStyle>
 }) {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()

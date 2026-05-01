@@ -45,8 +45,9 @@ export {Input} from '#/components/forms/TextField'
 // 100 minus 10vh of paddingVertical
 export const WEB_DIALOG_HEIGHT = '80vh'
 
-const stopPropagation = (e: any) => e.stopPropagation()
-const preventDefault = (e: any) => e.preventDefault()
+const stopPropagation = (e: {stopPropagation: () => void}) =>
+  e.stopPropagation()
+const preventDefault = (e: {preventDefault: () => void}) => e.preventDefault()
 
 export function Outer({
   children,
@@ -77,9 +78,9 @@ export function Outer({
           // 'Step 1', 'Step 3', 'Step 2'.
           setTimeout(cb)
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(`Dialog closeCallback failed`, {
-          message: e.message,
+          message: e instanceof Error ? e.message : String(e),
         })
       }
 
@@ -225,7 +226,7 @@ export const ScrollableInner = Inner
 
 export const InnerFlatList = forwardRef<
   FlatList,
-  FlatListProps<any> & {label: string} & {
+  FlatListProps<Record<string, unknown>> & {label: string} & {
     webInnerStyle?: StyleProp<ViewStyle>
     webInnerContentContainerStyle?: StyleProp<ViewStyle>
     footer?: ReactNode

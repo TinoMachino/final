@@ -25,7 +25,7 @@ export interface PostBadge {
   isOfficial?: boolean
 }
 
-type PostBadgeRecord = {
+export type PostBadgeRecord = {
   flairs?: string[]
   tags?: string[]
   postType?: string | null

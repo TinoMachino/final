@@ -36,7 +36,11 @@ import {
 import {MediaBoardCard} from './MemesAndDocumentsScreen/MediaBoardCard/MediaBoardCard'
 import {MediaDeckCard} from './MemesAndDocumentsScreen/MediaDeckCard/MediaDeckCard'
 import {styles} from './MemesAndDocumentsScreen/styles'
-import {type MediaItem, type Mode, type ViewStyleMode} from './MemesAndDocumentsScreen/types'
+import {
+  type MediaItem,
+  type Mode,
+  type ViewStyleMode,
+} from './MemesAndDocumentsScreen/types'
 
 export function MemesAndDocumentsScreen({
   route,
@@ -126,7 +130,11 @@ export function MemesAndDocumentsScreen({
           ) : (
             <Layout.Header.Content>
               <Layout.Header.TitleText>
-                {activeMode === 'Memes' ? <Trans>Memes</Trans> : <Trans>Documents</Trans>}
+                {activeMode === 'Memes' ? (
+                  <Trans>Memes</Trans>
+                ) : (
+                  <Trans>Documents</Trans>
+                )}
               </Layout.Header.TitleText>
               <Layout.Header.SubtitleText>
                 {viewStyle === 'deck'
@@ -350,11 +358,7 @@ function DeckChain({
   const next = items[startIndex + 1]
   const third = items[startIndex + 2]
 
-  const springTo = (
-    toValue: number,
-    velocity = 0,
-    onComplete?: () => void,
-  ) => {
+  const springTo = (toValue: number, velocity = 0, onComplete?: () => void) => {
     animation.stopAnimation()
     Animated.spring(animation, {
       damping: 24,

@@ -138,8 +138,8 @@ let ProfileMenu = ({
       try {
         await queueUnmute()
         Toast.show(_(msg({message: 'Account unmuted', context: 'toast'})))
-      } catch (e: any) {
-        if (e?.name !== 'AbortError') {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== 'AbortError') {
           logger.error('Failed to unmute account', {message: e})
           Toast.show(_(msg`There was an issue! ${e.toString()}`), {
             type: 'error',
@@ -150,8 +150,8 @@ let ProfileMenu = ({
       try {
         await queueMute()
         Toast.show(_(msg({message: 'Account muted', context: 'toast'})))
-      } catch (e: any) {
-        if (e?.name !== 'AbortError') {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== 'AbortError') {
           logger.error('Failed to mute account', {message: e})
           Toast.show(_(msg`There was an issue! ${e.toString()}`), {
             type: 'error',
@@ -166,8 +166,8 @@ let ProfileMenu = ({
       try {
         await queueUnblock()
         Toast.show(_(msg({message: 'Account unblocked', context: 'toast'})))
-      } catch (e: any) {
-        if (e?.name !== 'AbortError') {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== 'AbortError') {
           logger.error('Failed to unblock account', {message: e})
           Toast.show(_(msg`There was an issue! ${e.toString()}`), {
             type: 'error',
@@ -178,8 +178,8 @@ let ProfileMenu = ({
       try {
         await queueBlock()
         Toast.show(_(msg({message: 'Account blocked', context: 'toast'})))
-      } catch (e: any) {
-        if (e?.name !== 'AbortError') {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== 'AbortError') {
           logger.error('Failed to block account', {message: e})
           Toast.show(_(msg`There was an issue! ${e.toString()}`), {
             type: 'error',
@@ -193,8 +193,8 @@ let ProfileMenu = ({
     try {
       await queueFollow()
       Toast.show(_(msg({message: 'Account followed', context: 'toast'})))
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== 'AbortError') {
         logger.error('Failed to follow account', {message: e})
         Toast.show(_(msg`There was an issue! ${e.toString()}`), {
           type: 'error',
@@ -207,8 +207,8 @@ let ProfileMenu = ({
     try {
       await queueUnfollow()
       Toast.show(_(msg({message: 'Account unfollowed', context: 'toast'})))
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== 'AbortError') {
         logger.error('Failed to unfollow account', {message: e})
         Toast.show(_(msg`There was an issue! ${e.toString()}`), {
           type: 'error',

@@ -6,7 +6,7 @@ import {useLingui} from '@lingui/react'
 import {Plural, Trans} from '@lingui/react/macro'
 
 import {useHaptics} from '#/lib/haptics'
-import {makeCustomFeedLink,makeProfileLink} from '#/lib/routes/links'
+import {makeCustomFeedLink, makeProfileLink} from '#/lib/routes/links'
 import {shareUrl} from '#/lib/sharing'
 import {sanitizeHandle} from '#/lib/strings/handles'
 import {toShareUrl} from '#/lib/strings/url-helpers'

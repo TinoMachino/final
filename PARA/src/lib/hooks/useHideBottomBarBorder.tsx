@@ -35,7 +35,11 @@ export function useHideBottomBarBorder() {
   return useContext(HideBottomBarBorderContext)
 }
 
-export function HideBottomBarBorderProvider({children}: {children: React.ReactNode}) {
+export function HideBottomBarBorderProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return Provider({children})
 }
 

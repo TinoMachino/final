@@ -47,7 +47,11 @@ export const ProfileVotesSection = forwardRef<SectionRef, Props>(
       }
     }, [isFocused, scrollElRef, setScrollViewTag])
 
-    const renderItem = ({item}: {item: import('#/state/queries/profile-votes').ProfileVoteItem}) => {
+    const renderItem = ({
+      item,
+    }: {
+      item: import('#/state/queries/profile-votes').ProfileVoteItem
+    }) => {
       const voteColor =
         item.voteColor === 'positive'
           ? t.palette.positive_600
@@ -65,23 +69,15 @@ export const ProfileVotesSection = forwardRef<SectionRef, Props>(
           <View style={[a.flex_row, a.justify_between, a.mt_xs]}>
             <Text style={[t.atoms.text_contrast_medium]}>
               Voted:{' '}
-              <Text style={[a.font_bold, {color: voteColor}]}>
-                {item.vote}
-              </Text>
+              <Text style={[a.font_bold, {color: voteColor}]}>{item.vote}</Text>
             </Text>
             <Text style={[t.atoms.text_contrast_low]}>
-              {item.date
-                ? new Date(item.date).toLocaleDateString()
-                : ''}
+              {item.date ? new Date(item.date).toLocaleDateString() : ''}
             </Text>
           </View>
           {item.reason ? (
             <Text
-              style={[
-                a.text_sm,
-                t.atoms.text_contrast_medium,
-                a.mt_xs,
-              ]}
+              style={[a.text_sm, t.atoms.text_contrast_medium, a.mt_xs]}
               numberOfLines={2}>
               {item.reason}
             </Text>
@@ -95,7 +91,9 @@ export const ProfileVotesSection = forwardRef<SectionRef, Props>(
         ref={scrollElRef}
         data={votes}
         renderItem={renderItem}
-        keyExtractor={(item: import('#/state/queries/profile-votes').ProfileVoteItem) => item.id}
+        keyExtractor={(
+          item: import('#/state/queries/profile-votes').ProfileVoteItem,
+        ) => item.id}
         headerOffset={headerHeight}
         refreshing={isLoading}
         ListEmptyComponent={

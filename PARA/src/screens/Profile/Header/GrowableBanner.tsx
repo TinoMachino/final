@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react'
-import  {type ReactNode} from 'react'
+import {type ReactNode} from 'react'
 import {ActivityIndicator, Pressable, View} from 'react-native'
 import Animated, {
   type AnimatedRef,

@@ -1,8 +1,9 @@
 import {
   type AppBskyFeedDefs,
   type AppBskyGraphDefs,
-type BskyAgent,
-  type ComAtprotoRepoStrongRef} from '@atproto/api'
+  type BskyAgent,
+  type ComAtprotoRepoStrongRef,
+} from '@atproto/api'
 import {AtUri} from '@atproto/api'
 
 import {POST_IMG_MAX} from '#/lib/constants'
@@ -14,12 +15,14 @@ import {
   parseStarterPackUri,
 } from '#/lib/strings/starter-pack'
 import {
-convertBskyAppUrlIfNeeded,   isBskyCustomFeedUrl,
+  convertBskyAppUrlIfNeeded,
+  isBskyCustomFeedUrl,
   isBskyListUrl,
   isBskyPostUrl,
   isBskyStarterPackUrl,
   isBskyStartUrl,
-  isShortLink,makeRecordUri
+  isShortLink,
+  makeRecordUri,
 } from '#/lib/strings/url-helpers'
 import {type ComposerImage} from '#/state/gallery'
 import {createComposerImage} from '#/state/gallery'

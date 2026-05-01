@@ -59,8 +59,8 @@ export interface DownloadAndResizeOpts {
 export async function downloadAndResize(opts: DownloadAndResizeOpts) {
   try {
     new URL(opts.uri)
-  } catch (e: any) {
-    console.error('Invalid URI', opts.uri, e)
+  } catch (e: unknown) {
+    console.error('Invalid URI', opts.uri, String(e))
     return
   }
 

@@ -333,8 +333,8 @@ export function useSubmitSignup() {
          * createAccount fails, one tab is not stuck in onboarding — Eric
          */
         onboardingDispatch({type: 'start'})
-      } catch (e: any) {
-        let errMsg = e.toString()
+      } catch (e: unknown) {
+        let errMsg = String(e)
         if (e instanceof ComAtprotoServerCreateAccount.InvalidInviteCodeError) {
           dispatch({
             type: 'setError',

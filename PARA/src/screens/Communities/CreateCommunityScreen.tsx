@@ -47,9 +47,7 @@ export function CreateCommunityScreen() {
   const plannedFounders = 1 + selectedFoundingMembers.length
   const remainingFounders = Math.max(0, 9 - plannedFounders)
 
-  const {
-    data: boardsData,
-  } = useCommunityBoardsQuery({limit: 12})
+  const {data: boardsData} = useCommunityBoardsQuery({limit: 12})
   const {
     data: foundingMemberSuggestions,
     isFetching: isFetchingFoundingMemberSuggestions,
@@ -185,7 +183,9 @@ export function CreateCommunityScreen() {
                   Community created! (Draft Setup)
                 </Text>
                 <Text style={[styles.cardBody, t.atoms.text_contrast_medium]}>
-                  {createdBoard.name} has been drafted. A founding starter pack has been created and you're the first member! You will need to reach a quorum of 9 members to unlock full community access.
+                  {createdBoard.name} has been drafted. A founding starter pack
+                  has been created and you're the first member! You will need to
+                  reach a quorum of 9 members to unlock full community access.
                 </Text>
 
                 <View style={styles.checklist}>
@@ -234,10 +234,7 @@ export function CreateCommunityScreen() {
                     Governance topology
                   </Text>
                   <Text
-                    style={[
-                      styles.topologyBody,
-                      t.atoms.text_contrast_medium,
-                    ]}>
+                    style={[styles.topologyBody, t.atoms.text_contrast_medium]}>
                     Delegate and subdelegate chat resources are linked as
                     administrative infrastructure, not as the main framing of
                     the community.
@@ -321,8 +318,13 @@ export function CreateCommunityScreen() {
                   <Text style={[styles.fieldLabel, t.atoms.text]}>
                     Founding members to invite
                   </Text>
-                  <Text style={[styles.fieldDescription, t.atoms.text_contrast_medium]}>
-                    Type `@` and we&apos;ll suggest people to add to your founding shortlist. Founder counts as member 1 of 9.
+                  <Text
+                    style={[
+                      styles.fieldDescription,
+                      t.atoms.text_contrast_medium,
+                    ]}>
+                    Type `@` and we&apos;ll suggest people to add to your
+                    founding shortlist. Founder counts as member 1 of 9.
                   </Text>
                   <TextInput
                     accessibilityLabel="Founding members to invite"
@@ -426,7 +428,8 @@ export function CreateCommunityScreen() {
                               </View>
                             )}
                             <View style={styles.suggestionTextBlock}>
-                              <Text style={[styles.suggestionTitle, t.atoms.text]}>
+                              <Text
+                                style={[styles.suggestionTitle, t.atoms.text]}>
                                 {profile.displayName || profile.handle}
                               </Text>
                               <Text
@@ -526,7 +529,9 @@ export function CreateCommunityScreen() {
                     },
                   ]}>
                   <Text style={styles.primaryButtonText}>
-                    {isSubmitting ? 'Creating community...' : 'Create community'}
+                    {isSubmitting
+                      ? 'Creating community...'
+                      : 'Create community'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -553,7 +558,8 @@ function Field({
     <View style={styles.field}>
       <Text style={[styles.fieldLabel, theme.atoms.text]}>{label}</Text>
       {description ? (
-        <Text style={[styles.fieldDescription, theme.atoms.text_contrast_medium]}>
+        <Text
+          style={[styles.fieldDescription, theme.atoms.text_contrast_medium]}>
           {description}
         </Text>
       ) : null}
@@ -627,10 +633,7 @@ function ChecklistItem({
   return (
     <View style={styles.checklistItem}>
       <View
-        style={[
-          styles.checkDot,
-          {backgroundColor: theme.palette.primary_500},
-        ]}
+        style={[styles.checkDot, {backgroundColor: theme.palette.primary_500}]}
       />
       <Text style={[styles.checkLabel, theme.atoms.text]}>{label}</Text>
     </View>

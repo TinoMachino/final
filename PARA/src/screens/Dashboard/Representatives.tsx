@@ -13,14 +13,17 @@ import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
-import {type CommonNavigatorParams, type NavigationProp} from '#/lib/routes/types'
+import {
+  type CommonNavigatorParams,
+  type NavigationProp,
+} from '#/lib/routes/types'
 import {
   type RepresentativeItem,
   useRepresentativesQuery,
 } from '#/state/queries/data-tab'
 import {useBaseFilter} from '#/state/shell/base-filter'
 import {Text} from '#/view/com/util/text/Text'
-import {atoms as a, useTheme} from '#/alf'
+import {useTheme} from '#/alf'
 import {ActiveFiltersStackButton} from '#/components/BaseFilterControls'
 import {SearchInput} from '#/components/forms/SearchInput'
 import {ArrowsDiagonalIn_Stroke2_Corner0_Rounded as SortIcon} from '#/components/icons/ArrowsDiagonal'
@@ -221,7 +224,10 @@ export function RepresentativesScreen({route}: Props) {
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <BuildingIcon size="sm" style={[t.atoms.text_contrast_medium]} />
+                <BuildingIcon
+                  size="sm"
+                  style={[t.atoms.text_contrast_medium]}
+                />
                 <Text style={[styles.statValue, t.atoms.text]}>
                   {partyCount}
                 </Text>
@@ -265,7 +271,10 @@ export function RepresentativesScreen({route}: Props) {
                 <SortIcon
                   size="xs"
                   style={{
-                    color: sortMode === 'followers' ? 'white' : t.palette.contrast_400,
+                    color:
+                      sortMode === 'followers'
+                        ? 'white'
+                        : t.palette.contrast_400,
                   }}
                 />
                 <Text
@@ -290,7 +299,8 @@ export function RepresentativesScreen({route}: Props) {
                 <SortIcon
                   size="xs"
                   style={{
-                    color: sortMode === 'name' ? 'white' : t.palette.contrast_400,
+                    color:
+                      sortMode === 'name' ? 'white' : t.palette.contrast_400,
                   }}
                 />
                 <Text
@@ -384,7 +394,10 @@ function RepCard({
   variant = 'party',
 }: {
   rep: RepresentativeItem
-  badges: Array<{label: string; tone: 'verified' | 'official' | 'state' | 'community'}>
+  badges: Array<{
+    label: string
+    tone: 'verified' | 'official' | 'state' | 'community'
+  }>
   onPress: () => void
   formatCount: (n: number) => string
   variant?: 'party' | 'community'
@@ -396,11 +409,7 @@ function RepCard({
       accessibilityRole="button"
       onPress={onPress}
       activeOpacity={0.8}
-      style={[
-        styles.repCard,
-        t.atoms.bg_contrast_25,
-        t.atoms.shadow_sm,
-      ]}>
+      style={[styles.repCard, t.atoms.bg_contrast_25, t.atoms.shadow_sm]}>
       {variant === 'party' && (
         <LinearGradient
           colors={[
@@ -412,16 +421,9 @@ function RepCard({
           style={styles.cardGradientBorder}
         />
       )}
-      <View
-        style={[
-          styles.avatar,
-          {backgroundColor: rep.avatarColor},
-        ]}
-      />
+      <View style={[styles.avatar, {backgroundColor: rep.avatarColor}]} />
       <View style={styles.repInfo}>
-        <Text style={[styles.repName, t.atoms.text]}>
-          {rep.name}
-        </Text>
+        <Text style={[styles.repName, t.atoms.text]}>{rep.name}</Text>
         <View style={styles.badgesRow}>
           {badges.map(badge => (
             <View
@@ -454,11 +456,7 @@ function RepCard({
             </View>
           ))}
         </View>
-        <Text
-          style={[
-            styles.repHandle,
-            t.atoms.text_contrast_medium,
-          ]}>
+        <Text style={[styles.repHandle, t.atoms.text_contrast_medium]}>
           {rep.handle} • {rep.category}
         </Text>
         <Text
@@ -470,11 +468,7 @@ function RepCard({
           {rep.affiliate}
         </Text>
         {rep.followersCount !== undefined && (
-          <Text
-            style={[
-              styles.followerCount,
-              t.atoms.text_contrast_medium,
-            ]}>
+          <Text style={[styles.followerCount, t.atoms.text_contrast_medium]}>
             {formatCount(rep.followersCount)} followers
           </Text>
         )}

@@ -131,13 +131,13 @@ export async function getThreadgateRecord({
     } else {
       return null
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     /*
      * If the record doesn't exist, we want to return null instead of
      * throwing an error. NB: This will also catch reference errors, such as
      * a typo in the URI.
      */
-    if (e.message.includes(`Could not locate record:`)) {
+    if (e instanceof Error && e.message.includes(`Could not locate record:`)) {
       return null
     } else {
       throw e

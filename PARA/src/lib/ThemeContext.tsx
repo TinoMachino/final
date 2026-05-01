@@ -106,10 +106,7 @@ function getTheme(theme: ThemeName) {
   }
 }
 
-export function ThemeProvider({
-  theme,
-  children,
-}: ThemeProviderProps) {
+export function ThemeProvider({theme, children}: ThemeProviderProps) {
   const themeValue = getTheme(theme)
 
   return (

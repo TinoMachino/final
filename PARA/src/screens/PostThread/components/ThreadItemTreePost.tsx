@@ -10,7 +10,7 @@ import {Trans} from '@lingui/react/macro'
 
 import {MAX_POST_LINES} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
-import {getPostBadges} from '#/lib/post-flairs'
+import {getPostBadges, type PostBadgeRecord} from '#/lib/post-flairs'
 import {makeProfileLink} from '#/lib/routes/links'
 import {countLines} from '#/lib/strings/helpers'
 import {
@@ -267,7 +267,7 @@ const ThreadItemTreePostInner = memo(function ThreadItemTreePostInner({
       }),
     [record],
   )
-  const postBadges = useMemo(() => getPostBadges(record as any), [record])
+  const postBadges = useMemo(() => getPostBadges(record as PostBadgeRecord), [record])
   const [limitLines, setLimitLines] = useState(
     () => countLines(richText?.text) >= MAX_POST_LINES,
   )

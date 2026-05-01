@@ -1,0 +1,410 @@
+diff --git a/.changeset/smooth-walls-fall.md b/.changeset/smooth-walls-fall.md
+new file mode 100644
+index 00000000000..48d582799b2
+--- /dev/null
++++ b/.changeset/smooth-walls-fall.md
+@@ -0,0 +1,6 @@
++---
++'@atproto/bsky': patch
++'@atproto/api': patch
++---
++
++Add and hydrate group chat invite declaration
+diff --git a/lexicons/app/bsky/actor/defs.json b/lexicons/app/bsky/actor/defs.json
+index 8bbad85ff01..2b316928b05 100644
+--- a/lexicons/app/bsky/actor/defs.json
++++ b/lexicons/app/bsky/actor/defs.json
+@@ -160,6 +160,10 @@
+         "allowIncoming": {
+           "type": "string",
+           "knownValues": ["all", "none", "following"]
++        },
++        "allowGroupInvites": {
++          "type": "string",
++          "knownValues": ["all", "none", "following"]
+         }
+       }
+     },
+diff --git a/packages/api/src/client/lexicons.ts b/packages/api/src/client/lexicons.ts
+index 39d6aef2570..e9dca00cdb4 100644
+--- a/packages/api/src/client/lexicons.ts
++++ b/packages/api/src/client/lexicons.ts
+@@ -265,6 +265,10 @@ export const schemaDict = {
+             type: 'string',
+             knownValues: ['all', 'none', 'following'],
+           },
++          allowGroupInvites: {
++            type: 'string',
++            knownValues: ['all', 'none', 'following'],
++          },
+         },
+       },
+       profileAssociatedGerm: {
+diff --git a/packages/api/src/client/types/app/bsky/actor/defs.ts b/packages/api/src/client/types/app/bsky/actor/defs.ts
+index f1741e9c667..31096ad6e36 100644
+--- a/packages/api/src/client/types/app/bsky/actor/defs.ts
++++ b/packages/api/src/client/types/app/bsky/actor/defs.ts
+@@ -137,6 +137,7 @@ export function validateProfileAssociated<V>(v: V) {
+ export interface ProfileAssociatedChat {
+   $type?: 'app.bsky.actor.defs#profileAssociatedChat'
+   allowIncoming: 'all' | 'none' | 'following' | (string & {})
++  allowGroupInvites?: 'all' | 'none' | 'following' | (string & {})
+ }
+ 
+ const hashProfileAssociatedChat = 'profileAssociatedChat'
+diff --git a/packages/bsky/proto/bsky.proto b/packages/bsky/proto/bsky.proto
+index 5ac8e28bce5..50200e568e4 100644
+--- a/packages/bsky/proto/bsky.proto
++++ b/packages/bsky/proto/bsky.proto
+@@ -498,6 +498,7 @@ message ActorInfo {
+   optional AgeAssuranceStatus age_assurance_status = 19;
+   reserved 20; // DO NOT REMOVE - see dataplane repo
+   Record germ_record = 21;
++  string allow_group_chat_invites_from = 22;
+ }
+ 
+ message AgeAssuranceStatus {
+diff --git a/packages/bsky/src/data-plane/server/routes/profile.ts b/packages/bsky/src/data-plane/server/routes/profile.ts
+index 7cff6c1c9c9..1ae29877ddc 100644
+--- a/packages/bsky/src/data-plane/server/routes/profile.ts
++++ b/packages/bsky/src/data-plane/server/routes/profile.ts
+@@ -173,6 +173,10 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
+           typeof chatDeclaration?.['allowIncoming'] === 'string'
+             ? chatDeclaration['allowIncoming']
+             : undefined,
++        allowGroupChatInvitesFrom:
++          typeof chatDeclaration?.['allowGroupInvites'] === 'string'
++            ? chatDeclaration['allowGroupInvites']
++            : undefined,
+         upstreamStatus: row?.upstreamStatus ?? '',
+         createdAt: profiles.records[i].createdAt, // @NOTE profile creation date not trusted in production
+         priorityNotifications: row?.priorityNotifs ?? false,
+diff --git a/packages/bsky/src/hydration/actor.ts b/packages/bsky/src/hydration/actor.ts
+index 3614761855d..cee53737a7c 100644
+--- a/packages/bsky/src/hydration/actor.ts
++++ b/packages/bsky/src/hydration/actor.ts
+@@ -45,6 +45,7 @@ export type Actor = {
+   takedownRef?: string
+   isLabeler: boolean
+   allowIncomingChatsFrom?: string
++  allowGroupChatInvitesFrom?: string
+   upstreamStatus?: string
+   createdAt?: Date
+   priorityNotifications: boolean
+@@ -298,6 +299,7 @@ export class ActorHydrator {
+         takedownRef: safeTakedownRef(actor),
+         isLabeler: actor.labeler ?? false,
+         allowIncomingChatsFrom: actor.allowIncomingChatsFrom || undefined,
++        allowGroupChatInvitesFrom: actor.allowGroupChatInvitesFrom || undefined,
+         upstreamStatus: actor.upstreamStatus || undefined,
+         createdAt: parseDate(actor.createdAt),
+         priorityNotifications: actor.priorityNotifications,
+diff --git a/packages/bsky/src/proto/bsky_pb.ts b/packages/bsky/src/proto/bsky_pb.ts
+index ae505308616..130e5c426b3 100644
+--- a/packages/bsky/src/proto/bsky_pb.ts
++++ b/packages/bsky/src/proto/bsky_pb.ts
+@@ -3896,6 +3896,11 @@ export class ActorInfo extends Message<ActorInfo> {
+    */
+   germRecord?: Record;
+ 
++  /**
++   * @generated from field: string allow_group_chat_invites_from = 22;
++   */
++  allowGroupChatInvitesFrom = "";
++
+   constructor(data?: PartialMessage<ActorInfo>) {
+     super();
+     proto3.util.initPartial(data, this);
+@@ -3924,6 +3929,7 @@ export class ActorInfo extends Message<ActorInfo> {
+     { no: 18, name: "allow_activity_subscriptions_from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+     { no: 19, name: "age_assurance_status", kind: "message", T: AgeAssuranceStatus, opt: true },
+     { no: 21, name: "germ_record", kind: "message", T: Record },
++    { no: 22, name: "allow_group_chat_invites_from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+   ]);
+ 
+   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ActorInfo {
+diff --git a/packages/bsky/src/proto/bsync_connect.ts b/packages/bsky/src/proto/bsync_connect.ts
+index adb358a0404..34d532e8e30 100644
+--- a/packages/bsky/src/proto/bsync_connect.ts
++++ b/packages/bsky/src/proto/bsync_connect.ts
+@@ -3,7 +3,7 @@
+ /* eslint-disable */
+ // @ts-nocheck
+ 
+-import { AddMuteOperationRequest, AddMuteOperationResponse, AddNotifOperationRequest, AddNotifOperationResponse, PingRequest, PingResponse, PutOperationRequest, PutOperationResponse, ScanMuteOperationsRequest, ScanMuteOperationsResponse, ScanNotifOperationsRequest, ScanNotifOperationsResponse, ScanOperationsRequest, ScanOperationsResponse } from "./bsync_pb";
++import { AddMuteOperationRequest, AddMuteOperationResponse, AddNotifOperationRequest, AddNotifOperationResponse, DeleteOperationsByActorAndNamespaceRequest, DeleteOperationsByActorAndNamespaceResponse, PingRequest, PingResponse, PutOperationRequest, PutOperationResponse, ScanMuteOperationsRequest, ScanMuteOperationsResponse, ScanNotifOperationsRequest, ScanNotifOperationsResponse, ScanOperationsRequest, ScanOperationsResponse } from "./bsync_pb";
+ import { MethodKind } from "@bufbuild/protobuf";
+ 
+ /**
+@@ -68,6 +68,15 @@ export const Service = {
+       O: ScanOperationsResponse,
+       kind: MethodKind.Unary,
+     },
++    /**
++     * @generated from rpc bsync.Service.DeleteOperationsByActorAndNamespace
++     */
++    deleteOperationsByActorAndNamespace: {
++      name: "DeleteOperationsByActorAndNamespace",
++      I: DeleteOperationsByActorAndNamespaceRequest,
++      O: DeleteOperationsByActorAndNamespaceResponse,
++      kind: MethodKind.Unary,
++    },
+     /**
+      * Ping
+      *
+diff --git a/packages/bsky/src/proto/bsync_pb.ts b/packages/bsky/src/proto/bsync_pb.ts
+index a009fb4f1f7..550dfb51c8e 100644
+--- a/packages/bsky/src/proto/bsync_pb.ts
++++ b/packages/bsky/src/proto/bsync_pb.ts
+@@ -763,6 +763,86 @@ export class ScanOperationsResponse extends Message<ScanOperationsResponse> {
+   }
+ }
+ 
++/**
++ * @generated from message bsync.DeleteOperationsByActorAndNamespaceRequest
++ */
++export class DeleteOperationsByActorAndNamespaceRequest extends Message<DeleteOperationsByActorAndNamespaceRequest> {
++  /**
++   * @generated from field: string actor_did = 1;
++   */
++  actorDid = "";
++
++  /**
++   * @generated from field: string namespace = 2;
++   */
++  namespace = "";
++
++  constructor(data?: PartialMessage<DeleteOperationsByActorAndNamespaceRequest>) {
++    super();
++    proto3.util.initPartial(data, this);
++  }
++
++  static readonly runtime: typeof proto3 = proto3;
++  static readonly typeName = "bsync.DeleteOperationsByActorAndNamespaceRequest";
++  static readonly fields: FieldList = proto3.util.newFieldList(() => [
++    { no: 1, name: "actor_did", kind: "scalar", T: 9 /* ScalarType.STRING */ },
++    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
++  ]);
++
++  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteOperationsByActorAndNamespaceRequest {
++    return new DeleteOperationsByActorAndNamespaceRequest().fromBinary(bytes, options);
++  }
++
++  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteOperationsByActorAndNamespaceRequest {
++    return new DeleteOperationsByActorAndNamespaceRequest().fromJson(jsonValue, options);
++  }
++
++  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteOperationsByActorAndNamespaceRequest {
++    return new DeleteOperationsByActorAndNamespaceRequest().fromJsonString(jsonString, options);
++  }
++
++  static equals(a: DeleteOperationsByActorAndNamespaceRequest | PlainMessage<DeleteOperationsByActorAndNamespaceRequest> | undefined, b: DeleteOperationsByActorAndNamespaceRequest | PlainMessage<DeleteOperationsByActorAndNamespaceRequest> | undefined): boolean {
++    return proto3.util.equals(DeleteOperationsByActorAndNamespaceRequest, a, b);
++  }
++}
++
++/**
++ * @generated from message bsync.DeleteOperationsByActorAndNamespaceResponse
++ */
++export class DeleteOperationsByActorAndNamespaceResponse extends Message<DeleteOperationsByActorAndNamespaceResponse> {
++  /**
++   * @generated from field: int32 deleted_count = 1;
++   */
++  deletedCount = 0;
++
++  constructor(data?: PartialMessage<DeleteOperationsByActorAndNamespaceResponse>) {
++    super();
++    proto3.util.initPartial(data, this);
++  }
++
++  static readonly runtime: typeof proto3 = proto3;
++  static readonly typeName = "bsync.DeleteOperationsByActorAndNamespaceResponse";
++  static readonly fields: FieldList = proto3.util.newFieldList(() => [
++    { no: 1, name: "deleted_count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
++  ]);
++
++  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteOperationsByActorAndNamespaceResponse {
++    return new DeleteOperationsByActorAndNamespaceResponse().fromBinary(bytes, options);
++  }
++
++  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteOperationsByActorAndNamespaceResponse {
++    return new DeleteOperationsByActorAndNamespaceResponse().fromJson(jsonValue, options);
++  }
++
++  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteOperationsByActorAndNamespaceResponse {
++    return new DeleteOperationsByActorAndNamespaceResponse().fromJsonString(jsonString, options);
++  }
++
++  static equals(a: DeleteOperationsByActorAndNamespaceResponse | PlainMessage<DeleteOperationsByActorAndNamespaceResponse> | undefined, b: DeleteOperationsByActorAndNamespaceResponse | PlainMessage<DeleteOperationsByActorAndNamespaceResponse> | undefined): boolean {
++    return proto3.util.equals(DeleteOperationsByActorAndNamespaceResponse, a, b);
++  }
++}
++
+ /**
+  * Ping
+  *
+diff --git a/packages/bsky/src/views/index.ts b/packages/bsky/src/views/index.ts
+index 88d2d133c3d..7ae393db834 100644
+--- a/packages/bsky/src/views/index.ts
++++ b/packages/bsky/src/views/index.ts
+@@ -72,6 +72,7 @@ import {
+   PostRecord,
+   PostView,
+   ProfileAssociatedActivitySubscription,
++  ProfileAssociatedChat,
+   ProfileRecord,
+   ProfileView,
+   ProfileViewBasic,
+@@ -290,10 +291,7 @@ export class Views {
+         feedgens: profileAggs?.feeds,
+         starterPacks: profileAggs?.starterPacks,
+         labeler: actor.isLabeler,
+-        // @TODO apply default chat policy?
+-        chat: actor.allowIncomingChatsFrom
+-          ? { allowIncoming: actor.allowIncomingChatsFrom }
+-          : undefined,
++        chat: this.profileAssociatedChat(actor),
+         activitySubscription: this.profileAssociatedActivitySubscription(actor),
+         germ: actor.germ?.record.messageMe
+           ? {
+@@ -365,10 +363,7 @@ export class Views {
+       // on profile and profile-basic views, but should be on profile-detailed.
+       associated: {
+         labeler: actor.isLabeler ? true : undefined,
+-        // @TODO apply default chat policy?
+-        chat: actor.allowIncomingChatsFrom
+-          ? { allowIncoming: actor.allowIncomingChatsFrom }
+-          : undefined,
++        chat: this.profileAssociatedChat(actor),
+         activitySubscription: this.profileAssociatedActivitySubscription(actor),
+         germ: actor.germ?.record.messageMe
+           ? {
+@@ -388,6 +383,14 @@ export class Views {
+     }
+   }
+ 
++  profileAssociatedChat(actor: Actor): ProfileAssociatedChat | undefined {
++    if (!actor.allowIncomingChatsFrom) return undefined
++    return {
++      allowIncoming: actor.allowIncomingChatsFrom,
++      allowGroupInvites: actor.allowGroupChatInvitesFrom,
++    }
++  }
++
+   profileAssociatedActivitySubscription(
+     actor: Actor,
+   ): ProfileAssociatedActivitySubscription {
+diff --git a/packages/bsky/src/views/types.ts b/packages/bsky/src/views/types.ts
+index aa3272ddbf3..08eb533911a 100644
+--- a/packages/bsky/src/views/types.ts
++++ b/packages/bsky/src/views/types.ts
+@@ -9,6 +9,7 @@ export type ProfileViewer = app.bsky.actor.defs.ViewerState
+ export type KnownFollowers = app.bsky.actor.defs.KnownFollowers
+ export type ProfileAssociatedActivitySubscription =
+   app.bsky.actor.defs.ProfileAssociatedActivitySubscription
++export type ProfileAssociatedChat = app.bsky.actor.defs.ProfileAssociatedChat
+ export type ProfileView = app.bsky.actor.defs.ProfileView
+ export type ProfileViewBasic = app.bsky.actor.defs.ProfileViewBasic
+ export type ProfileViewDetailed = app.bsky.actor.defs.ProfileViewDetailed
+diff --git a/packages/bsky/tests/views/profile.test.ts b/packages/bsky/tests/views/profile.test.ts
+index 073061940af..08ac3dcacdc 100644
+--- a/packages/bsky/tests/views/profile.test.ts
++++ b/packages/bsky/tests/views/profile.test.ts
+@@ -613,6 +613,70 @@ describe('pds profile views', () => {
+     })
+   })
+ 
++  describe('chat', () => {
++    it('omits chat if no declaration exists', async () => {
++      const { data } = await agent.api.app.bsky.actor.getProfile(
++        { actor: alice },
++        {
++          headers: await network.serviceHeaders(
++            alice,
++            ids.AppBskyActorGetProfile,
++          ),
++        },
++      )
++      expect(data.associated?.chat).toBeUndefined()
++    })
++
++    it('returns allowIncoming when only that field is set', async () => {
++      const { data } = await agent.api.app.bsky.actor.getProfile(
++        { actor: dan },
++        {
++          headers: await network.serviceHeaders(
++            alice,
++            ids.AppBskyActorGetProfile,
++          ),
++        },
++      )
++      expect(data.associated?.chat).toEqual({
++        allowIncoming: 'none',
++      })
++    })
++
++    it('returns both allowIncoming and allowGroupInvites when both are set', async () => {
++      await sc.agent.com.atproto.repo.putRecord(
++        {
++          repo: eve,
++          collection: ids.ChatBskyActorDeclaration,
++          rkey: 'self',
++          record: {
++            $type: ids.ChatBskyActorDeclaration,
++            allowIncoming: 'following',
++            allowGroupInvites: 'all',
++          },
++        },
++        {
++          headers: sc.getHeaders(eve),
++          encoding: 'application/json',
++        },
++      )
++      await network.processAll()
++
++      const { data } = await agent.api.app.bsky.actor.getProfile(
++        { actor: eve },
++        {
++          headers: await network.serviceHeaders(
++            alice,
++            ids.AppBskyActorGetProfile,
++          ),
++        },
++      )
++      expect(data.associated?.chat).toEqual({
++        allowIncoming: 'following',
++        allowGroupInvites: 'all',
++      })
++    })
++  })
++
+   describe('germ', () => {
+     const germDeclaration: ComGermnetworkDeclaration.Main = {
+       $type: ids.ComGermnetworkDeclaration,
+diff --git a/packages/ozone/src/lexicon/lexicons.ts b/packages/ozone/src/lexicon/lexicons.ts
+index 3ecc00f719f..9dd1f9be9e5 100644
+--- a/packages/ozone/src/lexicon/lexicons.ts
++++ b/packages/ozone/src/lexicon/lexicons.ts
+@@ -265,6 +265,10 @@ export const schemaDict = {
+             type: 'string',
+             knownValues: ['all', 'none', 'following'],
+           },
++          allowGroupInvites: {
++            type: 'string',
++            knownValues: ['all', 'none', 'following'],
++          },
+         },
+       },
+       profileAssociatedGerm: {
+diff --git a/packages/ozone/src/lexicon/types/app/bsky/actor/defs.ts b/packages/ozone/src/lexicon/types/app/bsky/actor/defs.ts
+index f1741e9c667..31096ad6e36 100644
+--- a/packages/ozone/src/lexicon/types/app/bsky/actor/defs.ts
++++ b/packages/ozone/src/lexicon/types/app/bsky/actor/defs.ts
+@@ -137,6 +137,7 @@ export function validateProfileAssociated<V>(v: V) {
+ export interface ProfileAssociatedChat {
+   $type?: 'app.bsky.actor.defs#profileAssociatedChat'
+   allowIncoming: 'all' | 'none' | 'following' | (string & {})
++  allowGroupInvites?: 'all' | 'none' | 'following' | (string & {})
+ }
+ 
+ const hashProfileAssociatedChat = 'profileAssociatedChat'

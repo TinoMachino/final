@@ -1,5 +1,12 @@
 import {useEffect, useMemo, useState} from 'react'
-import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
@@ -32,6 +39,7 @@ function RelatedCabildeos({
   community: string
 }) {
   const t = useTheme()
+  const {_: _unused} = useLingui()
   const navigation = useNavigation<NavigationProp>()
   const {data: allCabildeos = []} = useCabildeosQuery()
 
@@ -53,14 +61,13 @@ function RelatedCabildeos({
       </Text>
       <View style={{gap: 10}}>
         {related.slice(0, 3).map(c => {
-          const phaseMeta =
-            {
-              draft: {label: 'Borrador', color: '#6B7280'},
-              open: {label: 'Abierto', color: '#0EA5E9'},
-              deliberating: {label: 'Deliberando', color: '#F59E0B'},
-              voting: {label: 'Votación', color: '#22C55E'},
-              resolved: {label: 'Resuelto', color: '#8B5CF6'},
-            }[c.phase] || {label: c.phase, color: '#6B7280'}
+          const phaseMeta = {
+            draft: {label: 'Borrador', color: '#6B7280'},
+            open: {label: 'Abierto', color: '#0EA5E9'},
+            deliberating: {label: 'Deliberando', color: '#F59E0B'},
+            voting: {label: 'Votación', color: '#22C55E'},
+            resolved: {label: 'Resuelto', color: '#8B5CF6'},
+          }[c.phase] || {label: c.phase, color: '#6B7280'}
 
           return (
             <TouchableOpacity
@@ -125,10 +132,9 @@ const PHASE_ORDER: CabildeoPhase[] = [
   'resolved',
 ]
 
-function getPhaseMeta(t: ReturnType<typeof useTheme>): Record<
-  CabildeoPhase,
-  {label: string; icon: string; color: string}
-> {
+function getPhaseMeta(
+  t: ReturnType<typeof useTheme>,
+): Record<CabildeoPhase, {label: string; icon: string; color: string}> {
   return {
     draft: {label: 'Borrador', icon: '📝', color: t.palette.contrast_400},
     open: {label: 'Abierto', icon: '📖', color: t.palette.primary_500},
@@ -138,11 +144,25 @@ function getPhaseMeta(t: ReturnType<typeof useTheme>): Record<
   }
 }
 
-function getStanceColors(t: ReturnType<typeof useTheme>): Record<string, {bg: string; fg: string; label: string}> {
+function getStanceColors(
+  t: ReturnType<typeof useTheme>,
+): Record<string, {bg: string; fg: string; label: string}> {
   return {
-    for: {bg: t.palette.positive_500 + '20', fg: t.palette.positive_500, label: 'A favor'},
-    against: {bg: t.palette.negative_500 + '20', fg: t.palette.negative_500, label: 'En contra'},
-    amendment: {bg: t.palette.yellow + '20', fg: t.palette.yellow, label: 'Enmienda'},
+    for: {
+      bg: t.palette.positive_500 + '20',
+      fg: t.palette.positive_500,
+      label: 'A favor',
+    },
+    against: {
+      bg: t.palette.negative_500 + '20',
+      fg: t.palette.negative_500,
+      label: 'En contra',
+    },
+    amendment: {
+      bg: t.palette.yellow + '20',
+      fg: t.palette.yellow,
+      label: 'Enmienda',
+    },
   }
 }
 
@@ -209,7 +229,8 @@ function DelegationImpactCalculator({
           styles.impactResult,
           {backgroundColor: t.palette.positive_500 + '15'},
         ]}>
-        <Text style={[styles.impactResultText, {color: t.palette.positive_500}]}>
+        <Text
+          style={[styles.impactResultText, {color: t.palette.positive_500}]}>
           Tu voto tendrá{' '}
           <Text style={{fontWeight: '900'}}>{multiplier} veces</Text> más peso
           si votas directamente (+{gain.toFixed(2)} de poder).
@@ -217,7 +238,8 @@ function DelegationImpactCalculator({
       </View>
 
       <Text style={[styles.impactFootnote, t.atoms.text_contrast_medium]}>
-        Basado en {N} personas delegando a {delegate.displayName || 'este usuario'}.
+        Basado en {N} personas delegando a{' '}
+        {delegate.displayName || 'este usuario'}.
       </Text>
     </View>
   )
@@ -359,7 +381,11 @@ export function CabildeoDetailScreen({route}: Props) {
     if (delegateEvent && cabildeoUri) {
       setSelectedOption(delegateEvent.optionIndex)
       vote(
-        {cabildeoUri, selectedOption: delegateEvent.optionIndex, isDirect: false},
+        {
+          cabildeoUri,
+          selectedOption: delegateEvent.optionIndex,
+          isDirect: false,
+        },
         {
           onSuccess: () => setHasVoted(true),
         },
@@ -496,7 +522,8 @@ export function CabildeoDetailScreen({route}: Props) {
                   styles.communityPill,
                   {backgroundColor: t.palette.yellow + '20'},
                 ]}>
-                <Text style={[styles.communityPillText, {color: t.palette.yellow}]}>
+                <Text
+                  style={[styles.communityPillText, {color: t.palette.yellow}]}>
                   {c}
                 </Text>
               </View>
@@ -507,7 +534,11 @@ export function CabildeoDetailScreen({route}: Props) {
                   styles.communityPill,
                   {backgroundColor: t.palette.primary_500 + '15'},
                 ]}>
-                <Text style={[styles.communityPillText, {color: t.palette.primary_500}]}>
+                <Text
+                  style={[
+                    styles.communityPillText,
+                    {color: t.palette.primary_500},
+                  ]}>
                   √ Cuadrático
                 </Text>
               </View>
@@ -518,7 +549,11 @@ export function CabildeoDetailScreen({route}: Props) {
                   styles.communityPill,
                   {backgroundColor: t.palette.negative_500 + '15'},
                 ]}>
-                <Text style={[styles.communityPillText, {color: t.palette.negative_500}]}>
+                <Text
+                  style={[
+                    styles.communityPillText,
+                    {color: t.palette.negative_500},
+                  ]}>
                   🔒 Solo {cabildeo.region}
                 </Text>
               </View>
@@ -810,7 +845,11 @@ export function CabildeoDetailScreen({route}: Props) {
                     {backgroundColor: t.palette.primary_500},
                     isVoting && {opacity: 0.6},
                   ]}>
-                  <Text style={[styles.graceBtnText, {color: t.palette.contrast_100}]}>
+                  <Text
+                    style={[
+                      styles.graceBtnText,
+                      {color: t.palette.contrast_100},
+                    ]}>
                     {isVoting ? 'Confirmando...' : 'Confirmar (Peso 1.0)'}
                   </Text>
                 </TouchableOpacity>
@@ -841,7 +880,7 @@ export function CabildeoDetailScreen({route}: Props) {
               </TouchableOpacity>
 
               <DelegationImpactCalculator
-                delegateDid={cabildeo.userContext.hasDelegatedTo}
+                delegateDid={cabildeo.userContext?.hasDelegatedTo || ''}
                 cabildeoUri={cabildeoUri}
               />
             </View>
@@ -854,7 +893,11 @@ export function CabildeoDetailScreen({route}: Props) {
                 styles.geoRestrictionBanner,
                 {borderColor: t.palette.negative_500 + '30'},
               ]}>
-              <Text style={[styles.geoRestrictionText, {color: t.palette.negative_500}]}>
+              <Text
+                style={[
+                  styles.geoRestrictionText,
+                  {color: t.palette.negative_500},
+                ]}>
                 🔒 Solo residentes de {cabildeo.region} pueden votar
               </Text>
               <Text
@@ -882,10 +925,20 @@ export function CabildeoDetailScreen({route}: Props) {
                       : t.palette.contrast_200,
                 },
               ]}>
-              <Text style={[styles.voteButtonText, {color: t.palette.contrast_100}]}>
+              <Text
+                style={[
+                  styles.voteButtonText,
+                  {color: t.palette.contrast_100},
+                ]}>
                 {isVoting ? '⏳ Votando...' : '🗳️ Votar Directamente'}
               </Text>
-              <Text style={[styles.voteButtonSub, {color: t.palette.contrast_100 + '90'}]}>Peso: 1.0 (voto directo)</Text>
+              <Text
+                style={[
+                  styles.voteButtonSub,
+                  {color: t.palette.contrast_100 + '90'},
+                ]}>
+                Peso: 1.0 (voto directo)
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -964,7 +1017,11 @@ export function CabildeoDetailScreen({route}: Props) {
                   </Text>
                 </View>
                 <View style={styles.outcomeMetric}>
-                  <Text style={[styles.outcomeValue, {color: t.palette.primary_500}]}>
+                  <Text
+                    style={[
+                      styles.outcomeValue,
+                      {color: t.palette.primary_500},
+                    ]}>
                     {cabildeo.outcome.effectiveTotalPower.toFixed(1)}
                   </Text>
                   <Text
@@ -992,7 +1049,11 @@ export function CabildeoDetailScreen({route}: Props) {
                       <Text style={[styles.cbCommunity, t.atoms.text]}>
                         {cb.community}
                       </Text>
-                      <Text style={[styles.cbOption, {color: t.palette.primary_500}]}>
+                      <Text
+                        style={[
+                          styles.cbOption,
+                          {color: t.palette.primary_500},
+                        ]}>
                         {cabildeo.options[cb.dominantOption]?.label}
                       </Text>
                       <Text
@@ -1134,7 +1195,8 @@ export function CabildeoDetailScreen({route}: Props) {
                               }
                             : isLowQuality
                               ? {
-                                  backgroundColor: t.palette.negative_500 + '20',
+                                  backgroundColor:
+                                    t.palette.negative_500 + '20',
                                   borderColor: t.palette.negative_500 + '40',
                                 }
                               : {
@@ -1165,7 +1227,10 @@ export function CabildeoDetailScreen({route}: Props) {
 
                     {isLowQuality && (
                       <Text
-                        style={[styles.lowQualityReason, {color: t.palette.negative_500}]}>
+                        style={[
+                          styles.lowQualityReason,
+                          {color: t.palette.negative_500},
+                        ]}>
                         Score de constructividad demasiado bajo para ser
                         incluido en la síntesis IA.
                       </Text>

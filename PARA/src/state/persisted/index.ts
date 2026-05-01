@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import {EventEmitter} from 'eventemitter3'
 
 import {logger} from '#/logger'
 import {
@@ -17,6 +18,7 @@ export {defaults} from '#/state/persisted/schema'
 const BSKY_STORAGE = 'BSKY_STORAGE'
 
 let _state: Schema = defaults
+const _emitter = new EventEmitter()
 
 export async function init() {
   const stored = await readFromStorage()
@@ -40,14 +42,22 @@ export async function write<K extends keyof Schema>(
     [key]: value,
   })
   await writeToStorage(_state)
+  _emitter.emit('update:' + key, value)
+  _emitter.emit('update')
 }
 write satisfies PersistedApi['write']
 
 export function onUpdate<K extends keyof Schema>(
-  _key: K,
-  _cb: (v: Schema[K]) => void,
+  key: K,
+  cb: (v: Schema[K]) => void,
 ): () => void {
-  return () => {}
+  const listener = () => cb(get(key))
+  _emitter.addListener('update', listener)
+  _emitter.addListener('update:' + key, listener)
+  return () => {
+    _emitter.removeListener('update', listener)
+    _emitter.removeListener('update:' + key, listener)
+  }
 }
 onUpdate satisfies PersistedApi['onUpdate']
 
@@ -55,8 +65,8 @@ export async function clearStorage() {
   try {
     await AsyncStorage.removeItem(BSKY_STORAGE)
     device.removeAll()
-  } catch (e: any) {
-    logger.error(`persisted store: failed to clear`, {message: e.toString()})
+  } catch (e: unknown) {
+    logger.error(`persisted store: failed to clear`, {message: String(e)})
   }
 }
 clearStorage satisfies PersistedApi['clearStorage']

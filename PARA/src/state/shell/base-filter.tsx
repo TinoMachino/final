@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react'
+import {createContext, useCallback, useContext, useMemo, useState} from 'react'
 
 type ViewMode = 'View official parties' | "View by 9th's" | 'Followed policies'
 

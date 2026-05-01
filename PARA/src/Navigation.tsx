@@ -865,9 +865,8 @@ function TabsNavigator({
   const {hasSession} = useSession()
   const {showLoggedOut} = useLoggedOutView()
   const tabBar = useCallback(
-    (props: JSX.IntrinsicAttributes & BottomTabBarProps) => (
-      hasSession && !showLoggedOut ? <BottomBar {...props} /> : null
-    ),
+    (props: JSX.IntrinsicAttributes & BottomTabBarProps) =>
+      hasSession && !showLoggedOut ? <BottomBar {...props} /> : null,
     [hasSession, showLoggedOut],
   )
 
@@ -1251,7 +1250,12 @@ function RoutesContainer({children}: React.PropsWithChildren<{}>) {
    * after an async call - sfn
    */
   const handleChatMessage = useNonReactiveCallback(
-    (payload: Extract<NotificationPayload, {reason: 'chat-message' | 'chat-reaction'}>) => {
+    (
+      payload: Extract<
+        NotificationPayload,
+        {reason: 'chat-message' | 'chat-reaction'}
+      >,
+    ) => {
       notyLogger.debug(`handleChatMessage`, {payload})
 
       if (payload.recipientDid !== currentAccount?.did) {

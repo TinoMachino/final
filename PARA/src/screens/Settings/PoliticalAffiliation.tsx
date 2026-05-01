@@ -28,7 +28,10 @@ import {
 } from '#/state/shell/political-affiliation'
 import * as SettingsList from '#/screens/Settings/components/SettingsList'
 import {atoms as a, useTheme} from '#/alf'
-import {AffiliationChangeModal, useAffiliationChangeGuard} from '#/components/AffiliationChangeModal'
+import {
+  AffiliationChangeModal,
+  useAffiliationChangeGuard,
+} from '#/components/AffiliationChangeModal'
 import {ColorStack} from '#/components/AvatarStack'
 import {Check_Stroke2_Corner0_Rounded as CheckIcon} from '#/components/icons/Check'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
@@ -55,7 +58,8 @@ export function PoliticalAffiliationScreen({}: Props) {
   const [localAffiliations, setLocalAffiliations] = useState<
     PoliticalAffiliation[]
   >([])
-  const [showInfoFor, setShowInfoFor] = useState<PoliticalAffiliationType | null>(null)
+  const [showInfoFor, setShowInfoFor] =
+    useState<PoliticalAffiliationType | null>(null)
   const guard = useAffiliationChangeGuard()
 
   useFocusEffect(
@@ -69,9 +73,7 @@ export function PoliticalAffiliationScreen({}: Props) {
     if (hours >= 24) {
       const days = Math.floor(hours / 24)
       const remHours = hours % 24
-      return remHours > 0
-        ? `${days}d ${remHours}h`
-        : `${days}d`
+      return remHours > 0 ? `${days}d ${remHours}h` : `${days}d`
     }
     return `${hours}h`
   }
@@ -167,12 +169,7 @@ export function PoliticalAffiliationScreen({}: Props) {
 
             {/* Current selection */}
             <View style={[a.px_lg, a.py_md, a.gap_sm]}>
-              <Text
-                style={[
-                  a.text_xs,
-                  a.font_bold,
-                  t.atoms.text_contrast_low,
-                ]}>
+              <Text style={[a.text_xs, a.font_bold, t.atoms.text_contrast_low]}>
                 <Trans>Current Selection</Trans>
               </Text>
               {localAffiliations.length > 0 ? (
@@ -187,7 +184,8 @@ export function PoliticalAffiliationScreen({}: Props) {
                   <View style={[a.gap_2xs, a.flex_1]}>
                     {localAffiliations.map(item => (
                       <Text key={item.id} style={[a.text_sm, t.atoms.text]}>
-                        {POLITICAL_AFFILIATION_TYPE_LABELS[item.type]}: {item.name}
+                        {POLITICAL_AFFILIATION_TYPE_LABELS[item.type]}:{' '}
+                        {item.name}
                       </Text>
                     ))}
                   </View>
@@ -203,60 +201,54 @@ export function PoliticalAffiliationScreen({}: Props) {
 
             {/* Badge info cards */}
             <View style={[a.px_lg, a.py_md, a.gap_md]}>
-              <Text
-                style={[
-                  a.text_xs,
-                  a.font_bold,
-                  t.atoms.text_contrast_low,
-                ]}>
+              <Text style={[a.text_xs, a.font_bold, t.atoms.text_contrast_low]}>
                 <Trans>About Your Badges</Trans>
               </Text>
-              {(Object.keys(BADGE_INFO) as PoliticalAffiliationType[]).map(type => {
-                const info = BADGE_INFO[type]
-                const cooldown = getCooldownForType(type)
-                return (
-                  <TouchableOpacity
-                    key={type}
-                    accessibilityRole="button"
-                    style={[
-                      styles.infoCard,
-                      t.atoms.bg_contrast_25,
-                      t.atoms.border_contrast_low,
-                    ]}
-                    onPress={() => setShowInfoFor(type)}>
-                    <View style={styles.infoCardHeader}>
-                      <View
-                        style={[
-                          styles.infoCardIcon,
-                          {backgroundColor: info.color + '20'},
-                        ]}>
+              {(Object.keys(BADGE_INFO) as PoliticalAffiliationType[]).map(
+                type => {
+                  const info = BADGE_INFO[type]
+                  const cooldown = getCooldownForType(type)
+                  return (
+                    <TouchableOpacity
+                      key={type}
+                      accessibilityRole="button"
+                      style={[
+                        styles.infoCard,
+                        t.atoms.bg_contrast_25,
+                        t.atoms.border_contrast_low,
+                      ]}
+                      onPress={() => setShowInfoFor(type)}>
+                      <View style={styles.infoCardHeader}>
                         <View
                           style={[
-                            styles.infoCardDot,
-                            {backgroundColor: info.color},
-                          ]}
-                        />
-                      </View>
-                      <View style={a.flex_1}>
-                        <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                          {info.name}
-                        </Text>
-                        <Text
-                          style={[
-                            a.text_2xs,
-                            t.atoms.text_contrast_medium,
+                            styles.infoCardIcon,
+                            {backgroundColor: info.color + '20'},
                           ]}>
-                          {type === 'party'
-                            ? '7 day cooldown'
-                            : '48 hour cooldown'}
-                          {cooldown ? ` • ${cooldown} remaining` : ''}
-                        </Text>
+                          <View
+                            style={[
+                              styles.infoCardDot,
+                              {backgroundColor: info.color},
+                            ]}
+                          />
+                        </View>
+                        <View style={a.flex_1}>
+                          <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
+                            {info.name}
+                          </Text>
+                          <Text
+                            style={[a.text_2xs, t.atoms.text_contrast_medium]}>
+                            {type === 'party'
+                              ? '7 day cooldown'
+                              : '48 hour cooldown'}
+                            {cooldown ? ` • ${cooldown} remaining` : ''}
+                          </Text>
+                        </View>
+                        <XIcon size="sm" style={t.atoms.text_contrast_medium} />
                       </View>
-                      <XIcon size="sm" style={t.atoms.text_contrast_medium} />
-                    </View>
-                  </TouchableOpacity>
-                )
-              })}
+                    </TouchableOpacity>
+                  )
+                },
+              )}
             </View>
 
             <SettingsList.Divider />
@@ -285,15 +277,23 @@ export function PoliticalAffiliationScreen({}: Props) {
             <SettingsList.Divider />
 
             {/* Options by type */}
-            {(Object.entries(POLITICAL_AFFILIATION_OPTIONS) as Array<
-              [PoliticalAffiliationType, PoliticalAffiliation[]]
-            >).map(([type, options], sectionIndex) => {
+            {(
+              Object.entries(POLITICAL_AFFILIATION_OPTIONS) as Array<
+                [PoliticalAffiliationType, PoliticalAffiliation[]]
+              >
+            ).map(([type, options], sectionIndex) => {
               const cooldown = getCooldownForType(type)
-              const info = BADGE_INFO[type]
 
               return (
                 <View key={type} style={[a.py_sm]}>
-                  <View style={[a.px_lg, a.py_sm, a.flex_row, a.align_center, a.gap_sm]}>
+                  <View
+                    style={[
+                      a.px_lg,
+                      a.py_sm,
+                      a.flex_row,
+                      a.align_center,
+                      a.gap_sm,
+                    ]}>
                     <Text
                       style={[
                         a.text_xs,
@@ -307,15 +307,13 @@ export function PoliticalAffiliationScreen({}: Props) {
                         style={[
                           styles.cooldownBadge,
                           {backgroundColor: t.palette.negative_500 + '20'},
-                        ]}
-                      >
+                        ]}>
                         <Text
                           style={[
                             a.text_2xs,
                             a.font_bold,
                             {color: t.palette.negative_500},
-                          ]}
-                        >
+                          ]}>
                           ⏳ {cooldown}
                         </Text>
                       </View>

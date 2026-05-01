@@ -29,9 +29,9 @@ export function useFollowMethods({
     requireAuth(async () => {
       try {
         await queueFollow()
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(`useFollowMethods: failed to follow`, {message: String(e)})
-        if (e?.name !== 'AbortError') {
+        if ((e as {name?: string})?.name !== 'AbortError') {
           Toast.show(_(msg`An issue occurred, please try again.`), {
             type: 'error',
           })
@@ -44,11 +44,11 @@ export function useFollowMethods({
     requireAuth(async () => {
       try {
         await queueUnfollow()
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(`useFollowMethods: failed to unfollow`, {
           message: String(e),
         })
-        if (e?.name !== 'AbortError') {
+        if ((e as {name?: string})?.name !== 'AbortError') {
           Toast.show(_(msg`An issue occurred, please try again.`), {
             type: 'error',
           })

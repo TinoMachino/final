@@ -95,11 +95,11 @@ export function ProfileHoverCard(props: ProfileHoverCardProps) {
 type State =
   | {
       stage: 'hidden' | 'might-hide' | 'hiding'
-      effect?: () => () => any
+      effect?: () => () => void
     }
   | {
       stage: 'might-show' | 'showing'
-      effect?: () => () => any
+      effect?: () => () => void
       reason: 'hovered-target' | 'hovered-card'
     }
 
@@ -577,7 +577,8 @@ function Inner({
                     borderColor: `${userFlair.color}40`,
                   },
                 ]}>
-                <Text style={[a.text_xs, a.font_bold, {color: userFlair.color}]}>
+                <Text
+                  style={[a.text_xs, a.font_bold, {color: userFlair.color}]}>
                   {userFlair.label}
                 </Text>
               </View>

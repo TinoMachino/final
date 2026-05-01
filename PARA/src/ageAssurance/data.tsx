@@ -127,9 +127,9 @@ export async function prefetchConfig() {
           configQueryKey,
           res,
         )
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.warn(`prefetchAgeAssuranceConfig: failed`, {
-          safeMessage: e.message,
+          safeMessage: (e as Error)?.message,
         })
       } finally {
         resolve()
@@ -230,9 +230,9 @@ export async function prefetchServerState({agent}: {agent: AtpAgent}) {
     logger.debug(`prefetchServerState: resolving...`)
     const res = await networkRetry(3, () => getServerState({agent}))
     qc.setQueryData<AppBskyAgeassuranceGetState.OutputSchema | null>(qk, res)
-  } catch (e: any) {
+  } catch (e: unknown) {
     logger.warn(`prefetchServerState: failed`, {
-      safeMessage: e.message,
+      safeMessage: (e as Error)?.message,
     })
   }
 }
@@ -411,9 +411,9 @@ export async function prefetchOtherRequiredData({agent}: {agent: AtpAgent}) {
     logger.debug(`prefetchOtherRequiredData: resolving...`)
     const res = await networkRetry(3, () => getOtherRequiredData({agent}))
     qc.setQueryData<OtherRequiredData>(qk, res)
-  } catch (e: any) {
+  } catch (e: unknown) {
     logger.warn(`prefetchOtherRequiredData: failed`, {
-      safeMessage: e.message,
+      safeMessage: (e as Error)?.message,
     })
   }
 }

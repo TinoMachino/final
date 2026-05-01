@@ -19,8 +19,8 @@ export function makeProfileLink(
 export function makeCustomFeedLink(
   did: string,
   rkey: string,
-  segment?: string  ,
-  feedCacheKey?: 'discover' | 'explore'  ,
+  segment?: string,
+  feedCacheKey?: 'discover' | 'explore',
 ) {
   return (
     [`/profile`, did, 'feed', rkey, ...(segment ? [segment] : [])].join('/') +

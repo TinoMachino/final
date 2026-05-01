@@ -5,7 +5,7 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
 import {logEvent} from '#/lib/statsig/statsig'
-import {cleanError,isNetworkError} from '#/lib/strings/errors'
+import {cleanError, isNetworkError} from '#/lib/strings/errors'
 import {checkAndFormatResetCode} from '#/lib/strings/password'
 import {logger} from '#/logger'
 import {Agent} from '#/state/session/agent'
@@ -70,7 +70,7 @@ export const SetNewPasswordForm = ({
       })
       onPasswordSet()
       logEvent('signin:passwordResetSuccess', {})
-    } catch (e: any) {
+    } catch (e: unknown) {
       const errMsg = e.toString()
       logger.warn('Failed to set new password', {error: e})
       logEvent('signin:passwordResetFailure', {})

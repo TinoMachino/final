@@ -786,7 +786,7 @@ function interpolateTransform(
   }
 }
 
-function withClampedSpring(value: any, config: WithSpringConfig) {
+function withClampedSpring(value: number, config: WithSpringConfig) {
   'worklet'
   return withSpring(value, {...config, overshootClamping: true})
 }

@@ -87,12 +87,12 @@ function DeviceLocationRequestDialogInner({onLocationAcquired}: Props) {
           ),
         )
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       const {clean, raw} = cleanError(e)
-      setError(clean || raw || e.message)
+      setError(clean || raw || (e instanceof Error ? e.message : String(e)))
       if (!isNetworkError(e)) {
         logger.error(`blockedGeoOverlay: unexpected error`, {
-          safeMessage: e.message,
+          safeMessage: e instanceof Error ? e.message : String(e),
         })
       }
     } finally {

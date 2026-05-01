@@ -1,4 +1,4 @@
-import  {type ReactNode} from 'react'
+import {type ReactNode} from 'react'
 import {type StyleProp, View, type ViewStyle} from 'react-native'
 import Animated, {
   Extrapolation,

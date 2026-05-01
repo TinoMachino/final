@@ -80,11 +80,9 @@ export function CommunityAgentProfileScreen() {
     <Layout.Screen testID="communityAgentProfileScreen">
       <Layout.Header.Outer>
         <Layout.Header.BackButton />
-          <Layout.Header.Content>
-            <Layout.Header.TitleText>
-              {displayName}
-            </Layout.Header.TitleText>
-          </Layout.Header.Content>
+        <Layout.Header.Content>
+          <Layout.Header.TitleText>{displayName}</Layout.Header.TitleText>
+        </Layout.Header.Content>
         <Layout.Header.Slot />
       </Layout.Header.Outer>
 
@@ -121,7 +119,8 @@ export function CommunityAgentProfileScreen() {
             </View>
 
             <Text style={[styles.bio, t.atoms.text]}>
-              {profile.description || 'No profile description has been published.'}
+              {profile.description ||
+                'No profile description has been published.'}
             </Text>
 
             <View style={styles.metaGrid}>

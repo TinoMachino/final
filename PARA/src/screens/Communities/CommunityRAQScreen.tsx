@@ -2,9 +2,10 @@ import {StyleSheet, View} from 'react-native'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
-import {useRoute} from '@react-navigation/native'
+import {RouteProp, useRoute} from '@react-navigation/native'
 
 import {usePalette} from '#/lib/hooks/usePalette'
+import {CommonNavigatorParams} from '#/lib/routes/types'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
@@ -17,7 +18,7 @@ export function CommunityRAQScreen() {
   const pal = usePalette('default')
   const t = useTheme()
   const {_} = useLingui()
-  const route = useRoute<any>()
+  const route = useRoute<RouteProp<CommonNavigatorParams, 'CommunityRAQ'>>()
   const {communityName = 'Community'} = route.params || {}
 
   const addDialogControl = Dialog.useDialogControl()

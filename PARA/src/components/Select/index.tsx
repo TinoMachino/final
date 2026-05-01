@@ -10,7 +10,7 @@ import {View} from 'react-native'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
-import {atoms as a,useTheme} from '#/alf'
+import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import * as Dialog from '#/components/Dialog'
 import {useInteractionState} from '#/components/hooks/useInteractionState'
@@ -36,7 +36,7 @@ const Context = createContext<ContextType | null>(null)
 Context.displayName = 'SelectContext'
 
 const ValueTextContext = createContext<
-  [any, React.Dispatch<React.SetStateAction<any>>]
+  [string | undefined, React.Dispatch<React.SetStateAction<string | undefined>>]
 >([undefined, () => {}])
 ValueTextContext.displayName = 'ValueTextContext'
 
@@ -50,7 +50,7 @@ function useSelectContext() {
 
 export function Root({children, value, onValueChange, disabled}: RootProps) {
   const control = Dialog.useDialogControl()
-  const valueTextCtx = useState<any>()
+  const valueTextCtx = useState<string | undefined>()
 
   const ctx = useMemo(
     () => ({
@@ -211,7 +211,7 @@ function ContentInner<T>({
   )
 }
 
-function defaultItemValueExtractor(item: any) {
+function defaultItemValueExtractor(item: {value: string}) {
   return item.value
 }
 

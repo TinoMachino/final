@@ -113,7 +113,9 @@ export function buildVsScreenViewModel({
   selectedTopic: string
 }): VsScreenViewModel {
   const relevantDebates = cabildeos
-    .filter(cabildeo => entities.some(entity => matchesEntity(cabildeo, entity)))
+    .filter(cabildeo =>
+      entities.some(entity => matchesEntity(cabildeo, entity)),
+    )
     .map(cabildeo => mapVsDebateCard(cabildeo, entities))
 
   const topics = buildTopicFilters(relevantDebates)
@@ -179,13 +181,16 @@ function summarizeEntity({
   debates: VsDebateCard[]
 }): VsEntitySummary {
   const relatedDebates = debates.filter(card =>
-    card.relevantEntities.some(name => normalizeCommunitySlug(name) === normalizeCommunitySlug(entity)),
+    card.relevantEntities.some(
+      name => normalizeCommunitySlug(name) === normalizeCommunitySlug(entity),
+    ),
   )
   const activeCount = relatedDebates.filter(card =>
     ['open', 'deliberating', 'voting'].includes(card.phase),
   ).length
-  const sharedCount = relatedDebates.filter(card => card.relevantEntities.length > 1)
-    .length
+  const sharedCount = relatedDebates.filter(
+    card => card.relevantEntities.length > 1,
+  ).length
   const participationTotal = relatedDebates.reduce(
     (sum, card) => sum + card.participationTotal,
     0,
@@ -228,7 +233,9 @@ function mapVsDebateCard(
   const topics = dedupe(
     (cabildeo.flairs || []).map(flair => classifyTopicKey(flair)),
   ).filter(Boolean)
-  const relevantEntities = entities.filter(entity => matchesEntity(cabildeo, entity))
+  const relevantEntities = entities.filter(entity =>
+    matchesEntity(cabildeo, entity),
+  )
   const leading = pickLeadingOption(cabildeo)
   const normalizedVotes = cabildeo.voteTotals.total || 0
   const normalizedPositions = cabildeo.positionCounts.total || 0
@@ -261,9 +268,7 @@ function mapVsDebateCard(
 function pickLeadingOption(cabildeo: CabildeoReadView) {
   const breakdown = cabildeo.outcomeSummary?.breakdown || []
   if (breakdown.length > 0) {
-    const winner = [...breakdown].sort(
-      (a, b) => b.votes - a.votes,
-    )[0]
+    const winner = [...breakdown].sort((a, b) => b.votes - a.votes)[0]
     const total = cabildeo.outcomeSummary?.effectiveTotalPower || 0
     return {
       label: winner?.label || 'Sin lider',
@@ -316,7 +321,9 @@ function buildTopicFilters(cards: VsDebateCard[]): VsTopicFilter[] {
   }
 
   const dynamic = [...counts.entries()]
-    .sort((a, b) => b[1].count - a[1].count || a[1].label.localeCompare(b[1].label))
+    .sort(
+      (a, b) => b[1].count - a[1].count || a[1].label.localeCompare(b[1].label),
+    )
     .map(([key, value]) => ({
       key,
       label: value.label,
@@ -363,7 +370,9 @@ function normalizeVsEntity(value: string | undefined) {
 function matchesEntity(cabildeo: CabildeoReadView, entity: string) {
   const target = normalizeCommunitySlug(entity)
   const candidates = [cabildeo.community, ...(cabildeo.communities || [])]
-  return candidates.some(candidate => normalizeCommunitySlug(candidate) === target)
+  return candidates.some(
+    candidate => normalizeCommunitySlug(candidate) === target,
+  )
 }
 
 function getCommunityMeta(entity: string) {

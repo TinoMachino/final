@@ -1,20 +1,18 @@
 import {XRPCError} from '@atproto/api'
 import {t} from '@lingui/core/macro'
 
-export function cleanError(str: any): string {
+export function cleanError(str: unknown): string {
   if (!str) {
     return ''
   }
-  if (typeof str !== 'string') {
-    str = str.toString()
-  }
-  if (isNetworkError(str)) {
+  const strValue = typeof str === 'string' ? str : String(str)
+  if (isNetworkError(strValue)) {
     return t`Unable to connect. Please check your internet connection and try again.`
   }
   if (
-    str.includes('Upstream Failure') ||
-    str.includes('NotEnoughResources') ||
-    str.includes('pipethrough network error')
+    strValue.includes('Upstream Failure') ||
+    strValue.includes('NotEnoughResources') ||
+    strValue.includes('pipethrough network error')
   ) {
     return t`The server appears to be experiencing issues. Please try again in a few moments.`
   }
@@ -22,18 +20,21 @@ export function cleanError(str: any): string {
    * @see https://github.com/bluesky-social/atproto/blob/255cfcebb54332a7129af768a93004e22c6858e3/packages/pds/src/actor-store/preference/transactor.ts#L24
    */
   if (
-    str.includes('Do not have authorization to set preferences') &&
-    str.includes('app.bsky.actor.defs#personalDetailsPref')
+    strValue.includes('Do not have authorization to set preferences') &&
+    strValue.includes('app.bsky.actor.defs#personalDetailsPref')
   ) {
     return t`You cannot update your birthdate while using an app password. Please sign in with your main password to update your birthdate.`
   }
-  if (str.includes('Bad token scope') || str.includes('Bad token method')) {
+  if (
+    strValue.includes('Bad token scope') ||
+    strValue.includes('Bad token method')
+  ) {
     return t`This feature is not available while using an App Password. Please sign in with your main password.`
   }
-  if (str.startsWith('Error: ')) {
-    return str.slice('Error: '.length)
+  if (strValue.startsWith('Error: ')) {
+    return strValue.slice('Error: '.length)
   }
-  return str
+  return strValue
 }
 
 const NETWORK_ERRORS = [

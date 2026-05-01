@@ -40,7 +40,7 @@ export function PostLanguageSelectDialog({
   const insets = useSafeAreaInsets()
 
   const renderErrorBoundary = useCallback(
-    (error: any) => <DialogError details={String(error)} />,
+    (error: Error) => <DialogError details={String(error)} />,
     [],
   )
 

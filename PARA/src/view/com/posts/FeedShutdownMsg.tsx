@@ -38,7 +38,9 @@ export function FeedShutdownMsg({feedUri}: {feedUri: string}) {
     f => f.value === feedUri && f.pinned,
   )
   const discoverFeedConfig = preferences?.savedFeeds?.find(
-    f => f.value === (DEFAULT_DISCOVER_SAVED_FEED?.value ?? TIMELINE_SAVED_FEED.value),
+    f =>
+      f.value ===
+      (DEFAULT_DISCOVER_SAVED_FEED?.value ?? TIMELINE_SAVED_FEED.value),
   )
   const hasFeedPinned = Boolean(feedConfig)
   const hasDiscoverPinned = Boolean(discoverFeedConfig?.pinned)
@@ -52,7 +54,7 @@ export function FeedShutdownMsg({feedUri}: {feedUri: string}) {
       if (hasDiscoverPinned) {
         setSelectedFeed(DEFAULT_DISCOVER_FEED_DESCRIPTOR as FeedDescriptor)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       Toast.show(
         _(
           msg`There was an issue updating your feeds, please check your internet connection and try again.`,
@@ -73,7 +75,7 @@ export function FeedShutdownMsg({feedUri}: {feedUri: string}) {
       })
       setSelectedFeed(DEFAULT_DISCOVER_FEED_DESCRIPTOR as FeedDescriptor)
       Toast.show(_(msg`The feed has been replaced with Discover.`))
-    } catch (err: any) {
+    } catch (err: unknown) {
       Toast.show(
         _(
           msg`There was an issue updating your feeds, please check your internet connection and try again.`,

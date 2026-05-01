@@ -195,8 +195,8 @@ export function PostThread({uri}: {uri: string}) {
    */
   const onContentSizeChangeWebOnly = web(() => {
     const list = listRef.current
-    const anchor = anchorRef.current as any as Element
-    const header = headerRef.current as any as Element
+    const anchor = anchorRef.current as unknown as HTMLElement
+    const header = headerRef.current as unknown as HTMLElement
 
     if (list && anchor && header && shouldHandleScroll.current) {
       const anchorOffsetTop = anchor.getBoundingClientRect().top
@@ -582,7 +582,7 @@ export function PostThread({uri}: {uri: string}) {
           onEndReached={onEndReached}
           onEndReachedThreshold={4}
           onStartReachedThreshold={1}
-          onItemSeen={item => {
+          onItemSeen={(item: ThreadItem) => {
             // Track post:view for parent posts and replies (non-anchor posts)
             if (item.type === 'threadPost' && item.depth !== 0) {
               trackThreadItemView(item.value.post)

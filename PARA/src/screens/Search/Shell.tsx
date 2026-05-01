@@ -1,4 +1,11 @@
-import {memo, useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   type StyleProp,
   type TextInput,
@@ -162,10 +169,13 @@ export function SearchScreenShell({
     textInput.current?.focus()
   }, [setSearchTextWithRef])
 
-  const onChangeText = useCallback((text: string) => {
-    scrollToTopWeb()
-    setSearchTextWithRef(text)
-  }, [setSearchTextWithRef])
+  const onChangeText = useCallback(
+    (text: string) => {
+      scrollToTopWeb()
+      setSearchTextWithRef(text)
+    },
+    [setSearchTextWithRef],
+  )
 
   const navigateToItem = useCallback(
     (item: string) => {

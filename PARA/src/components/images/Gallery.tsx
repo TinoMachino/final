@@ -21,7 +21,7 @@ interface Props {
   index: number
   onPress?: (
     index: number,
-    containerRefs: AnimatedRef<any>[],
+    containerRefs: AnimatedRef<View>[],
     fetchedDims: (Dimensions | null)[],
   ) => void
   onLongPress?: EventFunction
@@ -29,7 +29,7 @@ interface Props {
   imageStyle?: StyleProp<ImageStyle>
   viewContext?: PostEmbedViewContext
   insetBorderStyle?: StyleProp<ViewStyle>
-  containerRefs: AnimatedRef<any>[]
+  containerRefs: AnimatedRef<View>[]
   thumbDimsRef: React.RefObject<(Dimensions | null)[]>
 }
 

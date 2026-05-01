@@ -125,15 +125,14 @@ export function VotingButton({
   }, [])
 
   return (
-    <Pressable 
-      style={styles.container} 
+    <Pressable
+      style={styles.container}
       {...webEventBlockers}
-      onPress={(e) => {
+      onPress={e => {
         if (e && e.stopPropagation) {
           e.stopPropagation()
         }
-      }}
-    >
+      }}>
       <GestureDetector gesture={pan}>
         <Animated.View
           style={[

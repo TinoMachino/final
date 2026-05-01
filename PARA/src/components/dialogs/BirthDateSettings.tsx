@@ -146,8 +146,10 @@ function BirthdayInner({
         await setBirthDate({birthDate: date})
       }
       control.close()
-    } catch (e: any) {
-      logger.error(`setBirthDate failed`, {message: e.message})
+    } catch (e: unknown) {
+      logger.error(`setBirthDate failed`, {
+        message: e instanceof Error ? e.message : String(e),
+      })
     }
   }, [date, setBirthDate, control, hasChanged])
 

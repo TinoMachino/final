@@ -10,7 +10,7 @@ type CleanedError = {
 export function useCleanError() {
   const {_} = useLingui()
 
-  return useCallback<(error?: any) => CleanedError>(
+  return useCallback<(error?: unknown) => CleanedError>(
     error => {
       if (!error)
         return {

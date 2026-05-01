@@ -17,25 +17,25 @@ import {
   type PoliticalAffiliationType,
   upsertPoliticalAffiliation,
 } from '#/lib/political-affiliations'
-import {NINTH_ID_TO_USER_FLAIR, USER_FLAIRS, type UserFlair} from '#/lib/tags'
+import {NINTH_ID_TO_USER_FLAIR, type UserFlair} from '#/lib/tags'
 
 const STORAGE_KEY = 'para_political_affiliation'
 const COOLDOWN_KEY = 'para_affiliation_cooldowns'
 
 export type CooldownConfig = {
-  ninth: number      // ms (48h default)
+  ninth: number // ms (48h default)
   twentyFifth: number // ms (48h default)
-  party: number      // ms (7d default)
+  party: number // ms (7d default)
 }
 
 export const DEFAULT_COOLDOWNS: CooldownConfig = {
-  ninth: 48 * 60 * 60 * 1000,      // 48 hours
-  twentyFifth: 48 * 60 * 60 * 1000,  // 48 hours
-  party: 7 * 24 * 60 * 60 * 1000,   // 7 days
+  ninth: 48 * 60 * 60 * 1000, // 48 hours
+  twentyFifth: 48 * 60 * 60 * 1000, // 48 hours
+  party: 7 * 24 * 60 * 60 * 1000, // 7 days
 }
 
 export type CooldownState = {
-  ninth?: string        // ISO timestamp of last change
+  ninth?: string // ISO timestamp of last change
   twentyFifth?: string
   party?: string
 }
@@ -53,7 +53,8 @@ export const BADGE_INFO: Record<PoliticalAffiliationType, BadgeInfo> = {
     type: 'party',
     name: 'Party Affiliation',
     color: '#888888',
-    description: 'Indicates your registered or self-identified political party membership.',
+    description:
+      'Indicates your registered or self-identified political party membership.',
     responsibilities: [
       'Represents organizational alignment, not personal opinion.',
       'Visible to all users on your profile and posts.',
@@ -65,7 +66,8 @@ export const BADGE_INFO: Record<PoliticalAffiliationType, BadgeInfo> = {
     type: 'ninth',
     name: 'Political Compass',
     color: '#FFCC00',
-    description: 'Your position on the 9-point political compass (Auth Left → Lib Right).',
+    description:
+      'Your position on the 9-point political compass (Auth Left → Lib Right).',
     responsibilities: [
       'Reflects your ideological lean across authority and economic axes.',
       'Visible to all users on your profile and posts.',
@@ -77,7 +79,8 @@ export const BADGE_INFO: Record<PoliticalAffiliationType, BadgeInfo> = {
     type: 'twentyFifth',
     name: 'Precision Grid',
     color: '#30B0C7',
-    description: 'Fine-grained 5×5 grid position for precise ideological mapping.',
+    description:
+      'Fine-grained 5×5 grid position for precise ideological mapping.',
     responsibilities: [
       'Optional precision layer atop your 9th grid position.',
       'Not shown publicly on badges — used for matching and recommendations.',
@@ -124,11 +127,12 @@ export function PoliticalAffiliationProvider({
   useEffect(() => {
     const loadAffiliation = async () => {
       try {
-        const [storedAffiliation, storedIsPublic, storedCooldowns] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEY),
-          AsyncStorage.getItem(STORAGE_KEY + '_is_public'),
-          AsyncStorage.getItem(COOLDOWN_KEY),
-        ])
+        const [storedAffiliation, storedIsPublic, storedCooldowns] =
+          await Promise.all([
+            AsyncStorage.getItem(STORAGE_KEY),
+            AsyncStorage.getItem(STORAGE_KEY + '_is_public'),
+            AsyncStorage.getItem(COOLDOWN_KEY),
+          ])
         const nextAffiliations = (() => {
           if (!storedAffiliation) return []
 
@@ -206,30 +210,39 @@ export function PoliticalAffiliationProvider({
     }
   }, [])
 
-  const getCooldownRemaining = useCallback((type: PoliticalAffiliationType): number | null => {
-    const lastChange = cooldowns[type]
-    if (!lastChange) return null
+  const getCooldownRemaining = useCallback(
+    (type: PoliticalAffiliationType): number | null => {
+      const lastChange = cooldowns[type]
+      if (!lastChange) return null
 
-    const cooldownMs = DEFAULT_COOLDOWNS[type]
-    const elapsed = Date.now() - new Date(lastChange).getTime()
-    const remaining = cooldownMs - elapsed
+      const cooldownMs = DEFAULT_COOLDOWNS[type]
+      const elapsed = Date.now() - new Date(lastChange).getTime()
+      const remaining = cooldownMs - elapsed
 
-    return remaining > 0 ? remaining : null
-  }, [cooldowns])
+      return remaining > 0 ? remaining : null
+    },
+    [cooldowns],
+  )
 
-  const canChangeAffiliation = useCallback((type: PoliticalAffiliationType): boolean => {
-    return getCooldownRemaining(type) === null
-  }, [getCooldownRemaining])
+  const canChangeAffiliation = useCallback(
+    (type: PoliticalAffiliationType): boolean => {
+      return getCooldownRemaining(type) === null
+    },
+    [getCooldownRemaining],
+  )
 
-  const recordCooldown = useCallback(async (type: PoliticalAffiliationType) => {
-    try {
-      const next = { ...cooldowns, [type]: new Date().toISOString() }
-      await AsyncStorage.setItem(COOLDOWN_KEY, JSON.stringify(next))
-      setCooldowns(next)
-    } catch (e) {
-      console.error('Failed to record cooldown', e)
-    }
-  }, [cooldowns])
+  const recordCooldown = useCallback(
+    async (type: PoliticalAffiliationType) => {
+      try {
+        const next = {...cooldowns, [type]: new Date().toISOString()}
+        await AsyncStorage.setItem(COOLDOWN_KEY, JSON.stringify(next))
+        setCooldowns(next)
+      } catch (e) {
+        console.error('Failed to record cooldown', e)
+      }
+    },
+    [cooldowns],
+  )
 
   const affiliations = storedAffiliations
   const isPublic = storedIsPublic

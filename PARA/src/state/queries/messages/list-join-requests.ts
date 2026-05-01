@@ -4,13 +4,14 @@ import {useInfiniteQuery, useQueryClient} from '@tanstack/react-query'
 
 import {DM_SERVICE_HEADERS} from '#/lib/constants'
 import {useMessagesEventBus} from '#/state/messages/events'
+import {createQueryKey} from '#/state/queries/util'
 import {useAgent} from '#/state/session'
 import {STALE} from '..'
 
 const listJoinRequestsQueryKeyRoot = 'list-join-requests'
 
 export const createListJoinRequestsQueryKey = (args: {convoId: string}) =>
-  [listJoinRequestsQueryKeyRoot, args] as const
+  createQueryKey(listJoinRequestsQueryKeyRoot, args)
 
 export function useListJoinRequestsQuery({
   convoId,

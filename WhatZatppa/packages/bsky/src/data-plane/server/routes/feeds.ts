@@ -16,26 +16,11 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .selectAll('para_post')
       .where('creator', '=', req.actorDid)
 
-    if (req.party || req.community) {
-      builder = builder.innerJoin(
-        'para_post_meta',
-        'para_post_meta.postUri',
-        'para_post.uri',
-      )
-      if (req.party) {
-        builder = builder.where(
-          sql`"para_post_meta"."party"`,
-          '=',
-          req.party,
-        )
-      }
-      if (req.community) {
-        builder = builder.where(
-          sql`"para_post_meta"."community"`,
-          '=',
-          req.community,
-        )
-      }
+    if (req.party) {
+      builder = builder.where('para_post.party', '=', req.party)
+    }
+    if (req.community) {
+      builder = builder.where('para_post.community', '=', req.community)
     }
 
     const keyset = new TimeCidKeyset(
@@ -61,7 +46,6 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
   async getParaTimeline(req) {
     const { actorDid, limit, cursor } = req
     const { ref } = db.db.dynamic
-    const hasMetaFilter = !!(req.party || req.community)
 
     const keyset = new TimeCidKeyset(
       ref('para_post.sortAt'),
@@ -74,26 +58,11 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .where('follow.creator', '=', actorDid)
       .selectAll('para_post')
 
-    if (hasMetaFilter) {
-      followQb = followQb.innerJoin(
-        'para_post_meta',
-        'para_post_meta.postUri',
-        'para_post.uri',
-      )
-      if (req.party) {
-        followQb = followQb.where(
-          sql`"para_post_meta"."party"`,
-          '=',
-          req.party,
-        )
-      }
-      if (req.community) {
-        followQb = followQb.where(
-          sql`"para_post_meta"."community"`,
-          '=',
-          req.community,
-        )
-      }
+    if (req.party) {
+      followQb = followQb.where('para_post.party', '=', req.party)
+    }
+    if (req.community) {
+      followQb = followQb.where('para_post.community', '=', req.community)
     }
 
     followQb = paginate(followQb, {
@@ -108,26 +77,11 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .where('para_post.creator', '=', actorDid)
       .selectAll('para_post')
 
-    if (hasMetaFilter) {
-      selfQb = selfQb.innerJoin(
-        'para_post_meta',
-        'para_post_meta.postUri',
-        'para_post.uri',
-      )
-      if (req.party) {
-        selfQb = selfQb.where(
-          sql`"para_post_meta"."party"`,
-          '=',
-          req.party,
-        )
-      }
-      if (req.community) {
-        selfQb = selfQb.where(
-          sql`"para_post_meta"."community"`,
-          '=',
-          req.community,
-        )
-      }
+    if (req.party) {
+      selfQb = selfQb.where('para_post.party', '=', req.party)
+    }
+    if (req.community) {
+      selfQb = selfQb.where('para_post.community', '=', req.community)
     }
 
     selfQb = paginate(selfQb, {

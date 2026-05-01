@@ -254,22 +254,20 @@ export async function createAgentAndCreateAccount(
           throw e
         }),
         networkRetry(1, () => {
-          return agent.overwriteSavedFeeds(
-            [
-              ...(DEFAULT_DISCOVER_SAVED_FEED
-                ? [
-                    {
-                      ...DEFAULT_DISCOVER_SAVED_FEED,
-                      id: TID.nextStr(),
-                    },
-                  ]
-                : []),
-              {
-                ...TIMELINE_SAVED_FEED,
-                id: TID.nextStr(),
-              },
-            ],
-          )
+          return agent.overwriteSavedFeeds([
+            ...(DEFAULT_DISCOVER_SAVED_FEED
+              ? [
+                  {
+                    ...DEFAULT_DISCOVER_SAVED_FEED,
+                    id: TID.nextStr(),
+                  },
+                ]
+              : []),
+            {
+              ...TIMELINE_SAVED_FEED,
+              id: TID.nextStr(),
+            },
+          ])
         }).catch(e => {
           logger.info(
             `createAgentAndCreateAccount: failed to set initial feeds`,
@@ -339,8 +337,10 @@ export async function createAgentAndCreateAccount(
   try {
     // snooze first prompt after signup, defer to next prompt
     snoozeEmailConfirmationPrompt()
-  } catch (e: any) {
-    logger.error(e, {message: `session: failed snoozeEmailConfirmationPrompt`})
+  } catch (e: unknown) {
+    logger.error(e instanceof Error ? e : String(e), {
+      message: `session: failed snoozeEmailConfirmationPrompt`,
+    })
   }
 
   agent.configureProxy(getBskyProxyHeaderForServiceUrl(serviceUrl))

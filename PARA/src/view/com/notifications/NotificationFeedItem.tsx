@@ -278,7 +278,7 @@ let NotificationFeedItem = ({
     : ''
 
   let a11yLabel = ''
-  let notificationContent: React.ReactElement<any>
+  let notificationContent: React.ReactElement
   let icon = (
     <HeartIconFilled
       size="xl"
@@ -806,8 +806,13 @@ function FollowBackButton({profile}: {profile: AppBskyActorDefs.ProfileView}) {
           )}`,
         ),
       )
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (
+        err != null &&
+        typeof err === 'object' &&
+        'name' in err &&
+        (err as {name: unknown}).name !== 'AbortError'
+      ) {
         Toast.show(_(msg`An issue occurred, please try again.`), {
           type: 'error',
         })
@@ -828,8 +833,13 @@ function FollowBackButton({profile}: {profile: AppBskyActorDefs.ProfileView}) {
           )}`,
         ),
       )
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (
+        err != null &&
+        typeof err === 'object' &&
+        'name' in err &&
+        (err as {name: unknown}).name !== 'AbortError'
+      ) {
         Toast.show(_(msg`An issue occurred, please try again.`), {
           type: 'error',
         })

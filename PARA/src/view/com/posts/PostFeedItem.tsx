@@ -21,7 +21,11 @@ import {type CivicInsigniaInfo} from '#/lib/civic-insignias'
 import {MAX_POST_LINES} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
-import {getPostBadges, isPolicyPostRecord} from '#/lib/post-flairs'
+import {
+  getPostBadges,
+  isPolicyPostRecord,
+  type PostBadgeRecord,
+} from '#/lib/post-flairs'
 import {makeProfileLink} from '#/lib/routes/links'
 import {countLines} from '#/lib/strings/helpers'
 import {logger} from '#/logger'
@@ -31,14 +35,9 @@ import {
   usePostShadow,
 } from '#/state/cache/post-shadow'
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
-import {
-  useShowAuthorInsignias,
-  useShowPartyShields,
-} from '#/state/preferences'
+import {useShowAuthorInsignias, useShowPartyShields} from '#/state/preferences'
 import {unstableCacheProfileView} from '#/state/queries/profile'
-import {
-  useSession,
-} from '#/state/session'
+import {useSession} from '#/state/session'
 import {useMergedThreadgateHiddenReplies} from '#/state/threadgate-hidden-replies'
 import {
   buildPostSourceKey,
@@ -139,7 +138,7 @@ export function PostFeedItem({
         feedContext={feedContext}
         reqId={reqId}
         richText={displayRichText}
-        partyShield={showPartyShields ? (partyShield || undefined) : undefined}
+        partyShield={showPartyShields ? partyShield || undefined : undefined}
         parentAuthor={parentAuthor}
         showReplyTo={showReplyTo}
         moderation={moderation}
@@ -194,7 +193,10 @@ let FeedItemInner = ({
     const urip = new AtUri(post.uri)
     return [makeProfileLink(post.author, 'post', urip.rkey), urip.rkey]
   }, [post.uri, post.author])
-  const postBadges = useMemo(() => getPostBadges(record as any), [record])
+  const postBadges = useMemo(
+    () => getPostBadges(record as PostBadgeRecord),
+    [record],
+  )
   const {sendInteraction, feedSourceInfo, feedDescriptor} =
     useFeedFeedbackContext()
 
@@ -343,9 +345,7 @@ let FeedItemInner = ({
           </View>
 
           <View style={[a.pt_sm, a.flex_shrink]}>
-            {hasVisibleReason ? (
-              <PostFeedReason reason={reason} />
-            ) : null}
+            {hasVisibleReason ? <PostFeedReason reason={reason} /> : null}
           </View>
         </View>
       )}
@@ -361,7 +361,7 @@ let FeedItemInner = ({
             live={live}
           />
           <View style={{marginTop: 8, alignItems: 'center'}}>
-            {isPolicyPostRecord(record as any) && (
+            {isPolicyPostRecord(record as PostBadgeRecord) && (
               <VotingButton initialVote={0} />
             )}
           </View>

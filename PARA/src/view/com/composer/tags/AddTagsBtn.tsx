@@ -430,7 +430,8 @@ function FlairSelector({
     setActiveGroup(Object.keys(groups)[0] || '')
   }, [flairType, groups])
 
-  const currentList = (groups as any)[activeGroup] || []
+  const currentList: ComposerFlair[] =
+    (groups as Record<string, ComposerFlair[]>)[activeGroup] || []
 
   return (
     <View style={[a.gap_sm]}>

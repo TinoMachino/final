@@ -23,6 +23,8 @@ interface ParaPostRecord {
   tags?: string[]
   flairs?: string[]
   postType?: string
+  party?: string
+  community?: string
 }
 
 type Notif = Insertable<Notification>
@@ -59,6 +61,8 @@ const insertFn = async (
       ? sql<string[]>`${JSON.stringify(obj.flairs)}`
       : null,
     postType: obj.postType || null,
+    party: obj.party || null,
+    community: obj.community || null,
     indexedAt: timestamp,
   }
 

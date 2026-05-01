@@ -28,7 +28,9 @@ const NINTH_COMPASS_IDS = [
   'lib-right',
 ]
 
-function getExplicitNinthId(affiliations: PoliticalAffiliation[]): string | null {
+function getExplicitNinthId(
+  affiliations: PoliticalAffiliation[],
+): string | null {
   const ninth = affiliations.find(a => a.type === 'ninth')
   if (ninth) {
     return NINTH_NAME_TO_COMPASS_ID[ninth.name] || null
@@ -47,7 +49,9 @@ function getExplicitNinthId(affiliations: PoliticalAffiliation[]): string | null
   return null
 }
 
-function getDisplayedNinthId(affiliations: PoliticalAffiliation[]): string | null {
+function getDisplayedNinthId(
+  affiliations: PoliticalAffiliation[],
+): string | null {
   const explicit = getExplicitNinthId(affiliations)
   if (explicit) return explicit
   // Fallback: derive from party's predominant ninth
@@ -133,6 +137,7 @@ export function CompassMini({
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel="Ver posición política"
+        accessibilityHint="Navega a la pantalla de detalle de tu posición política"
         onPress={onPress}>
         <View style={[a.align_center, a.gap_xs]}>
           {grid}
@@ -156,6 +161,7 @@ export function CompassMini({
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel="Ver posición política"
+      accessibilityHint="Navega a la pantalla de detalle de tu posición política"
       style={[styles.card, {gap: 14}]}
       onPress={onPress}>
       <View style={[a.align_center, a.gap_xs]}>

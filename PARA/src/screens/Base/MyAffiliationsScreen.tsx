@@ -1,10 +1,5 @@
 import {useCallback, useMemo, useState} from 'react'
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
@@ -14,7 +9,6 @@ import {getVoteBreakdownByParty} from '#/lib/cabildeo-party-alignment'
 import {
   getPartyNinthId,
   PARTY_COMPASS_PROFILE_BY_ID,
-  PARTY_COMPASS_PROFILES,
 } from '#/lib/compass/party-distributions'
 import {
   NINTH_NAME_TO_COMPASS_ID,
@@ -36,18 +30,13 @@ import {Text} from '#/components/Typography'
 // VoteAnalysis — pie chart + voted policies list
 // ─────────────────────────────────────────────────────────────────────────────
 
-function VoteAnalysis({
-  navigation,
-}: {
-  navigation: NavigationProp
-}) {
+function VoteAnalysis({navigation}: {navigation: NavigationProp}) {
   const t = useTheme()
   const {_} = useLingui()
   const {data: cabildeos = []} = useCabildeosQuery()
 
   const votedCabildeos = useMemo(
-    () =>
-      cabildeos.filter(c => c.userContext?.viewerVoteOption !== undefined),
+    () => cabildeos.filter(c => c.userContext?.viewerVoteOption !== undefined),
     [cabildeos],
   )
 
@@ -119,9 +108,7 @@ function VoteAnalysis({
       {/* Breakdown stats */}
       <View style={[a.gap_sm, a.mb_lg]}>
         {breakdown.map(b => (
-          <View
-            key={b.party.id}
-            style={[a.flex_row, a.align_center, a.gap_sm]}>
+          <View key={b.party.id} style={[a.flex_row, a.align_center, a.gap_sm]}>
             <View
               style={{
                 width: 10,
@@ -185,11 +172,7 @@ function VoteAnalysis({
                     {backgroundColor: aligned.color + '20'},
                   ]}>
                   <Text
-                    style={[
-                      a.text_xs,
-                      a.font_bold,
-                      {color: aligned.color},
-                    ]}>
+                    style={[a.text_xs, a.font_bold, {color: aligned.color}]}>
                     {aligned.name}
                   </Text>
                 </View>
@@ -224,7 +207,7 @@ function VoteAnalysis({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function MyAffiliationsScreen() {
-  const {_, i18n} = useLingui()
+  const {_} = useLingui()
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
   const {affiliations, setAffiliations, isLoading} = usePoliticalAffiliation()
@@ -248,50 +231,46 @@ export function MyAffiliationsScreen() {
     }, [affiliations]),
   )
 
-  const handleToggleParty = useCallback(
-    (party: PoliticalAffiliation) => {
-      setPendingAffiliations(prev => {
-        const exists = prev.find(p => p.id === party.id)
-        if (exists) {
-          return prev.filter(p => p.id !== party.id)
-        }
-        // Keep non-party/non-ninth affiliations, replace party and sync ninth
-        const filtered = prev.filter(p => p.type !== 'party' && p.type !== 'ninth')
-        const next = [...filtered, party]
-        setIsNinthManual(false)
+  const handleToggleParty = useCallback((party: PoliticalAffiliation) => {
+    setPendingAffiliations(prev => {
+      const exists = prev.find(p => p.id === party.id)
+      if (exists) {
+        return prev.filter(p => p.id !== party.id)
+      }
+      // Keep non-party/non-ninth affiliations, replace party and sync ninth
+      const filtered = prev.filter(
+        p => p.type !== 'party' && p.type !== 'ninth',
+      )
+      const next = [...filtered, party]
+      setIsNinthManual(false)
 
-        // Always sync ninth to the selected party's predominant position
-        const ninthId = getPartyNinthId(party.id)
-        if (ninthId) {
-          const ninthName = Object.entries(NINTH_NAME_TO_COMPASS_ID).find(
-            ([, id]) => id === ninthId,
-          )?.[0]
-          if (ninthName) {
-            const ninthAff = POLITICAL_AFFILIATION_OPTIONS.ninth.find(
-              n => n.name === ninthName,
-            )
-            if (ninthAff) {
-              next.push(ninthAff)
-            }
+      // Always sync ninth to the selected party's predominant position
+      const ninthId = getPartyNinthId(party.id)
+      if (ninthId) {
+        const ninthName = Object.entries(NINTH_NAME_TO_COMPASS_ID).find(
+          ([, id]) => id === ninthId,
+        )?.[0]
+        if (ninthName) {
+          const ninthAff = POLITICAL_AFFILIATION_OPTIONS.ninth.find(
+            n => n.name === ninthName,
+          )
+          if (ninthAff) {
+            next.push(ninthAff)
           }
         }
+      }
 
-        return next
-      })
-    },
-    [],
-  )
+      return next
+    })
+  }, [])
 
-  const handleSetNinth = useCallback(
-    (ninth: PoliticalAffiliation) => {
-      setIsNinthManual(true)
-      setPendingAffiliations(prev => {
-        const filtered = prev.filter(p => p.type !== 'ninth')
-        return [...filtered, ninth]
-      })
-    },
-    [],
-  )
+  const handleSetNinth = useCallback((ninth: PoliticalAffiliation) => {
+    setIsNinthManual(true)
+    setPendingAffiliations(prev => {
+      const filtered = prev.filter(p => p.type !== 'ninth')
+      return [...filtered, ninth]
+    })
+  }, [])
 
   const handleRemoveNinth = useCallback(() => {
     setPendingAffiliations(prev => prev.filter(p => p.type !== 'ninth'))
@@ -453,19 +432,14 @@ export function MyAffiliationsScreen() {
                       a.font_bold,
                       {color: partyProfile?.color},
                     ]}>
-                    <Trans>Suggested by</Trans>{' '}
-                    {currentParty.name}
+                    <Trans>Suggested by</Trans> {currentParty.name}
                   </Text>
                 </View>
               ) : null}
               <TouchableOpacity
                 accessibilityRole="button"
                 onPress={handleRemoveNinth}
-                style={[
-                  a.p_xs,
-                  a.rounded_full,
-                  t.atoms.bg_contrast_100,
-                ]}>
+                style={[a.p_xs, a.rounded_full, t.atoms.bg_contrast_100]}>
                 <XIcon size="xs" style={t.atoms.text_contrast_medium} />
               </TouchableOpacity>
             </View>
@@ -528,11 +502,7 @@ export function MyAffiliationsScreen() {
                       {party.name}
                     </Text>
                     {profile && (
-                      <Text
-                        style={[
-                          a.text_xs,
-                          t.atoms.text_contrast_medium,
-                        ]}>
+                      <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
                         {profile.totalMembers.toLocaleString()} members •{' '}
                         {profile.descriptors.slice(0, 2).join(', ')}
                       </Text>
@@ -583,10 +553,7 @@ export function MyAffiliationsScreen() {
                     },
                   ]}>
                   <View
-                    style={[
-                      styles.ninthDot,
-                      {backgroundColor: ninth.color},
-                    ]}
+                    style={[styles.ninthDot, {backgroundColor: ninth.color}]}
                   />
                   <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
                     {ninth.name}

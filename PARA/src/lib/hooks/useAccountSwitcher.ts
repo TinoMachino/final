@@ -46,9 +46,10 @@ export function useAccountSwitcher() {
             type: 'warning',
           })
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e)
         logger.error(`switch account: selectAccount failed`, {
-          message: e.message,
+          message: errorMessage,
         })
         requestSwitchToAccount({requestedAccount: account.did})
         Toast.show(_(msg`Please sign in as @${account.handle}`), {

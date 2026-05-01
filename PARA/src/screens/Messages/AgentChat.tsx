@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useRef, useState} from 'react'
 import {
   Platform,
   Pressable,
@@ -8,7 +8,6 @@ import {
 } from 'react-native'
 import {useKeyboardHandler} from 'react-native-keyboard-controller'
 import Animated, {
-  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated'
@@ -53,7 +52,7 @@ export function AgentChatScreen() {
     },
   ])
 
-  const scrollViewRef = useAnimatedRef<ScrollView>()
+  const scrollViewRef = useRef<ScrollView>(null)
 
   const onSendMessage = () => {
     if (!message.trim()) return
@@ -130,11 +129,11 @@ export function AgentChatScreen() {
 
       <Layout.Center style={[a.flex_1]}>
         <Animated.ScrollView
-          ref={scrollViewRef as any}
+          ref={scrollViewRef}
           style={[a.flex_1, animatedListStyle]}
           contentContainerStyle={[a.px_md, a.pt_md, {paddingBottom: 20}]}
           onContentSizeChange={() =>
-            (scrollViewRef.current as any)?.scrollToEnd({animated: true})
+            scrollViewRef.current?.scrollToEnd({animated: true})
           }>
           {messages.map(chatMessage => {
             const isFromSelf = chatMessage.sender === 'user'

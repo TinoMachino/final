@@ -4,10 +4,12 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  type StyleProp,
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from 'react-native'
 import {StickyTable} from 'react-native-sticky-table'
 import {LinearGradient} from 'expo-linear-gradient'
@@ -18,11 +20,15 @@ import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
 import {getCommunityInsignia} from '#/lib/civic-insignias'
-import {type CommunityGovernanceView} from '#/lib/community-governance'
+import {
+  type CommunityGovernanceOfficialRepresentative,
+  type CommunityGovernancePerson,
+  type CommunityGovernanceView,
+} from '#/lib/community-governance'
 import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
-import {usePalette} from '#/lib/hooks/usePalette'
+import {usePalette, type UsePaletteValue} from '#/lib/hooks/usePalette'
 import {COMMUNITY_AGENT_PROFILE} from '#/lib/mock-data/community-agent'
-import {getPostBadges} from '#/lib/post-flairs'
+import {getPostBadges, type PostBadgeRecord} from '#/lib/post-flairs'
 import {type NavigationProp} from '#/lib/routes/types'
 import {
   formatCommunityName,
@@ -102,7 +108,8 @@ export function CommunityProfileScreen() {
   })
   const governance = fetchedGovernance || EMPTY_GOVERNANCE
   const governanceCommunity = fetchedGovernance?.community
-  const resolvedCommunityName = governanceCommunity || board?.name || communityName
+  const resolvedCommunityName =
+    governanceCommunity || board?.name || communityName
   const isGeographicGroup = isGeographicGroupCommunity({
     communityId,
     communityName: resolvedCommunityName,
@@ -117,20 +124,33 @@ export function CommunityProfileScreen() {
         : formattedCommunity
   const displayCommunityName = formattedDisplayNameParts.displayName
   const plainCommunityName = formattedDisplayNameParts.plainName
-  const featuredRepresentative = useMemo(
-    () => governance.officials[0] || governance.deputies[0]?.activeHolder || null,
-    [governance.deputies, governance.officials],
-  )
+  const featuredRepresentative = useMemo(() => {
+    return (governance.officials[0] ||
+      governance.deputies[0]?.activeHolder ||
+      null) as
+      | CommunityGovernanceOfficialRepresentative
+      | CommunityGovernancePerson
+      | null
+  }, [governance.deputies, governance.officials])
   const agentDisplayName =
     featuredRepresentative?.displayName ||
     featuredRepresentative?.handle ||
     featuredRepresentative?.did ||
     COMMUNITY_AGENT_PROFILE.displayName
   const agentRoleLabel = 'AI Agent'
-  const agentGovernanceRole = (featuredRepresentative as any)?.office || (featuredRepresentative as any)?.role || ''
-  const agentMandate = (featuredRepresentative as any)?.mandate || (featuredRepresentative as any)?.description || COMMUNITY_AGENT_PROFILE.bio
+  const agentGovernanceRole =
+    (featuredRepresentative as CommunityGovernanceOfficialRepresentative)
+      ?.office ||
+    (governance.deputies[0] ? governance.deputies[0].role : '')
+  const agentMandate =
+    (featuredRepresentative as CommunityGovernanceOfficialRepresentative)
+      ?.mandate ||
+    (governance.deputies[0] ? governance.deputies[0].description : '') ||
+    COMMUNITY_AGENT_PROFILE.bio
   const agentActorId =
-    featuredRepresentative?.did || featuredRepresentative?.handle || COMMUNITY_AGENT_PROFILE.id
+    featuredRepresentative?.did ||
+    featuredRepresentative?.handle ||
+    COMMUNITY_AGENT_PROFILE.id
 
   const {
     data,
@@ -150,10 +170,12 @@ export function CommunityProfileScreen() {
 
   const posts = useMemo(() => {
     return (
-      data?.pages.flatMap(page => page.posts).filter(post => {
-        // Filter out posts from users with unresolved/invalid handles
-        return post.author.handle !== 'handle.invalid'
-      }) || []
+      data?.pages
+        .flatMap(page => page.posts)
+        .filter(post => {
+          // Filter out posts from users with unresolved/invalid handles
+          return post.author.handle !== 'handle.invalid'
+        }) || []
     )
   }, [data])
 
@@ -167,7 +189,7 @@ export function CommunityProfileScreen() {
   const [joinOverride, setJoinOverride] = useState<boolean | null>(null)
   const [isPTR, setIsPTR] = useState(false)
   const [showEstandarte, setShowEstandarte] = useState(true)
-  const isJoined = joinOverride ?? (board?.viewerMembershipState === 'active')
+  const isJoined = joinOverride ?? board?.viewerMembershipState === 'active'
   const acceptInviteMutation = useAcceptDraftInviteMutation()
   const joinMutation = useJoinCommunityMutation()
   const leaveMutation = useLeaveCommunityMutation()
@@ -176,7 +198,8 @@ export function CommunityProfileScreen() {
 
   const onPressJoin = async () => {
     if (!board?.uri) return
-    const currentlyJoined = joinOverride ?? (board?.viewerMembershipState === 'active')
+    const currentlyJoined =
+      joinOverride ?? board?.viewerMembershipState === 'active'
     try {
       if (currentlyJoined) {
         await leaveMutation.mutateAsync({communityUri: board.uri})
@@ -212,14 +235,6 @@ export function CommunityProfileScreen() {
     await Promise.all([refetch(), refetchGovernance()])
     setIsPTR(false)
   }, [refetch, refetchGovernance])
-  const onPullToRefresh = useCallback(() => {
-    void onRefresh()
-  }, [onRefresh])
-
-  const onEndReached = useCallback(() => {
-    if (isFetchingNextPage || !hasNextPage || error) return
-    void fetchNextPage()
-  }, [isFetchingNextPage, hasNextPage, error, fetchNextPage])
 
   const communityStats = useMemo(() => {
     let policyPosts = 0
@@ -229,7 +244,7 @@ export function CommunityProfileScreen() {
 
     for (const post of posts) {
       visiblePosters.add(post.author.did)
-      const badges = getPostBadges(post.record as any)
+      const badges = getPostBadges(post.record as PostBadgeRecord)
       if (
         badges.some(
           badge =>
@@ -255,7 +270,8 @@ export function CommunityProfileScreen() {
     }
   }, [posts])
 
-  const createdAt = board?.createdAt || fetchedGovernance?.createdAt || governance.createdAt
+  const createdAt =
+    board?.createdAt || fetchedGovernance?.createdAt || governance.createdAt
 
   // Derive community brand color from insignia system
   const insigniaColors = getCommunityInsignia(resolvedCommunityName)
@@ -343,14 +359,25 @@ export function CommunityProfileScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}>
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={isPTR} onRefresh={onRefresh} />
+        }>
         <Layout.Center>
           {/* Hero Banner Section */}
           <LinearGradient
             colors={
               t.scheme === 'dark'
-                ? [hexToRgba(brandColor, 0.22), hexToRgba(brandColor, 0.06), 'transparent']
-                : [hexToRgba(brandColor, 0.14), hexToRgba(brandColor, 0.04), 'transparent']
+                ? [
+                    hexToRgba(brandColor, 0.22),
+                    hexToRgba(brandColor, 0.06),
+                    'transparent',
+                  ]
+                : [
+                    hexToRgba(brandColor, 0.14),
+                    hexToRgba(brandColor, 0.04),
+                    'transparent',
+                  ]
             }
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
@@ -362,13 +389,18 @@ export function CommunityProfileScreen() {
                   style={[
                     styles.communityAvatar,
                     {
-                      backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.3) : hexToRgba(brandColor, 0.12),
-                      borderColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.6) : hexToRgba(brandColor, 0.35),
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.3)
+                          : hexToRgba(brandColor, 0.12),
+                      borderColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.6)
+                          : hexToRgba(brandColor, 0.35),
                       borderWidth: 2.5,
                     },
                   ]}>
-                  <Text
-                    style={[styles.avatarText, {color: brandColor}]}>
+                  <Text style={[styles.avatarText, {color: brandColor}]}>
                     {plainCommunityName.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -406,9 +438,7 @@ export function CommunityProfileScreen() {
                     style={[
                       styles.followButtonText,
                       {
-                        color: isJoined
-                          ? t.palette.primary_700
-                          : '#fff',
+                        color: isJoined ? t.palette.primary_700 : '#fff',
                       },
                     ]}>
                     {isDraft
@@ -437,25 +467,92 @@ export function CommunityProfileScreen() {
               ) : null}
 
               {/* Pill-Chip Stats Grid */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsPillScroll} contentContainerStyle={styles.statsPillContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.statsPillScroll}
+                contentContainerStyle={styles.statsPillContainer}>
                 {[
-                  {label: 'Members', value: (board?.memberCount ?? 0).toLocaleString()},
+                  {
+                    label: 'Members',
+                    value: (board?.memberCount ?? 0).toLocaleString(),
+                  },
                   {label: 'Posts', value: posts.length.toLocaleString()},
-                  {label: 'Policy', value: communityStats.policyPosts.toLocaleString()},
-                  {label: 'Matter', value: communityStats.matterPosts.toLocaleString()},
+                  {
+                    label: 'Policy',
+                    value: communityStats.policyPosts.toLocaleString(),
+                  },
+                  {
+                    label: 'Matter',
+                    value: communityStats.matterPosts.toLocaleString(),
+                  },
                 ].map(stat => (
-                  <View key={stat.label} style={[styles.statPill, {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.12) : hexToRgba(brandColor, 0.10)}]}>
-                    <Text style={[styles.statPillValue, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>{stat.value}</Text>
-                    <Text style={[styles.statPillLabel, {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.6)}]}>{stat.label}</Text>
+                  <View
+                    key={stat.label}
+                    style={[
+                      styles.statPill,
+                      {
+                        backgroundColor:
+                          t.scheme === 'dark'
+                            ? hexToRgba(brandColor, 0.12)
+                            : hexToRgba(brandColor, 0.1),
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.statPillValue,
+                        {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
+                      ]}>
+                      {stat.value}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statPillLabel,
+                        {
+                          color:
+                            t.scheme === 'dark'
+                              ? 'rgba(255,255,255,0.5)'
+                              : hexToRgba(brandColor, 0.6),
+                        },
+                      ]}>
+                      {stat.label}
+                    </Text>
                   </View>
                 ))}
                 {/* Docs Button */}
                 <TouchableOpacity
                   accessibilityRole="button"
                   onPress={onPressDocuments}
-                  style={[styles.statPill, styles.docsPill, {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.18) : hexToRgba(brandColor, 0.12), borderColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.4) : hexToRgba(brandColor, 0.25)}]}>
-                  <PageTextIcon style={{color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}} size="sm" />
-                  <Text style={[styles.statPillLabel, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor, marginTop: 2}]}>Docs</Text>
+                  style={[
+                    styles.statPill,
+                    styles.docsPill,
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.18)
+                          : hexToRgba(brandColor, 0.12),
+                      borderColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.4)
+                          : hexToRgba(brandColor, 0.25),
+                    },
+                  ]}>
+                  <PageTextIcon
+                    style={{
+                      color: t.scheme === 'dark' ? '#e0e7ff' : brandColor,
+                    }}
+                    size="sm"
+                  />
+                  <Text
+                    style={[
+                      styles.statPillLabel,
+                      {
+                        color: t.scheme === 'dark' ? '#e0e7ff' : brandColor,
+                        marginTop: 2,
+                      },
+                    ]}>
+                    Docs
+                  </Text>
                 </TouchableOpacity>
               </ScrollView>
 
@@ -464,29 +561,90 @@ export function CommunityProfileScreen() {
                 <TouchableOpacity
                   accessibilityRole="button"
                   onPress={onPressRAQ}
-                  style={[styles.activityPill, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.06)' : t.palette.primary_25}]}>
-                  <Text style={[styles.activityPillValue, {color: t.scheme === 'dark' ? '#c7d2fe' : t.palette.primary_600}]}>
+                  style={[
+                    styles.activityPill,
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? 'rgba(255,255,255,0.06)'
+                          : t.palette.primary_25,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.activityPillValue,
+                      {
+                        color:
+                          t.scheme === 'dark'
+                            ? '#c7d2fe'
+                            : t.palette.primary_600,
+                      },
+                    ]}>
                     {communityStats.raqPosts.toLocaleString()}
                   </Text>
-                  <Text style={[styles.activityPillLabel, pal.textLight]}>RAQ</Text>
+                  <Text style={[styles.activityPillLabel, pal.textLight]}>
+                    RAQ
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   accessibilityRole="button"
                   onPress={onPressRoles}
-                  style={[styles.activityPill, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.06)' : t.palette.primary_25}]}>
-                  <Text style={[styles.activityPillValue, {color: t.scheme === 'dark' ? '#c7d2fe' : t.palette.primary_600}]}>
-                    {(governance.moderators.length + governance.officials.length + governance.deputies.length).toLocaleString()}
+                  style={[
+                    styles.activityPill,
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? 'rgba(255,255,255,0.06)'
+                          : t.palette.primary_25,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.activityPillValue,
+                      {
+                        color:
+                          t.scheme === 'dark'
+                            ? '#c7d2fe'
+                            : t.palette.primary_600,
+                      },
+                    ]}>
+                    {(
+                      governance.moderators.length +
+                      governance.officials.length +
+                      governance.deputies.length
+                    ).toLocaleString()}
                   </Text>
-                  <Text style={[styles.activityPillLabel, pal.textLight]}>Roles</Text>
+                  <Text style={[styles.activityPillLabel, pal.textLight]}>
+                    Roles
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   accessibilityRole="button"
                   onPress={onPressVoters}
-                  style={[styles.activityPill, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.06)' : t.palette.primary_25}]}>
-                  <Text style={[styles.activityPillValue, {color: t.scheme === 'dark' ? '#c7d2fe' : t.palette.primary_600}]}>
+                  style={[
+                    styles.activityPill,
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? 'rgba(255,255,255,0.06)'
+                          : t.palette.primary_25,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.activityPillValue,
+                      {
+                        color:
+                          t.scheme === 'dark'
+                            ? '#c7d2fe'
+                            : t.palette.primary_600,
+                      },
+                    ]}>
                     {communityStats.visiblePosters.toLocaleString()}
                   </Text>
-                  <Text style={[styles.activityPillLabel, pal.textLight]}>Voters</Text>
+                  <Text style={[styles.activityPillLabel, pal.textLight]}>
+                    Voters
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -497,8 +655,14 @@ export function CommunityProfileScreen() {
               style={[
                 styles.repCardContainer,
                 {
-                  backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(99,102,241,0.04)',
-                  borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.12)',
+                  backgroundColor:
+                    t.scheme === 'dark'
+                      ? 'rgba(255,255,255,0.04)'
+                      : 'rgba(99,102,241,0.04)',
+                  borderColor:
+                    t.scheme === 'dark'
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(99,102,241,0.12)',
                 },
               ]}>
               <TouchableOpacity
@@ -527,7 +691,9 @@ export function CommunityProfileScreen() {
                         ]}>
                         <MacintoshIcon
                           style={{
-                            color: featuredRepresentative ? '#fff' : t.palette.contrast_400,
+                            color: featuredRepresentative
+                              ? '#fff'
+                              : t.palette.contrast_400,
                           }}
                           size="sm"
                         />
@@ -547,7 +713,9 @@ export function CommunityProfileScreen() {
                       ]}>
                       <MacintoshIcon
                         style={{
-                          color: featuredRepresentative ? '#fff' : t.palette.contrast_400,
+                          color: featuredRepresentative
+                            ? '#fff'
+                            : t.palette.contrast_400,
                         }}
                         size="sm"
                       />
@@ -557,7 +725,11 @@ export function CommunityProfileScreen() {
                   <View
                     style={[
                       styles.repStatusDot,
-                      {backgroundColor: featuredRepresentative ? '#34d399' : '#9ca3af'},
+                      {
+                        backgroundColor: featuredRepresentative
+                          ? '#34d399'
+                          : '#9ca3af',
+                      },
                     ]}
                   />
                 </View>
@@ -566,7 +738,9 @@ export function CommunityProfileScreen() {
                     style={[
                       pal.text,
                       {fontSize: 15, fontWeight: '700'},
-                      !featuredRepresentative && {color: t.palette.contrast_500},
+                      !featuredRepresentative && {
+                        color: t.palette.contrast_500,
+                      },
                     ]}>
                     {agentDisplayName}
                   </Text>
@@ -574,13 +748,19 @@ export function CommunityProfileScreen() {
                     style={[
                       {
                         fontSize: 12,
-                        color: t.scheme === 'dark' ? 'rgba(255,255,255,0.45)' : t.palette.primary_400,
+                        color:
+                          t.scheme === 'dark'
+                            ? 'rgba(255,255,255,0.45)'
+                            : t.palette.primary_400,
                       },
-                      !featuredRepresentative && {color: t.palette.contrast_400},
+                      !featuredRepresentative && {
+                        color: t.palette.contrast_400,
+                      },
                     ]}>
                     {agentRoleLabel}
                   </Text>
-                  {featuredRepresentative && (agentGovernanceRole || agentMandate) ? (
+                  {featuredRepresentative &&
+                  (agentGovernanceRole || agentMandate) ? (
                     <Text
                       numberOfLines={1}
                       style={[
@@ -590,7 +770,9 @@ export function CommunityProfileScreen() {
                           color: t.palette.contrast_500,
                         },
                       ]}>
-                      {agentGovernanceRole ? `${agentGovernanceRole}${agentMandate ? ` • ${agentMandate}` : ''}` : agentMandate}
+                      {agentGovernanceRole
+                        ? `${agentGovernanceRole}${agentMandate ? ` • ${agentMandate}` : ''}`
+                        : agentMandate}
                     </Text>
                   ) : null}
                 </View>
@@ -599,7 +781,10 @@ export function CommunityProfileScreen() {
                   onPress={onPressChat}
                   style={[
                     styles.repMessageBtn,
-                    {backgroundColor: t.scheme === 'dark' ? '#6366f1' : t.palette.primary_500},
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark' ? '#6366f1' : t.palette.primary_500,
+                    },
                   ]}>
                   <ChatIcon style={{color: '#fff'}} size="xs" />
                   <Text style={styles.repMessageText}>Chat</Text>
@@ -613,8 +798,10 @@ export function CommunityProfileScreen() {
             <View
               style={[
                 styles.draftBanner,
-                {backgroundColor: t.palette.primary_25,
-                 borderColor: t.palette.primary_200},
+                {
+                  backgroundColor: t.palette.primary_25,
+                  borderColor: t.palette.primary_200,
+                },
               ]}>
               <Text
                 style={[
@@ -623,22 +810,41 @@ export function CommunityProfileScreen() {
                 ]}>
                 🚧 Draft Community
               </Text>
-                <Text
-                  style={[
-                    styles.draftBannerBody,
-                    {color: t.palette.primary_600},
-                  ]}>
-                  This community needs {membersToUnlock} more founding members
-                  to become active. Until the quorum is reached, posts and
-                  governance actions stay locked while members can still review
-                  policies, matters, RAQ, and community information.
+              <Text
+                style={[
+                  styles.draftBannerBody,
+                  {color: t.palette.primary_600},
+                ]}>
+                This community needs {membersToUnlock} more founding members to
+                become active. Until the quorum is reached, posts and governance
+                actions stay locked while members can still review policies,
+                matters, RAQ, and community information.
               </Text>
             </View>
           ) : null}
 
           {/* Navigation Tabs */}
-          <View style={[styles.tabsContainer, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.03)' : t.palette.primary_25}]}>
-            <View style={[styles.tabsInner, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.06)' : t.palette.primary_50, borderRadius: 12}]}>
+          <View
+            style={[
+              styles.tabsContainer,
+              {
+                backgroundColor:
+                  t.scheme === 'dark'
+                    ? 'rgba(255,255,255,0.03)'
+                    : t.palette.primary_25,
+              },
+            ]}>
+            <View
+              style={[
+                styles.tabsInner,
+                {
+                  backgroundColor:
+                    t.scheme === 'dark'
+                      ? 'rgba(255,255,255,0.06)'
+                      : t.palette.primary_50,
+                  borderRadius: 12,
+                },
+              ]}>
               {!isDraft ? (
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -653,7 +859,12 @@ export function CommunityProfileScreen() {
                   <Text
                     style={[
                       styles.pillTabText,
-                      {color: displayedTab === 'Feed' ? '#fff' : t.palette.contrast_400},
+                      {
+                        color:
+                          displayedTab === 'Feed'
+                            ? '#fff'
+                            : t.palette.contrast_400,
+                      },
                     ]}>
                     <Trans>Posts</Trans>
                   </Text>
@@ -672,7 +883,12 @@ export function CommunityProfileScreen() {
                 <Text
                   style={[
                     styles.pillTabText,
-                    {color: displayedTab === 'about' ? '#fff' : t.palette.contrast_400},
+                    {
+                      color:
+                        displayedTab === 'about'
+                          ? '#fff'
+                          : t.palette.contrast_400,
+                    },
                   ]}>
                   <Trans>About</Trans>
                 </Text>
@@ -684,34 +900,64 @@ export function CommunityProfileScreen() {
           <View style={styles.contentArea}>
             {!isDraft && displayedTab === 'Feed' && (
               <View style={styles.feedScroll}>
-                {(isLoading || !isFetched) ? (
+                {isLoading || !isFetched ? (
                   <View style={styles.feedLoadingWrap}>
-                    <ActivityIndicator size="large" color={t.palette.primary_500} />
-                    <Text style={[styles.feedLoadingText, {color: t.palette.primary_400}]}>
+                    <ActivityIndicator
+                      size="large"
+                      color={t.palette.primary_500}
+                    />
+                    <Text
+                      style={[
+                        styles.feedLoadingText,
+                        {color: t.palette.primary_400},
+                      ]}>
                       Loading community posts…
                     </Text>
                   </View>
                 ) : isError ? (
-                  <View style={[styles.feedErrorCard, {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)', borderColor: t.palette.negative_200}]}>
-                    <Text style={[styles.feedErrorTitle, {color: t.palette.negative_500}]}>
+                  <View
+                    style={[
+                      styles.feedErrorCard,
+                      {
+                        backgroundColor:
+                          t.scheme === 'dark'
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(0,0,0,0.03)',
+                        borderColor: t.palette.negative_200,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.feedErrorTitle,
+                        {color: t.palette.negative_500},
+                      ]}>
                       Couldn't load posts
                     </Text>
                     <Text style={[styles.feedErrorBody, pal.textLight]}>
-                      {error ? cleanError(error) : 'An unexpected error occurred. Pull to refresh or tap retry.'}
+                      {error
+                        ? cleanError(error)
+                        : 'An unexpected error occurred. Pull to refresh or tap retry.'}
                     </Text>
                     <TouchableOpacity
                       accessibilityRole="button"
                       onPress={() => void refetch()}
-                      style={[styles.feedRetryButton, {backgroundColor: t.palette.primary_500}]}>
+                      style={[
+                        styles.feedRetryButton,
+                        {backgroundColor: t.palette.primary_500},
+                      ]}>
                       <Text style={styles.feedRetryText}>Retry</Text>
                     </TouchableOpacity>
                   </View>
                 ) : posts.length < 1 ? (
                   <View style={styles.feedEmptyWrap}>
                     <Text style={[styles.feedEmptyIcon]}>📭</Text>
-                    <Text style={[styles.feedEmptyTitle, pal.text]}>No posts yet</Text>
+                    <Text style={[styles.feedEmptyTitle, pal.text]}>
+                      No posts yet
+                    </Text>
                     <Text style={[styles.feedEmptyBody, pal.textLight]}>
-                      {_(msg`We couldn't find any real posts for this community yet.`)}
+                      {_(
+                        msg`We couldn't find any real posts for this community yet.`,
+                      )}
                     </Text>
                   </View>
                 ) : (
@@ -725,6 +971,7 @@ export function CommunityProfileScreen() {
                     ))}
                     <ListFooter
                       isFetchingNextPage={isFetchingNextPage}
+                      hasNextPage={hasNextPage}
                       error={cleanError(error)}
                       onRetry={() => fetchNextPage()}
                     />
@@ -765,8 +1012,7 @@ export function CommunityProfileScreen() {
                           styles.aboutHelperText,
                           {color: t.palette.primary_600},
                         ]}>
-                        Current founding members:{' '}
-                        {quorumCount} / 9
+                        Current founding members: {quorumCount} / 9
                       </Text>
                       <View
                         style={[
@@ -861,7 +1107,9 @@ export function CommunityProfileScreen() {
                       <Text
                         style={[
                           styles.aboutLabel,
-                          isDraft ? {color: t.palette.primary_600} : pal.textLight,
+                          isDraft
+                            ? {color: t.palette.primary_600}
+                            : pal.textLight,
                         ]}>
                         Progress:
                       </Text>
@@ -873,12 +1121,16 @@ export function CommunityProfileScreen() {
                       <Text
                         style={[
                           styles.aboutLabel,
-                          isDraft ? {color: t.palette.primary_600} : pal.textLight,
+                          isDraft
+                            ? {color: t.palette.primary_600}
+                            : pal.textLight,
                         ]}>
                         Status:
                       </Text>
                       <Text style={[styles.aboutValue, pal.text]}>
-                        {isDraft ? 'Draft quorum in progress' : 'Community unlocked'}
+                        {isDraft
+                          ? 'Draft quorum in progress'
+                          : 'Community unlocked'}
                       </Text>
                     </View>
                     <View
@@ -2363,7 +2615,7 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
 })
-function TableContent({pal}: {pal: any}) {
+function TableContent({pal}: {pal: UsePaletteValue}) {
   const {width} = useWindowDimensions()
   const isMobile = width < 800 || Platform.OS !== 'web'
 
@@ -2453,7 +2705,7 @@ function TableContent({pal}: {pal: any}) {
             paddingHorizontal: 8,
             justifyContent: 'center',
           },
-        ] as any,
+        ] as StyleProp<ViewStyle>,
         otherIndexContainerStyle: [
           pal.view,
           pal.border,
@@ -2463,7 +2715,7 @@ function TableContent({pal}: {pal: any}) {
             paddingHorizontal: 8,
             justifyContent: 'center',
           },
-        ] as any,
+        ] as StyleProp<ViewStyle>,
         separatorViewStyle: [
           pal.view,
           pal.border,
@@ -2487,7 +2739,7 @@ function TableContent({pal}: {pal: any}) {
             justifyContent: 'center',
             alignItems: 'center',
           },
-        ] as any,
+        ] as StyleProp<ViewStyle>,
         columnItemStyle: [
           pal.view,
           pal.border,
@@ -2497,7 +2749,7 @@ function TableContent({pal}: {pal: any}) {
             justifyContent: 'center',
             alignItems: 'center',
           },
-        ] as any,
+        ] as StyleProp<ViewStyle>,
         separatorViewStyle: [pal.view, {width: 0}],
         columnItemTextStyle: [pal.text, {textAlign: 'center'}],
       }}

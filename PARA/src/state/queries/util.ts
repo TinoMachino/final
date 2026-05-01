@@ -14,7 +14,7 @@ import {
 
 import * as bsky from '#/types/bsky'
 
-export async function truncateAndInvalidate<T = any>(
+export async function truncateAndInvalidate<T = unknown>(
   queryClient: QueryClient,
   queryKey: QueryKey,
 ) {

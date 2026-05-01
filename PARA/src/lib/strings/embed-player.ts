@@ -1,6 +1,6 @@
 import {Dimensions} from 'react-native'
 
-import {IS_WEB,IS_WEB_SAFARI} from '#/env'
+import {IS_WEB, IS_WEB_SAFARI} from '#/env'
 
 const {height: SCREEN_HEIGHT} = Dimensions.get('window')
 

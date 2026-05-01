@@ -27,7 +27,7 @@ export function useSaveImageToMediaLibrary() {
           await saveImageToMediaLibrary({uri})
 
           Toast.show(_(msg`Image saved`))
-        } catch (e: any) {
+        } catch (e: unknown) {
           Toast.show(_(msg`Failed to save image: ${String(e)}`), {
             type: 'error',
           })

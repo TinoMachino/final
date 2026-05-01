@@ -47,7 +47,7 @@ export function OpenCameraBtn({disabled, onAdd}: Props) {
       const res = await createComposerImage(img)
 
       onAdd([res])
-    } catch (err: any) {
+    } catch (err: unknown) {
       // ignore
       logger.warn('Error using camera', {error: err})
     }

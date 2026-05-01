@@ -18,7 +18,11 @@ import {IS_WEB} from '#/env'
 
 const {width} = Dimensions.get('window')
 
-import {PARTIES as ALL_PARTIES, TOPICS as MOCK_TOPICS} from '#/lib/mock-data'
+import {
+  PARTIES as ALL_PARTIES,
+  type Party,
+  TOPICS as MOCK_TOPICS,
+} from '#/lib/mock-data'
 
 const CATEGORIES = [
   'Tax',
@@ -32,7 +36,7 @@ const CATEGORIES = [
 
 // --- UI Components ---
 
-const ComparisonCard = ({party, score}: {party: any; score: number}) => {
+const ComparisonCard = ({party, score}: {party: Party; score: number}) => {
   const theme = useTheme()
   // Map -3 to 3 onto 0% to 100% for the graphical bar
   const normalized = ((score + 3) / 6) * 100
@@ -147,7 +151,7 @@ export function VSScreen() {
 
   // Mock scores
   const getScore = (id: string) => {
-    const seeds: any = {
+    const seeds: Record<string, number> = {
       PRI: 1.2,
       PAN: -2.3,
       MORENA: 2.8,

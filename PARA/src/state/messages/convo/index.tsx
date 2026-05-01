@@ -29,6 +29,7 @@ import {
 import {RQKEY_ROOT as ListConvosQueryKeyRoot} from '#/state/queries/messages/list-conversations'
 import {RQKEY as createProfileQueryKey} from '#/state/queries/profile'
 import {useAgent} from '#/state/session'
+import {type GroupConvoMember} from '#/components/dms/util'
 
 export * from '#/state/messages/convo/util'
 
@@ -136,28 +137,35 @@ export function ConvoProvider({
         const data = event.query.state.data as
           | ChatBskyConvoDefs.ConvoView
           | undefined
-        if (data && convo.convo && data.muted !== convo.convo.muted) {
+        if (data && convo.convo && data.muted !== convo.convo.view.muted) {
           convo.updateMuted(data.muted)
         }
         if (
           data &&
-          convo.convo &&
           ChatBskyConvoDefs.isGroupConvo(data.kind) &&
-          ChatBskyConvoDefs.isGroupConvo(convo.convo.kind)
+          convo.convo?.kind === 'group'
         ) {
-          if (data.kind.name !== convo.convo.kind.name) {
+          if (data.kind.name !== convo.convo.details.name) {
             convo.updateGroupName(data.kind.name)
           }
-          if (data.kind.joinLink !== convo.convo.kind.joinLink) {
+          if (data.kind.joinLink !== convo.convo.details.joinLink) {
             convo.updateJoinLink(data.kind.joinLink)
+          }
+          if (data.kind.lockStatus !== convo.convo.details.lockStatus) {
+            convo.updateLockStatus(data.kind.lockStatus)
           }
         }
         if (
           data &&
-          convo.convo &&
-          membersChanged(data.members, convo.convo.members)
+          ChatBskyConvoDefs.isGroupConvo(data.kind) &&
+          convo.convo?.kind === 'group' &&
+          (membersChanged(data.members, convo.convo.members) ||
+            data.kind.memberCount !== convo.convo.details.memberCount)
         ) {
-          convo.updateGroupMembers(data.members)
+          convo.updateGroupMembers(
+            data.members as GroupConvoMember[],
+            data.kind.memberCount,
+          )
         }
       }
     })

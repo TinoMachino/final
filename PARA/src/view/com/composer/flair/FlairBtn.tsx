@@ -115,7 +115,7 @@ export function FlairBtn({
           style={[{maxWidth: 500}, a.w_full]}>
           <FlairSelectionList
             selectedFlairs={selectedFlairs}
-            setSelectedFlairs={setSelectedFlairs as any}
+            setSelectedFlairs={setSelectedFlairs}
             mode={mode}
             allowCreation={true}
             onClose={() => control.close()}

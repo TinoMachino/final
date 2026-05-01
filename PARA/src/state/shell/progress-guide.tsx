@@ -32,7 +32,7 @@ type ProgressGuideName = 'like-10-and-follow-7' | 'follow-10'
 interface BaseProgressGuide {
   guide: ProgressGuideName
   isComplete: boolean
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface Like10AndFollow7ProgressGuide extends BaseProgressGuide {

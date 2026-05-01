@@ -78,13 +78,19 @@ export function useVideoElement(ref: RefObject<HTMLVideoElement | null>) {
       if (playWhenReadyRef.current) {
         try {
           await ref.current.play()
-        } catch (e: any) {
+        } catch (e: unknown) {
           if (
-            !e.message?.includes(
-              `The request is not allowed by the user agent`,
+            !(
+              e instanceof Error &&
+              e.message?.includes(
+                `The request is not allowed by the user agent`,
+              )
             ) &&
-            !e.message?.includes(
-              `The play() request was interrupted by a call to pause()`,
+            !(
+              e instanceof Error &&
+              e.message?.includes(
+                `The play() request was interrupted by a call to pause()`,
+              )
             )
           ) {
             throw e
@@ -182,11 +188,14 @@ export function useVideoElement(ref: RefObject<HTMLVideoElement | null>) {
     } else {
       const promise = ref.current.play()
       if (promise !== undefined) {
-        promise.catch((err: any) => {
+        promise.catch((err: unknown) => {
           if (
             // ignore this common error. it's fine
-            !err.message?.includes(
-              `The play() request was interrupted by a call to pause()`,
+            !(
+              err instanceof Error &&
+              err.message?.includes(
+                `The play() request was interrupted by a call to pause()`,
+              )
             )
           ) {
             logger.error('Error playing video:', {message: err})

@@ -149,10 +149,14 @@ function DrawerLayout({children}: {children: React.ReactNode}) {
   const [trendingScrollGesture] = useState(() => Gesture.Native())
   const drawerWidth = Math.min(400, winDim.width * 0.8)
   const edgeInset = Math.max(insets.left, insets.right)
-  const swipeEdgeWidth = IS_ANDROID ? Math.max(32, edgeInset + 24) : winDim.width
+  const swipeEdgeWidth = IS_ANDROID
+    ? Math.max(32, edgeInset + 24)
+    : winDim.width
   const swipeMinVelocity = IS_ANDROID ? 500 : 100
   const swipeMinDistance = IS_ANDROID ? 60 : 10
-  const activeOffsetXWhenOpen: [number, number] = IS_ANDROID ? [-12, 12] : [-1, 1]
+  const activeOffsetXWhenOpen: [number, number] = IS_ANDROID
+    ? [-12, 12]
+    : [-1, 1]
   const activeOffsetXWhenClosed = IS_ANDROID ? 12 : 5
 
   const renderDrawerContent = useCallback(() => <DrawerContent />, [])

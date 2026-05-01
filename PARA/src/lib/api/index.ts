@@ -167,7 +167,7 @@ export async function post(
     const rt = await rtPromise
     const embed = await embedPromise
     const reply = await replyPromise
-    const record: any = {
+    const record: Record<string, unknown> = {
       // IMPORTANT: $type has to exist, CID is calculated with the `$type` field
       // present and will produce the wrong CID if you omit it.
       $type: opts.collection || 'app.bsky.feed.post',
@@ -239,9 +239,10 @@ export async function post(
       writes: writes,
       validate: true,
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e)
     logger.error(`Failed to create post`, {
-      safeMessage: e.message,
+      safeMessage: errorMessage,
     })
     if (isNetworkError(e)) {
       throw new Error(
@@ -525,7 +526,7 @@ async function computeCid(record: AppBskyFeedPost.Record): Promise<string> {
 }
 
 // Returns a transformed version of the object for use in DAG-CBOR.
-function prepareForHashing(v: any): any {
+function prepareForHashing(v: unknown): unknown {
   // IMPORTANT: BlobRef#ipld() returns the correct object we need for hashing,
   // the API client will convert this for you but we're hashing in the client,
   // so we need it *now*.
@@ -547,7 +548,7 @@ function prepareForHashing(v: any): any {
 
   // Walk through plain objects
   if (isPlainObject(v)) {
-    const obj: any = {}
+    const obj: Record<string, unknown> = {}
     let pure = true
     for (const key in v) {
       let value = v[key]
@@ -568,7 +569,7 @@ function prepareForHashing(v: any): any {
   return v
 }
 
-function isPlainObject(v: any): boolean {
+function isPlainObject(v: unknown): boolean {
   if (typeof v !== 'object' || v === null) {
     return false
   }

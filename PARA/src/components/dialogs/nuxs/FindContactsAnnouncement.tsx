@@ -17,7 +17,7 @@ import {
   isExistingUserAsOf,
 } from '#/components/dialogs/nuxs/utils'
 import {Text} from '#/components/Typography'
-import {IS_E2E,IS_NATIVE, IS_WEB} from '#/env'
+import {IS_E2E, IS_NATIVE, IS_WEB} from '#/env'
 import {navigate} from '#/Navigation'
 
 export const enabled = createIsEnabledCheck(props => {

@@ -33,7 +33,7 @@ import {
 import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
-import {Button, ButtonIcon, ButtonText} from '#/components/Button'
+import {Button, ButtonText} from '#/components/Button'
 import {ColorPalette_Stroke2_Corner0_Rounded as PaletteIcon} from '#/components/icons/ColorPalette'
 import {Header, Screen} from '#/components/Layout'
 import * as Prompt from '#/components/Prompt'
@@ -430,7 +430,7 @@ export function CompassScreen({navigation, route}: Props) {
   )
   const [selectedIdeology, setSelectedIdeology] =
     useState<SixtyNinthsIdeology | null>(null)
-  const [selectedQuadrantStats, setSelectedQuadrantStats] = useState<{
+  const [_stats, setSelectedQuadrantStats] = useState<{
     users: number
     active: number
   } | null>(null)
@@ -535,11 +535,6 @@ export function CompassScreen({navigation, route}: Props) {
       setShow69ths(false)
     }
 
-    const targetGridDimension = targetShow69ths
-      ? 9
-      : targetIs25ths
-        ? 5
-        : 3
     const targetQuadrants = targetShow69ths
       ? quadrants69
       : targetIs25ths
@@ -718,7 +713,8 @@ export function CompassScreen({navigation, route}: Props) {
                   }}
                   style={[cardBgColor, a.px_md, a.py_sm, a.rounded_md]}>
                   <Text style={[a.font_bold, t.atoms.text]}>
-                    69ths: {show69ths ? translate(msg`On`) : translate(msg`Off`)}
+                    69ths:{' '}
+                    {show69ths ? translate(msg`On`) : translate(msg`Off`)}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -961,7 +957,13 @@ export function CompassScreen({navigation, route}: Props) {
                     }}>
                     {quadrant.gradientColors ? (
                       <LinearGradient
-                        colors={quadrant.gradientColors as unknown as readonly [string, string, ...string[]]}
+                        colors={
+                          quadrant.gradientColors as unknown as readonly [
+                            string,
+                            string,
+                            ...string[],
+                          ]
+                        }
                         start={quadrant.gradientStart}
                         end={quadrant.gradientEnd}
                         style={styles.cellFill}>
@@ -1009,9 +1011,9 @@ export function CompassScreen({navigation, route}: Props) {
                           {
                             backgroundColor: '#000',
                             opacity:
-                              (PARTY_COMPASS_PROFILE_BY_ID[previewPartyId]
+                              ((PARTY_COMPASS_PROFILE_BY_ID[previewPartyId]
                                 ?.ninthDistribution[quadrant.id] || 0) /
-                              100 *
+                                100) *
                               0.65,
                           },
                         ]}
@@ -1031,33 +1033,40 @@ export function CompassScreen({navigation, route}: Props) {
                       />
                     )}
                     {/* Subtle light highlight on selected quadrant */}
-                    {!isAffiliateMode && selectedQuadrant?.id === quadrant.id && (
-                      <Animated.View
-                        pointerEvents="none"
-                        style={[
-                          styles.cellFill,
-                          {
-                            borderWidth: 2,
-                            borderColor: highlightPulse.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.85)'],
-                            }),
-                            backgroundColor: highlightPulse.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.18)'],
-                            }),
-                            shadowColor: '#fff',
-                            shadowOffset: {width: 0, height: 0},
-                            shadowOpacity: highlightPulse.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [0, 0.4],
-                            }),
-                            shadowRadius: 8,
-                            elevation: 4,
-                          },
-                        ]}
-                      />
-                    )}
+                    {!isAffiliateMode &&
+                      selectedQuadrant?.id === quadrant.id && (
+                        <Animated.View
+                          pointerEvents="none"
+                          style={[
+                            styles.cellFill,
+                            {
+                              borderWidth: 2,
+                              borderColor: highlightPulse.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [
+                                  'rgba(255,255,255,0.4)',
+                                  'rgba(255,255,255,0.85)',
+                                ],
+                              }),
+                              backgroundColor: highlightPulse.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [
+                                  'rgba(255,255,255,0)',
+                                  'rgba(255,255,255,0.18)',
+                                ],
+                              }),
+                              shadowColor: '#fff',
+                              shadowOffset: {width: 0, height: 0},
+                              shadowOpacity: highlightPulse.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 0.4],
+                              }),
+                              shadowRadius: 8,
+                              elevation: 4,
+                            },
+                          ]}
+                        />
+                      )}
                   </TouchableOpacity>
                 ))}
 
@@ -1188,8 +1197,8 @@ export function CompassScreen({navigation, route}: Props) {
                   ]}>
                   <Text style={[a.text_sm, a.font_bold, {color: '#fff'}]}>
                     <Trans>
-                      Tap a party to see where its members cluster, or tap a cell
-                      to select your position
+                      Tap a party to see where its members cluster, or tap a
+                      cell to select your position
                     </Trans>
                   </Text>
                 </View>
@@ -1240,20 +1249,11 @@ export function CompassScreen({navigation, route}: Props) {
                             backgroundColor: party.color,
                           }}
                         />
-                        <Text
-                          style={[
-                            a.font_bold,
-                            a.text_sm,
-                            t.atoms.text,
-                          ]}>
+                        <Text style={[a.font_bold, a.text_sm, t.atoms.text]}>
                           {party.name}
                         </Text>
                       </View>
-                      <Text
-                        style={[
-                          a.text_xs,
-                          t.atoms.text_contrast_medium,
-                        ]}>
+                      <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
                         {party.totalMembers.toLocaleString()} members
                       </Text>
                       {isActive && (
@@ -1332,40 +1332,39 @@ export function CompassScreen({navigation, route}: Props) {
                   <View style={[a.gap_xs, a.mb_md]}>
                     {formatNinthPartyBreakdown(selectedQuadrant.id)
                       .slice(0, 4)
-                      .map(({party, share}) => (
-                        <View
-                          key={party.id}
-                          style={[
-                            a.flex_row,
-                            a.align_center,
-                            a.gap_sm,
-                          ]}>
+                      .map(
+                        ({
+                          party,
+                          share,
+                        }: {
+                          party: PartyCompassProfile
+                          share: number
+                        }) => (
                           <View
-                            style={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: 4,
-                              backgroundColor: party.color,
-                            }}
-                          />
-                          <Text
-                            style={[
-                              a.text_sm,
-                              t.atoms.text,
-                              a.flex_1,
-                            ]}>
-                            {party.name}
-                          </Text>
-                          <Text
-                            style={[
-                              a.text_sm,
-                              a.font_bold,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            {share}%
-                          </Text>
-                        </View>
-                      ))}
+                            key={party.id}
+                            style={[a.flex_row, a.align_center, a.gap_sm]}>
+                            <View
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: party.color,
+                              }}
+                            />
+                            <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
+                              {party.name}
+                            </Text>
+                            <Text
+                              style={[
+                                a.text_sm,
+                                a.font_bold,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              {share}%
+                            </Text>
+                          </View>
+                        ),
+                      )}
                   </View>
                   <Button
                     label={translate(msg`Set as my position`)}
@@ -1402,40 +1401,39 @@ export function CompassScreen({navigation, route}: Props) {
                   <View style={[a.gap_xs, a.mb_md]}>
                     {formatNinthPartyBreakdown(selectedQuadrant.id)
                       .slice(0, 4)
-                      .map(({party, share}) => (
-                        <View
-                          key={party.id}
-                          style={[
-                            a.flex_row,
-                            a.align_center,
-                            a.gap_sm,
-                          ]}>
+                      .map(
+                        ({
+                          party,
+                          share,
+                        }: {
+                          party: PartyCompassProfile
+                          share: number
+                        }) => (
                           <View
-                            style={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: 4,
-                              backgroundColor: party.color,
-                            }}
-                          />
-                          <Text
-                            style={[
-                              a.text_sm,
-                              t.atoms.text,
-                              a.flex_1,
-                            ]}>
-                            {party.name}
-                          </Text>
-                          <Text
-                            style={[
-                              a.text_sm,
-                              a.font_bold,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            {share}%
-                          </Text>
-                        </View>
-                      ))}
+                            key={party.id}
+                            style={[a.flex_row, a.align_center, a.gap_sm]}>
+                            <View
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                                backgroundColor: party.color,
+                              }}
+                            />
+                            <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
+                              {party.name}
+                            </Text>
+                            <Text
+                              style={[
+                                a.text_sm,
+                                a.font_bold,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              {share}%
+                            </Text>
+                          </View>
+                        ),
+                      )}
                   </View>
 
                   {/* Policy domain breakdown */}
@@ -1454,26 +1452,16 @@ export function CompassScreen({navigation, route}: Props) {
                       ({id, label, share}) => (
                         <View
                           key={id}
-                          style={[
-                            a.flex_row,
-                            a.align_center,
-                            a.gap_sm,
-                          ]}>
+                          style={[a.flex_row, a.align_center, a.gap_sm]}>
                           <View
                             style={{
                               width: 8,
                               height: 8,
                               borderRadius: 2,
-                              backgroundColor:
-                                selectedQuadrant.color + 'cc',
+                              backgroundColor: selectedQuadrant.color + 'cc',
                             }}
                           />
-                          <Text
-                            style={[
-                              a.text_sm,
-                              t.atoms.text,
-                              a.flex_1,
-                            ]}>
+                          <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
                             {label}
                           </Text>
                           <Text

@@ -17,7 +17,12 @@ import {
   type ViewStyleProp,
   web,
 } from '#/alf'
-import {Button, type ButtonColor, ButtonIcon, ButtonText} from '#/components/Button'
+import {
+  Button,
+  type ButtonColor,
+  ButtonIcon,
+  ButtonText,
+} from '#/components/Button'
 import * as Dialog from '#/components/Dialog'
 import {type Props as SVGIconProps} from '#/components/icons/common'
 import {Text} from '#/components/Typography'
@@ -47,7 +52,7 @@ export function Outer({
   control: Dialog.DialogControlProps
   testID?: string
   nativeOptions?: Omit<BottomSheetViewProps, 'children'>
-  webOptions?: any
+  webOptions?: Record<string, unknown>
 }>) {
   const titleId = useId()
   const descriptionId = useId()

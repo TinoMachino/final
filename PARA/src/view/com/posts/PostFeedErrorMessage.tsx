@@ -258,7 +258,7 @@ function safeParseFeedgenUri(uri: string): [string, string] {
 
 function detectKnownError(
   feedDesc: FeedDescriptor,
-  error: any,
+  error: unknown,
 ): KnownError | undefined {
   if (!error) {
     return undefined
@@ -271,41 +271,44 @@ function detectKnownError(
   }
 
   // check status codes
-  if (error?.status === 429) {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'status' in error &&
+    error.status === 429
+  ) {
     return KnownError.FeedTooManyRequests
   }
 
   // convert error to string and continue
-  if (typeof error !== 'string') {
-    error = error.toString()
-  }
-  if (error.includes('identity unknown')) {
+  const errStr = typeof error === 'string' ? error : String(error)
+  if (errStr.includes('identity unknown')) {
     return KnownError.IdentityInvalid
   }
-  if (error.includes(KnownError.FeedSignedInOnly)) {
+  if (errStr.includes(KnownError.FeedSignedInOnly)) {
     return KnownError.FeedSignedInOnly
   }
   if (!feedDesc.startsWith('feedgen')) {
     return KnownError.Unknown
   }
-  if (error.includes('could not find feed')) {
+  if (errStr.includes('could not find feed')) {
     return KnownError.FeedgenDoesNotExist
   }
-  if (error.includes('feed unavailable')) {
+  if (errStr.includes('feed unavailable')) {
     return KnownError.FeedgenOffline
   }
-  if (error.includes('invalid did document')) {
+  if (errStr.includes('invalid did document')) {
     return KnownError.FeedgenMisconfigured
   }
-  if (error.includes('could not resolve did document')) {
+  if (errStr.includes('could not resolve did document')) {
     return KnownError.FeedgenMisconfigured
   }
   if (
-    error.includes('invalid feed generator service details in did document')
+    errStr.includes('invalid feed generator service details in did document')
   ) {
     return KnownError.FeedgenMisconfigured
   }
-  if (error.includes('invalid response')) {
+  if (errStr.includes('invalid response')) {
     return KnownError.FeedgenBadResponse
   }
   return KnownError.FeedgenUnknown

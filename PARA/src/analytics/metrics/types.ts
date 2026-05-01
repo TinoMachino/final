@@ -1003,10 +1003,10 @@ export type Events = {
   'thread:click:hideReplyForMe': {}
   'thread:click:hideReplyForEveryone': {}
   'thread:preferences:load': {
-    [key: string]: any
+    [key: string]: unknown
   }
   'thread:preferences:update': {
-    [key: string]: any
+    [key: string]: unknown
   }
   'thread:click:headerMenuOpen': {}
   'thread:click:editOwnThreadgate': {}

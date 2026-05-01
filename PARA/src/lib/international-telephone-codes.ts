@@ -1273,7 +1273,7 @@ export const INTERNATIONAL_TELEPHONE_CODES = {
   {
     code: string
     unicodeFlag: string
-    svgFlag: any
+    svgFlag: unknown
   }
 >
 

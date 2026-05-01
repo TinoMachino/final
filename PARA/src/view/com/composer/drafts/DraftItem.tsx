@@ -1,4 +1,10 @@
-import {type ComponentType, useCallback, useEffect, useMemo, useState} from 'react'
+import {
+  type ComponentType,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {Pressable, View} from 'react-native'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import {msg, plural} from '@lingui/core/macro'
@@ -38,10 +44,14 @@ export function DraftItem({
 
   const mediaExistsOnOtherDevice =
     !draft.meta.isOriginatingDevice && !!draft.hasMissingMedia
-  const mediaIsMissing = draft.meta.isOriginatingDevice && !!draft.hasMissingMedia
+  const mediaIsMissing =
+    draft.meta.isOriginatingDevice && !!draft.hasMissingMedia
   const additionalPosts = Math.max(draft.meta.threadSize - 1, 0)
   const hasMetadata =
-    additionalPosts > 0 || mediaExistsOnOtherDevice || mediaIsMissing || draft.meta.quote
+    additionalPosts > 0 ||
+    mediaExistsOnOtherDevice ||
+    mediaIsMissing ||
+    draft.meta.quote
 
   const isUnknownDevice = useMemo(() => {
     switch (draft.draft.deviceName) {

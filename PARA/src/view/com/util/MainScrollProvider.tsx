@@ -186,13 +186,13 @@ if (IS_WEB) {
   const originalScroll = window.scroll
   window.scroll = function () {
     emitter.emit('forced-scroll')
-    return originalScroll.apply(this, arguments as any)
+    return originalScroll.apply(this, arguments as unknown as Parameters<typeof originalScroll>)
   }
 
   const originalScrollTo = window.scrollTo
   window.scrollTo = function () {
     emitter.emit('forced-scroll')
-    return originalScrollTo.apply(this, arguments as any)
+    return originalScrollTo.apply(this, arguments as unknown as Parameters<typeof originalScrollTo>)
   }
 }
 

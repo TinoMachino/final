@@ -59,7 +59,13 @@ function PhasePill({phase}: {phase?: string}) {
 
 function VoteStats({item}: {item: PolicyItem}) {
   return (
-    <View style={{flexDirection: 'row', gap: 12, marginTop: 10, alignItems: 'center'}}>
+    <View
+      style={{
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+        alignItems: 'center',
+      }}>
       {typeof item.voteCount === 'number' && (
         <Text style={{fontSize: 12, fontWeight: '700', opacity: 0.7}}>
           🗳️ {item.voteCount} {item.voteCount === 1 ? 'voto' : 'votos'}
@@ -67,14 +73,19 @@ function VoteStats({item}: {item: PolicyItem}) {
       )}
       {typeof item.participantCount === 'number' && (
         <Text style={{fontSize: 12, fontWeight: '700', opacity: 0.7}}>
-          🗣️ {item.participantCount} {item.participantCount === 1 ? 'posición' : 'posiciones'}
+          🗣️ {item.participantCount}{' '}
+          {item.participantCount === 1 ? 'posición' : 'posiciones'}
         </Text>
       )}
     </View>
   )
 }
 
-export function PoliciesDashboard({route}: {route: any}) {
+export function PoliciesDashboard({
+  route,
+}: {
+  route: {params?: {mode?: string; filter?: string; category?: string}}
+}) {
   const t = useTheme()
   useLingui()
   const navigation = useNavigation<NavigationProp>()
@@ -132,8 +143,8 @@ export function PoliciesDashboard({route}: {route: any}) {
   })
 
   // Helper to extract items safely
-  const getItems = (query: any) =>
-    query.data?.pages.flatMap((p: any) => p.items) || []
+  const getItems = (query: {data?: {pages?: Array<{items?: PolicyItem[]}>}}) =>
+    query.data?.pages.flatMap(p => p.items ?? []) ?? []
 
   // V2: Directly sourced items
   const featuredItems = getItems(featuredQuery)
@@ -374,7 +385,12 @@ export function PoliciesDashboard({route}: {route: any}) {
                               ]}>
                               {item.title}
                             </Text>
-                            <View style={{flexDirection: 'row', gap: 6, marginTop: 6}}>
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                gap: 6,
+                                marginTop: 6,
+                              }}>
                               <View style={styles.featuredBadge}>
                                 <Text style={styles.featuredBadgeText}>
                                   Featured
@@ -387,7 +403,8 @@ export function PoliciesDashboard({route}: {route: any}) {
                                     {backgroundColor: 'rgba(255,255,255,0.25)'},
                                   ]}>
                                   <Text style={styles.featuredBadgeText}>
-                                    {PHASE_META[item.phase]?.label || item.phase}
+                                    {PHASE_META[item.phase]?.label ||
+                                      item.phase}
                                   </Text>
                                 </View>
                               )}

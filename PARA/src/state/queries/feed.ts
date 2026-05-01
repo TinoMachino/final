@@ -295,9 +295,7 @@ export function useGetPopularFeedsQuery(options?: GetPopularFeedsOptions) {
             ],
           })
           if (paraFeedsRes.data.feeds.length > 0) {
-            const paraUris = new Set(
-              paraFeedsRes.data.feeds.map(f => f.uri),
-            )
+            const paraUris = new Set(paraFeedsRes.data.feeds.map(f => f.uri))
             res.data.feeds = res.data.feeds.filter(f => !paraUris.has(f.uri))
             res.data.feeds.unshift(...paraFeedsRes.data.feeds)
           }

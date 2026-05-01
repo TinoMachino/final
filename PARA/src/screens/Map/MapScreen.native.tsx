@@ -1,9 +1,11 @@
+import {type ComponentType} from 'react'
+
 import {MapScreenImpl, type Props} from './MapScreen.shared'
 
-let MapViewComponent: any
-let MarkerComponent: any
-let MarkerClustererComponent: any
-let PolygonComponent: any
+let MapViewComponent: ComponentType<any>
+let MarkerComponent: ComponentType<any>
+let MarkerClustererComponent: ComponentType<any>
+let PolygonComponent: ComponentType<any>
 let unavailableMessage = ''
 
 try {
@@ -12,9 +14,9 @@ try {
   MarkerComponent = Maps.Marker
   MarkerClustererComponent = Maps.MarkerClusterer
   PolygonComponent = Maps.Polygon
-} catch (e: any) {
+} catch (e: unknown) {
   unavailableMessage =
-    e?.message ||
+    (e as Error)?.message ||
     'react-native-maps is not linked into the current native build.'
 }
 

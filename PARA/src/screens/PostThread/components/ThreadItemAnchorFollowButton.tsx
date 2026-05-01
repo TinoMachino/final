@@ -111,10 +111,11 @@ function PostThreadFollowBtnLoaded({
       requireAuth(async () => {
         try {
           await queueFollow()
-        } catch (e: any) {
-          if (e?.name !== 'AbortError') {
+        } catch (e: unknown) {
+          const isAbortError = e instanceof Error && e.name === 'AbortError'
+          if (!isAbortError) {
             logger.error('Failed to follow', {message: String(e)})
-            Toast.show(_(msg`There was an issue! ${e.toString()}`), {
+            Toast.show(_(msg`There was an issue! ${String(e)}`), {
               type: 'error',
             })
           }
@@ -124,10 +125,11 @@ function PostThreadFollowBtnLoaded({
       requireAuth(async () => {
         try {
           await queueUnfollow()
-        } catch (e: any) {
-          if (e?.name !== 'AbortError') {
+        } catch (e: unknown) {
+          const isAbortError = e instanceof Error && e.name === 'AbortError'
+          if (!isAbortError) {
             logger.error('Failed to unfollow', {message: String(e)})
-            Toast.show(_(msg`There was an issue! ${e.toString()}`), {
+            Toast.show(_(msg`There was an issue! ${String(e)}`), {
               type: 'error',
             })
           }

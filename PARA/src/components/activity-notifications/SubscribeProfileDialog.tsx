@@ -22,7 +22,7 @@ import {logger} from '#/logger'
 import {updateProfileShadow} from '#/state/cache/profile-shadow'
 import {RQKEY_getActivitySubscriptions} from '#/state/queries/activity-subscriptions'
 import {useAgent} from '#/state/session'
-import {atoms as a,platform, useTheme, web} from '#/alf'
+import {atoms as a, platform, useTheme, web} from '#/alf'
 import {Admonition} from '#/components/Admonition'
 import {
   Button,

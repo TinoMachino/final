@@ -11,10 +11,7 @@ import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
-import {
-  isDiscoverFeedUri,
-  STARTER_PACK_MAX_SIZE,
-} from '#/lib/constants'
+import {isDiscoverFeedUri, STARTER_PACK_MAX_SIZE} from '#/lib/constants'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
 import {sanitizeHandle} from '#/lib/strings/handles'
 import {logger} from '#/logger'

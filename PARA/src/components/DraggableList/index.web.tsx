@@ -131,7 +131,7 @@ export function SortableList<T>({
             <GripIcon
               size="lg"
               fill={t.atoms.text_contrast_medium.color}
-              style={{pointerEvents: 'none'} as any}
+              style={{pointerEvents: 'none'} as React.CSSProperties}
             />
           </div>
         )
@@ -157,7 +157,7 @@ export function SortableList<T>({
                   : dragState
                     ? 'transform 200ms ease'
                     : 'none',
-              } as any,
+              } as React.CSSProperties,
             ]}>
             {renderItem(item, dragHandle)}
           </View>

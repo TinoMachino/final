@@ -125,7 +125,7 @@ export type ValueProps = {
   /**
    * Only needed for native. Extracts the label from an item. Defaults to `item => item.label`
    */
-  children?: (value: any) => React.ReactNode
+  children?: (value: {label: string}) => React.ReactNode
   placeholder?: string
   style?: StyleProp<TextStyle>
   /**
@@ -134,7 +134,7 @@ export type ValueProps = {
    *
    * @platform web
    */
-  webOverrideValue?: any
+  webOverrideValue?: {label: string}
 }
 
 /*
@@ -175,7 +175,7 @@ export type ContentProps<T> = {
     item: T,
     index: number,
     selectedValue?: string | null,
-  ) => React.ReactElement<any>
+  ) => React.ReactElement<Record<string, unknown>>
   /*
    * Extracts the value from an item. Defaults to `item => item.value`
    */

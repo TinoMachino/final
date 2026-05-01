@@ -1,5 +1,11 @@
 import {forwardRef, memo, useContext, useMemo} from 'react'
-import {type StyleProp,StyleSheet, View, type ViewProps, type ViewStyle} from 'react-native'
+import {
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewProps,
+  type ViewStyle,
+} from 'react-native'
 import {
   KeyboardAwareScrollView,
   type KeyboardAwareScrollViewProps,

@@ -1,9 +1,13 @@
-import {createContext, type ReactNode, useContext} from 'react'
+import {createContext, useContext} from 'react'
 
 const MessageContext = createContext(false)
 MessageContext.displayName = 'MessageContext'
 
-export function MessageContextProvider({children}: {children: ReactNode}) {
+export function MessageContextProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <MessageContext.Provider value={true}>{children}</MessageContext.Provider>
   )

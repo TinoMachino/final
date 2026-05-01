@@ -108,7 +108,7 @@ export function MessageInput({
   }, [])
 
   const onEmojiInserted = useCallback(
-    (emoji: any) => {
+    (emoji: { native: string }) => {
       if (!textAreaRef.current) {
         return
       }
@@ -158,7 +158,7 @@ export function MessageInput({
         onMouseLeave={() => setIsHovered(false)}>
         <EmojiPicker.Root onEmojiSelect={onEmojiInserted} nextFocusRef={textAreaRef}>
           <EmojiPicker.Trigger label={_(msg`Open emoji picker`)}>
-            {({props, state}: {props: any, state: any}) => (
+            {({props, state}: {props: React.ComponentProps<typeof Button>, state: {hovered: boolean, focused: boolean, pressed: boolean}}) => (
               <Button
                 style={[
                   a.rounded_full,

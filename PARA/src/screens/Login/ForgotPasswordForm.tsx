@@ -6,7 +6,7 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import * as EmailValidator from 'email-validator'
 
-import {cleanError,isNetworkError} from '#/lib/strings/errors'
+import {cleanError, isNetworkError} from '#/lib/strings/errors'
 import {logger} from '#/logger'
 import {Agent} from '#/state/session/agent'
 import {atoms as a, useTheme} from '#/alf'
@@ -58,7 +58,7 @@ export const ForgotPasswordForm = ({
       const agent = new Agent(null, {service: serviceUrl})
       await agent.com.atproto.server.requestPasswordReset({email})
       onEmailSent()
-    } catch (e: any) {
+    } catch (e: unknown) {
       const errMsg = e.toString()
       logger.warn('Failed to request password reset', {error: e})
       setIsProcessing(false)

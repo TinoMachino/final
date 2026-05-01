@@ -42,7 +42,9 @@ export const CABILDEO_PHASE_META = {
 
 export function getCabildeoBadge(cabildeo: Pick<CabildeoView, 'flairs'>) {
   const badge = getPostBadges({flairs: cabildeo.flairs}).find(
-    (item): item is ReturnType<typeof getPostBadges>[number] & {
+    (
+      item,
+    ): item is ReturnType<typeof getPostBadges>[number] & {
       kind: DebateKind
     } => item.kind === 'policy' || item.kind === 'matter',
   )
@@ -60,26 +62,33 @@ export function getCabildeoBadge(cabildeo: Pick<CabildeoView, 'flairs'>) {
 }
 
 export function getCabildeoPhaseMeta(phase: string) {
-  return CABILDEO_PHASE_META[
-    phase as keyof typeof CABILDEO_PHASE_META
-  ] || {label: phase, color: '#6B7280'}
+  return (
+    CABILDEO_PHASE_META[phase as keyof typeof CABILDEO_PHASE_META] || {
+      label: phase,
+      color: '#6B7280',
+    }
+  )
 }
 
-export function getCabildeoCommunities(cabildeo: Pick<
-  CabildeoView,
-  'community' | 'communities'
->) {
+export function getCabildeoCommunities(
+  cabildeo: Pick<CabildeoView, 'community' | 'communities'>,
+) {
   return [cabildeo.community, ...(cabildeo.communities || [])].filter(Boolean)
 }
 
 export function getCabildeoTotalParticipants(
   cabildeo: Pick<CabildeoView, 'voteTotals' | 'positionCounts'>,
 ) {
-  return (cabildeo.voteTotals?.total || 0) + (cabildeo.positionCounts?.total || 0)
+  return (
+    (cabildeo.voteTotals?.total || 0) + (cabildeo.positionCounts?.total || 0)
+  )
 }
 
 export function getCabildeoLeadingOption(
-  cabildeo: Pick<CabildeoView, 'outcome' | 'optionSummary' | 'voteTotals' | 'positionCounts'>,
+  cabildeo: Pick<
+    CabildeoView,
+    'outcome' | 'optionSummary' | 'voteTotals' | 'positionCounts'
+  >,
 ) {
   const outcomeBreakdown = cabildeo.outcome?.breakdown || []
   if (outcomeBreakdown.length > 0) {
@@ -90,7 +99,9 @@ export function getCabildeoLeadingOption(
 
   const optionSummary = cabildeo.optionSummary || []
   if (optionSummary.length > 0) {
-    return [...optionSummary].sort((a, b) => b.votes - a.votes || b.positions - a.positions)[0]
+    return [...optionSummary].sort(
+      (a, b) => b.votes - a.votes || b.positions - a.positions,
+    )[0]
   }
 
   return null
@@ -114,7 +125,8 @@ export function getViewerParticipation(
 
   if (cabildeo.userContext?.delegateVoteEvent) {
     const optionLabel =
-      cabildeo.options[cabildeo.userContext.delegateVoteEvent.optionIndex]?.label
+      cabildeo.options[cabildeo.userContext.delegateVoteEvent.optionIndex]
+        ?.label
     return {
       label: 'Delegate voted',
       accentColor: '#7C3AED',

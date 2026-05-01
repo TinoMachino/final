@@ -9,13 +9,13 @@ import {CenteredView} from './Views'
 
 interface Props {
   children?: ReactNode
-  renderError?: (error: any) => ReactNode
+  renderError?: (error: Error) => ReactNode
   style?: StyleProp<ViewStyle>
 }
 
 interface State {
   hasError: boolean
-  error: any
+  error: Error
 }
 
 export class ErrorBoundary extends Component<Props, State> {

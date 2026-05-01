@@ -49,9 +49,9 @@ export const ChooseAccountForm = ({
           withPassword: false,
         })
         Toast.show(_(msg`Signed in as @${account.handle}`))
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error('choose account: initSession failed', {
-          message: e.message,
+          message: e instanceof Error ? e.message : String(e),
         })
         // Move to login form.
         onSelectAccount(account)
@@ -59,13 +59,7 @@ export const ChooseAccountForm = ({
         setPendingDid(null)
       }
     },
-    [
-      currentAccount,
-      resumeSession,
-      pendingDid,
-      onSelectAccount,
-      _,
-    ],
+    [currentAccount, resumeSession, pendingDid, onSelectAccount, _],
   )
 
   return (

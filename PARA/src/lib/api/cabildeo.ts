@@ -261,7 +261,7 @@ export async function fetchCabildeo(
       cabildeo: cabildeoUri,
     })
     return (res.data as GetCabildeoResponse).cabildeo ?? null
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err?.error === 'NotFound') {
       return null
     }
@@ -353,14 +353,6 @@ async function requestCivic<T>(
   endpoint: string,
   params: Record<string, string | number | undefined>,
 ): Promise<T> {
-  const res = await agent.call(endpoint as any, params)
+  const res = await agent.call(endpoint as unknown as string, params)
   return res.data as T
-}
-
-async function safeJson(res: Response): Promise<Record<string, any> | null> {
-  try {
-    return (await res.json()) as Record<string, any>
-  } catch {
-    return null
-  }
 }

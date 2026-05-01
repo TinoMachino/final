@@ -9,7 +9,7 @@ import {AgeAssuranceConfigUnavailableError} from '#/components/ageAssurance/AgeA
 import {useAgeAssuranceCopy} from '#/components/ageAssurance/useAgeAssuranceCopy'
 import {Button, ButtonIcon} from '#/components/Button'
 import {TimesLarge_Stroke2_Corner0_Rounded as X} from '#/components/icons/Times'
-import {logger,useAgeAssurance} from '#/ageAssurance'
+import {logger, useAgeAssurance} from '#/ageAssurance'
 
 export function AgeAssuranceDismissibleNotice({style}: ViewStyleProp & {}) {
   const {_} = useLingui()

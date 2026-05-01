@@ -26,7 +26,7 @@ import {
 import {truncateAndInvalidate} from '#/state/queries/util'
 import {useMinimalShellMode} from '#/state/shell'
 import {NotificationFeed} from '#/view/com/notifications/NotificationFeed'
-import {Pager} from '#/view/com/pager/Pager'
+import {Pager, type RenderTabBarFnProps} from '#/view/com/pager/Pager'
 import {TabBar as NativeTabBar} from '#/view/com/pager/TabBar'
 import {TabBar as WebTabBar} from '#/view/com/pager/TabBar.web'
 import {FAB} from '#/view/com/util/fab/FAB'
@@ -183,7 +183,7 @@ function NotificationTabsWithChat({
   allLabel,
   mentionsLabel,
 }: {
-  props: any
+  props: RenderTabBarFnProps
   allLabel: string
   mentionsLabel: string
 }) {

@@ -51,7 +51,7 @@ function FocusTrap({children}: {children: React.ReactNode}) {
   const decoratedChildren = useMemo(() => {
     return Children.toArray(children).map((node, i) => {
       if (i === 0 && isValidElement(node)) {
-        const n = node as React.ReactElement<any>
+        const n = node as React.ReactElement<Record<string, unknown>>
         if (n.props.ref !== undefined) {
           throw new Error(
             'FocusScope needs to override the ref on its first child.',

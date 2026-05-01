@@ -100,7 +100,13 @@ export function InternationalPhoneCodeSelect({
   )
 }
 
-function Flag({unicodeFlag, svgFlag}: {unicodeFlag: string; svgFlag: any}) {
+function Flag({
+  unicodeFlag,
+  svgFlag,
+}: {
+  unicodeFlag: string
+  svgFlag: ImageSourcePropType
+}) {
   if (IS_WEB) {
     return (
       <Image

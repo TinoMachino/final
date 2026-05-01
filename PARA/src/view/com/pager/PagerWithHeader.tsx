@@ -123,9 +123,9 @@ export function PagerWithHeader({
     ],
   )
 
-  const scrollRefs = useSharedValue<Array<AnimatedRef<any> | null>>([])
+  const scrollRefs = useSharedValue<Array<AnimatedRef<ScrollView | ListMethods> | null>>([])
   const registerRef = useCallback(
-    (scrollRef: AnimatedRef<any> | null, atIndex: number) => {
+    (scrollRef: AnimatedRef<ScrollView | ListMethods> | null, atIndex: number) => {
       scrollRefs.modify(refs => {
         'worklet'
         refs[atIndex] = scrollRef
@@ -355,7 +355,10 @@ function PagerItem({
   index: number
   isFocused: boolean
   isReady: boolean
-  registerRef: (scrollRef: AnimatedRef<any> | null, atIndex: number) => void
+  registerRef: (
+    scrollRef: AnimatedRef<ScrollView | ListMethods> | null,
+    atIndex: number,
+  ) => void
   onScrollWorklet: (e: NativeScrollEvent) => void
   renderTab: ((props: PagerWithHeaderChildParams) => JSX.Element) | null
 }) {

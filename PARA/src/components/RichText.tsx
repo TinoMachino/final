@@ -17,7 +17,10 @@ const URL_REGEX =
   /(^|\s|\()((https?:\/\/[\S]+)|((?<domain>[a-z][a-z0-9]*(\.[a-z0-9]+)+)[\S]*))/i
 
 function isPARATag(tagStr: string) {
-  const norm = tagStr.trim().toLowerCase().replace(/^[|#?]+/, '')
+  const norm = tagStr
+    .trim()
+    .toLowerCase()
+    .replace(/^[|#?]+/, '')
   const flairs = Object.values(POST_FLAIRS)
   const types = Object.values(POST_TYPES)
   const allTags = [...flairs, ...types].map(f => f.tag).filter(Boolean)

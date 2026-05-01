@@ -11,6 +11,7 @@ import {
 } from 'react'
 import {
   type FlatListProps,
+  type ListRenderItemInfo,
   StyleSheet,
   View,
   type ViewProps,
@@ -23,7 +24,11 @@ import {useScrollHandlers} from '#/lib/ScrollContext'
 import {addStyle} from '#/lib/styles'
 import * as Layout from '#/components/Layout'
 
-export type ListMethods = any // TODO: Better types.
+export interface ListMethods {
+  scrollToTop: () => void
+  scrollToOffset: (args: {animated: boolean; offset: number}) => void
+  scrollToEnd: (args: {animated?: boolean}) => void
+}
 export type ListProps<ItemT> = Omit<
   FlatListProps<ItemT>,
   | 'onScroll' // Use ScrollContext instead.
@@ -147,10 +152,10 @@ function ListImpl<ItemT>(
         scrollBy(options: ScrollToOptions) {
           element.scrollBy(options)
         },
-        addEventListener(event: string, handler: any) {
+        addEventListener(event: string, handler: EventListenerOrEventListenerObject) {
           element.addEventListener(event, handler)
         },
-        removeEventListener(event: string, handler: any) {
+        removeEventListener(event: string, handler: EventListenerOrEventListenerObject) {
           element.removeEventListener(event, handler)
         },
       }
@@ -180,10 +185,10 @@ function ListImpl<ItemT>(
         scrollBy(options: ScrollToOptions) {
           window.scrollBy(options)
         },
-        addEventListener(event: string, handler: any) {
+        addEventListener(event: string, handler: EventListenerOrEventListenerObject) {
           window.addEventListener(event, handler)
         },
-        removeEventListener(event: string, handler: any) {
+        removeEventListener(event: string, handler: EventListenerOrEventListenerObject) {
           window.removeEventListener(event, handler)
         },
       }
@@ -221,7 +226,7 @@ function ListImpl<ItemT>(
             behavior: animated ? 'smooth' : 'instant',
           })
         },
-      }) as any, // TODO: Better types.
+      }) as ListMethods,
     [getScrollableNode],
   )
 
@@ -257,7 +262,7 @@ function ListImpl<ItemT>(
         | 'targetContentOffset'
         | 'contentInset'
       >,
-      null as any,
+      null as unknown,
     )
   })
 
@@ -326,7 +331,7 @@ function ListImpl<ItemT>(
           'overflow-y': 'scroll',
         },
       ]}
-      ref={nativeRef as any}>
+      ref={nativeRef as unknown as React.Ref<View>}>
       <Visibility
         onVisibleChange={setIsInsideVisibleTree}
         style={
@@ -452,9 +457,9 @@ let Row = function RowImpl<ItemT>({
   renderItem:
     | null
     | undefined
-    | ((data: {index: number; item: any; separators: any}) => React.ReactNode)
-  extraData: any
-  onItemSeen: ((item: any) => void) | undefined
+    | ((data: ListRenderItemInfo<ItemT>) => React.ReactNode)
+  extraData: unknown
+  onItemSeen: ((item: ItemT) => void) | undefined
 }): React.ReactNode {
   const rowRef = useRef(null)
   const intersectionTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -511,7 +516,11 @@ let Row = function RowImpl<ItemT>({
 
   return (
     <View ref={rowRef}>
-      {renderItem({item, index, separators: null as any})}
+      {renderItem({
+        item,
+        index,
+        separators: null as unknown as ListRenderItemInfo<ItemT>['separators'],
+      })}
     </View>
   )
 }
@@ -570,7 +579,7 @@ Visibility = memo(Visibility)
 
 export const List = memo(forwardRef(ListImpl)) as <ItemT>(
   props: ListProps<ItemT> & {ref?: React.Ref<ListMethods>},
-) => React.ReactElement<any>
+) => React.JSX.Element
 
 // https://stackoverflow.com/questions/7944460/detect-safari-browser
 

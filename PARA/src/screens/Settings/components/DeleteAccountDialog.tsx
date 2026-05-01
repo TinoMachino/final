@@ -96,11 +96,11 @@ function DeleteAccountDialogInner({
       setError('')
       setEmailSentCount(prevCount => prevCount + 1)
       setStep(Step.VERIFY_CODE)
-    } catch (e: any) {
+    } catch (e: unknown) {
       const {clean, raw} = cleanError(e)
-      const error = clean || raw || e
+      const error = clean || raw || String(e)
       setError(error)
-      logger.error(raw || e, {
+      logger.error(raw || String(e), {
         message: 'Failed to send account deletion verification email',
       })
     } finally {
@@ -135,11 +135,11 @@ function DeleteAccountDialogInner({
         resetToTab('HomeTab')
         removeAccount(currentAccount)
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
       const {clean, raw} = cleanError(e)
-      const error = clean || raw || e
+      const error = clean || raw || String(e)
       setError(error)
-      logger.error(raw || e, {
+      logger.error(raw || String(e), {
         message: 'Failed to delete account',
       })
       setConfirmCode('')
@@ -215,16 +215,16 @@ function DeleteAccountDialogInner({
             </Admonition>
           )}
           <Admonition style={[a.mt_lg]} type="tip">
-              <Trans>
-                You can also{' '}
-                <Span
-                  style={[{color: t.palette.primary_500}, web(a.underline)]}
-                  onPress={handleDeactivate}>
+            <Trans>
+              You can also{' '}
+              <Span
+                style={[{color: t.palette.primary_500}, web(a.underline)]}
+                onPress={handleDeactivate}>
                 temporarily deactivate
               </Span>{' '}
               your account instead. Your profile, posts, feeds, and lists will
-              no longer be visible to other PARA users. You can reactivate
-              your account at any time by logging in.
+              no longer be visible to other PARA users. You can reactivate your
+              account at any time by logging in.
             </Trans>
           </Admonition>
         </>

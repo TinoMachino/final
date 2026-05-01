@@ -24,7 +24,7 @@ export function EmptyState({
   button,
 }: {
   testID?: string
-  icon?: ComponentType<any> | ReactElement
+  icon?: ComponentType<Record<string, never>> | ReactElement
   iconSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
   message: string
   style?: StyleProp<ViewStyle>

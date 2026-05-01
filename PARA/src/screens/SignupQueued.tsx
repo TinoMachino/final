@@ -52,8 +52,8 @@ export function SignupQueued() {
           setPlaceInQueue(Math.max(res.data.placeInQueue, 1))
         }
       }
-    } catch (e: any) {
-      logger.error('Failed to check signup queue', {err: e.toString()})
+    } catch (e: unknown) {
+      logger.error('Failed to check signup queue', {err: String(e)})
     } finally {
       setProcessing(false)
     }

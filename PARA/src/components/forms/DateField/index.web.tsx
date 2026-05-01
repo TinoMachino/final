@@ -43,7 +43,7 @@ export function DateField({
   maximumDate,
 }: DateFieldProps) {
   const handleOnChange = useCallback(
-    (e: any) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const date = e.target.valueAsDate || e.target.value
 
       if (date) {

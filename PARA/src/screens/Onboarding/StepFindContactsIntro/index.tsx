@@ -44,9 +44,8 @@ export function StepFindContactsIntro() {
       </OnboardingTitleText>
       <OnboardingDescriptionText>
         <Trans>
-          Find the people you already trust, organize with, or learn from.
-          Your contacts stay under your control, and you decide what happens
-          next.{' '}
+          Find the people you already trust, organize with, or learn from. Your
+          contacts stay under your control, and you decide what happens next.{' '}
           <InlineLinkText
             to={urls.website.blog.findFriendsAnnouncement}
             label={_(

@@ -198,9 +198,9 @@ export function ModerationScreenInner({
         await setAdultContentPref({
           enabled: selected,
         })
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(`Failed to set adult content pref`, {
-          message: e.message,
+          message: String(e),
         })
       }
     },

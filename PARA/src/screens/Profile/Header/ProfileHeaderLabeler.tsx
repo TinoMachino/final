@@ -93,14 +93,14 @@ let ProfileHeaderLabeler = ({
         setLikeCount(c => c + 1)
         setLikeUri(res.uri)
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       Toast.show(
         _(
           msg`There was an issue contacting the server, please check your internet connection and try again.`,
         ),
         {type: 'error'},
       )
-      logger.error(`Failed to toggle labeler like`, {message: e.message})
+      logger.error(`Failed to toggle labeler like`, {message: String(e)})
     }
   }, [labeler, playHaptic, likeUri, unlikeMod, likeMod, _])
 
@@ -274,13 +274,14 @@ export function HeaderLabelerButtons({
           {},
           {statsig: true},
         )
-      } catch (e: any) {
+      } catch (e: unknown) {
         reset()
-        if (e.message === 'MAX_LABELERS') {
+        const message = e instanceof Error ? e.message : String(e)
+        if (message === 'MAX_LABELERS') {
           cantSubscribePrompt.open()
           return
         }
-        logger.error(`Failed to subscribe to labeler`, {message: e.message})
+        logger.error(`Failed to subscribe to labeler`, {message})
       }
     })
   return (

@@ -25,7 +25,7 @@ export type ItemContextType = {
 }
 
 export type RadixPassThroughTriggerProps = {
-  ref: RefObject<any>
+  ref: RefObject<HTMLButtonElement>
   id: string
   type: 'button'
   disabled: boolean

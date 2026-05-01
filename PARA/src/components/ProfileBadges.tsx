@@ -65,7 +65,13 @@ export function ProfileBadges({
         <>
           <VerificationCheckButton
             profile={shadowed}
-            size={size === 'xs' || size === 'sm' ? 'sm' : size === 'xl' ? 'lg' : size}
+            size={
+              size === 'xs' || size === 'sm'
+                ? 'sm'
+                : size === 'xl'
+                  ? 'lg'
+                  : size
+            }
           />
           <BotBadgeButton profile={shadowed} width={botIconWidth} />
         </>

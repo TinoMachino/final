@@ -21,7 +21,7 @@ import {ArrowLeft_Stroke2_Corner0_Rounded as ArrowLeft} from '#/components/icons
 import {HEADER_SLOT_SIZE} from '#/components/Layout'
 import {createPortalGroup} from '#/components/Portal'
 import {P, Text} from '#/components/Typography'
-import {IS_ANDROID, IS_INTERNAL,IS_WEB} from '#/env'
+import {IS_ANDROID, IS_INTERNAL, IS_WEB} from '#/env'
 
 const ONBOARDING_COL_WIDTH = 420
 

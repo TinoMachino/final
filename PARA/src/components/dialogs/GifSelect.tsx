@@ -55,7 +55,7 @@ export function GifSelectDialog({
   )
 
   const renderErrorBoundary = useCallback(
-    (error: any) => <DialogError details={String(error)} />,
+    (error: Error) => <DialogError details={String(error)} />,
     [],
   )
 

@@ -90,7 +90,8 @@ const TOTAL_MAJOR_CITIES = Object.values(MEXICO_CITY_DATA).reduce(
 function getCitiesForState(stateName: string) {
   const match = Object.entries(MEXICO_CITY_DATA).find(
     ([candidate]) =>
-      normalizeMexicoStateName(candidate) === normalizeMexicoStateName(stateName),
+      normalizeMexicoStateName(candidate) ===
+      normalizeMexicoStateName(stateName),
   )
   return match?.[1] || []
 }
@@ -179,7 +180,9 @@ function MiniAction({
         style={[
           a.text_xs,
           a.font_bold,
-          active ? {color: t.palette.primary_500} : t.atoms.text_contrast_medium,
+          active
+            ? {color: t.palette.primary_500}
+            : t.atoms.text_contrast_medium,
         ]}>
         {label}
       </Text>
@@ -392,13 +395,7 @@ export function SelectedStateOverlay({
       </View>
 
       <View style={[a.flex_row, a.gap_sm, a.mb_md]}>
-        <View
-          style={[
-            a.flex_1,
-            a.p_sm,
-            t.atoms.bg_contrast_100,
-            a.rounded_md,
-          ]}>
+        <View style={[a.flex_1, a.p_sm, t.atoms.bg_contrast_100, a.rounded_md]}>
           <Text style={[a.text_2xs, t.atoms.text_contrast_medium]}>
             Dominant party
           </Text>
@@ -406,13 +403,7 @@ export function SelectedStateOverlay({
             {stats.dominantParty}
           </Text>
         </View>
-        <View
-          style={[
-            a.flex_1,
-            a.p_sm,
-            t.atoms.bg_contrast_100,
-            a.rounded_md,
-          ]}>
+        <View style={[a.flex_1, a.p_sm, t.atoms.bg_contrast_100, a.rounded_md]}>
           <Text style={[a.text_2xs, t.atoms.text_contrast_medium]}>
             Leading community
           </Text>
@@ -449,9 +440,7 @@ export function SelectedStateOverlay({
           <Text style={[a.text_xl, a.font_bold, t.atoms.text]}>
             {stats.active}
           </Text>
-          <Text style={[a.text_2xs, t.atoms.text_contrast_medium]}>
-            Active
-          </Text>
+          <Text style={[a.text_2xs, t.atoms.text_contrast_medium]}>Active</Text>
         </View>
       </View>
 
@@ -461,9 +450,7 @@ export function SelectedStateOverlay({
           onPress={onShowDistricts}
         />
         <MiniAction
-          label={
-            cityCount > 0 ? `Browse ${cityCount} cities` : 'Major cities'
-          }
+          label={cityCount > 0 ? `Browse ${cityCount} cities` : 'Major cities'}
           onPress={onShowCities}
         />
         {activeCabildeos.length > 0 && (
@@ -506,7 +493,8 @@ export function BigCitiesDataOverlay({
           URBAN SNAPSHOT
         </Text>
         <Text style={[a.text_lg, a.font_bold, t.atoms.text, a.mt_xs]}>
-          {cityData.length} mapped major cit{cityData.length === 1 ? 'y' : 'ies'}
+          {cityData.length} mapped major cit
+          {cityData.length === 1 ? 'y' : 'ies'}
         </Text>
       </View>
 
@@ -563,11 +551,7 @@ export function BigCitiesDataOverlay({
                   <Text style={[a.font_bold]}>{city.population}</Text>
                 </Text>
                 <Text
-                  style={[
-                    a.text_sm,
-                    t.atoms.text_contrast_medium,
-                    a.mt_xs,
-                  ]}>
+                  style={[a.text_sm, t.atoms.text_contrast_medium, a.mt_xs]}>
                   Mayor: {city.governing_mayor}
                 </Text>
               </View>
@@ -601,7 +585,10 @@ export function MapSearchControls({
     ...group,
     items: searchResults.filter(result => result.type === group.type),
   })).filter(group => group.items.length > 0)
-  const showEmptyState = searchExpanded && searchQuery.trim().length > 0 && groupedResults.length === 0
+  const showEmptyState =
+    searchExpanded &&
+    searchQuery.trim().length > 0 &&
+    groupedResults.length === 0
 
   return (
     <View
@@ -697,8 +684,7 @@ export function MapSearchControls({
                         {result.name}
                       </Text>
                       {!!result.subtitle && (
-                        <Text
-                          style={[a.text_xs, t.atoms.text_contrast_medium]}>
+                        <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
                           {result.subtitle}
                         </Text>
                       )}
@@ -759,7 +745,8 @@ export function MapSearchControls({
               No matches found
             </Text>
             <Text style={[a.text_xs, t.atoms.text_contrast_medium, a.mt_xs]}>
-              Try a state name, a district number like “Distrito 7”, or a major city.
+              Try a state name, a district number like “Distrito 7”, or a major
+              city.
             </Text>
           </View>
         </Animated.View>
@@ -796,7 +783,10 @@ export function DistrictsDataOverlay({
     if (index < 0) return
 
     requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({y: Math.max(index - 1, 0) * 154, animated: true})
+      scrollRef.current?.scrollTo({
+        y: Math.max(index - 1, 0) * 154,
+        animated: true,
+      })
     })
   }, [districts, selectedDistrictId, selectedState, showDistricts])
 
@@ -919,7 +909,8 @@ export function DistrictsDataOverlay({
                     </View>
                   </View>
                   <Text style={[a.text_sm, t.atoms.text_contrast_high]}>
-                    Turnout <Text style={[a.font_bold]}>{district.turnout}%</Text>
+                    Turnout{' '}
+                    <Text style={[a.font_bold]}>{district.turnout}%</Text>
                     {' · '}
                     Registered{' '}
                     <Text style={[a.font_bold]}>
@@ -960,10 +951,7 @@ export function DistrictsDataOverlay({
                       })
                     }
                   />
-                  <MiniAction
-                    label="Back to state"
-                    onPress={onBackToState}
-                  />
+                  <MiniAction label="Back to state" onPress={onBackToState} />
                 </View>
               </View>
             )
@@ -1027,7 +1015,11 @@ export function MapLayersPanel({
               a.p_xs,
               a.rounded_md,
               activeLayer === layer.id
-                ? [t.atoms.bg_contrast_200, a.border, {borderColor: t.palette.primary_500}]
+                ? [
+                    t.atoms.bg_contrast_200,
+                    a.border,
+                    {borderColor: t.palette.primary_500},
+                  ]
                 : [a.border, {borderColor: 'transparent'}],
             ]}>
             <Text

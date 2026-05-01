@@ -138,7 +138,9 @@ function simulateNetworkDelay(): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, 100))
 }
 
-function mapCabildeoToPolicyItem(cabildeo: Awaited<ReturnType<typeof mapCabildeosToView>>[number]): PolicyItem {
+function mapCabildeoToPolicyItem(
+  cabildeo: Awaited<ReturnType<typeof mapCabildeosToView>>[number],
+): PolicyItem {
   const badge = getCabildeoBadge(cabildeo)
   const participantCount = getCabildeoTotalParticipants(cabildeo)
   const leadingShare = getLeadingShare(cabildeo)
@@ -153,14 +155,19 @@ function mapCabildeoToPolicyItem(cabildeo: Awaited<ReturnType<typeof mapCabildeo
     title: cabildeo.title,
     promotedBy,
     support:
-      typeof leadingShare === 'number' ? Math.round(leadingShare * 100) : undefined,
+      typeof leadingShare === 'number'
+        ? Math.round(leadingShare * 100)
+        : undefined,
     mentions: cabildeo.positionCounts.total,
     match:
-      typeof leadingShare === 'number' ? Math.round(leadingShare * 100) : undefined,
+      typeof leadingShare === 'number'
+        ? Math.round(leadingShare * 100)
+        : undefined,
     community: cabildeo.community,
     state: cabildeo.region || undefined,
     color: badge.color,
-    verified: cabildeo.voteTotals.total > 0 || cabildeo.positionCounts.total > 0,
+    verified:
+      cabildeo.voteTotals.total > 0 || cabildeo.positionCounts.total > 0,
     phase: cabildeo.phase,
     participantCount,
     voteCount: cabildeo.voteTotals.total,
@@ -188,8 +195,14 @@ function filterItemsByFeed(items: PolicyItem[], feed: PolicyFeed) {
 }
 
 function comparePolicyItems(a: PolicyItem, b: PolicyItem) {
-  const aScore = (a.participantCount || 0) * 10 + (a.voteCount || 0) * 4 + (a.positionCount || 0)
-  const bScore = (b.participantCount || 0) * 10 + (b.voteCount || 0) * 4 + (b.positionCount || 0)
+  const aScore =
+    (a.participantCount || 0) * 10 +
+    (a.voteCount || 0) * 4 +
+    (a.positionCount || 0)
+  const bScore =
+    (b.participantCount || 0) * 10 +
+    (b.voteCount || 0) * 4 +
+    (b.positionCount || 0)
   if (aScore !== bScore) {
     return bScore - aScore
   }
@@ -199,7 +212,8 @@ function comparePolicyItems(a: PolicyItem, b: PolicyItem) {
 function getLeadingShare(
   cabildeo: Awaited<ReturnType<typeof mapCabildeosToView>>[number],
 ) {
-  const optionCount = cabildeo.outcome?.breakdown.length || cabildeo.optionSummary.length
+  const optionCount =
+    cabildeo.outcome?.breakdown.length || cabildeo.optionSummary.length
   if (optionCount === 0) return undefined
 
   const total =

@@ -32,9 +32,12 @@ export function useWebScrollRestoration() {
     // We want to intercept any push/pop/replace *before* the re-render.
     // There is no official way to do this yet, but this works okay for now.
     // https://twitter.com/satya164/status/1737301243519725803
-    navigation.addListener('__unsafe_action__' as any, onDispatch)
+    navigation.addListener('__unsafe_action__' as unknown as string, onDispatch)
     return () => {
-      navigation.removeListener('__unsafe_action__' as any, onDispatch)
+      navigation.removeListener(
+        '__unsafe_action__' as unknown as string,
+        onDispatch,
+      )
     }
   }, [state, navigation])
 

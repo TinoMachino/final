@@ -193,7 +193,10 @@ export function useNotificationsHandler() {
     const handleNotification = (payload?: NotificationPayload) => {
       if (!payload) return
 
-      if (payload.reason === 'chat-message' || payload.reason === 'chat-reaction') {
+      if (
+        payload.reason === 'chat-message' ||
+        payload.reason === 'chat-reaction'
+      ) {
         logger.debug(`useNotificationsHandler: handling chat message`, {
           payload,
         })

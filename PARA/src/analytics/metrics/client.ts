@@ -3,11 +3,11 @@ import {isNetworkError} from '#/lib/strings/errors'
 import {Logger} from '#/logger'
 import * as env from '#/env'
 
-type Event<M extends Record<string, any>> = {
+type Event<M extends Record<string, unknown>> = {
   time: number
   event: keyof M
   payload: M[keyof M]
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 }
 
 // Privacy-first: default to local Umami, never Bluesky
@@ -15,7 +15,7 @@ const UMAMI_HOST = env.METRICS_API_HOST || 'http://localhost:3001'
 const UMAMI_WEBSITE_ID = 'para-app'
 const logger = Logger.create(Logger.Context.Metric, {})
 
-export class MetricsClient<M extends Record<string, any>> {
+export class MetricsClient<M extends Record<string, unknown>> {
   maxBatchSize = 100
 
   private started: boolean = false
@@ -41,7 +41,7 @@ export class MetricsClient<M extends Record<string, any>> {
   track<E extends keyof M>(
     event: E,
     payload: M[E],
-    metadata: Record<string, any> = {},
+    metadata: Record<string, unknown> = {},
   ) {
     this.start()
 
@@ -101,7 +101,7 @@ export class MetricsClient<M extends Record<string, any>> {
             keepalive: true,
           })
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isNetworkError(err)) {
           if (!isRetry) this.failedQueue.push(e)
         }

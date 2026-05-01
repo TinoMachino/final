@@ -18,7 +18,12 @@ const STORAGE_KEY = 'para_acuerdos'
 const LOCKS_KEY = 'para_acuerdo_locks'
 const WATERMARK_KEY = 'para_acuerdo_watermark'
 
-export type AcuerdoPhase = 'forming' | 'active' | 'locked' | 'resolved' | 'cancelled'
+export type AcuerdoPhase =
+  | 'forming'
+  | 'active'
+  | 'locked'
+  | 'resolved'
+  | 'cancelled'
 
 export type AcuerdoView = AcuerdoRecord & {
   uri: string
@@ -71,11 +76,19 @@ type AcuerdoContextValue = {
   isLoading: boolean
 
   // Actions
-  createAcuerdo: (data: Omit<AcuerdoRecord, 'createdAt' | 'uri'>) => Promise<AcuerdoView>
-  joinAcuerdo: (acuerdoUri: string, commitment: 'follow-acuerdo' | 'delegate-to-rep') => Promise<void>
+  createAcuerdo: (
+    data: Omit<AcuerdoRecord, 'createdAt' | 'uri'>,
+  ) => Promise<AcuerdoView>
+  joinAcuerdo: (
+    acuerdoUri: string,
+    commitment: 'follow-acuerdo' | 'delegate-to-rep',
+  ) => Promise<void>
   requestExit: (lockId: string) => Promise<void>
   cancelAcuerdo: (acuerdoUri: string, reason: string) => Promise<void>
-  updateVisibility: (acuerdoUri: string, visibility: 'public' | 'private') => Promise<void>
+  updateVisibility: (
+    acuerdoUri: string,
+    visibility: 'public' | 'private',
+  ) => Promise<void>
 
   // Queries
   getAcuerdoByUri: (uri: string) => AcuerdoView | undefined
@@ -85,7 +98,11 @@ type AcuerdoContextValue = {
   getCooldownRemainingMs: (lockId: string) => number
 
   // Delegation
-  resolveEffectiveVote: (acuerdoUri: string, depth?: number, visited?: Set<string>) => {
+  resolveEffectiveVote: (
+    acuerdoUri: string,
+    depth?: number,
+    visited?: Set<string>,
+  ) => {
     effectiveDid: string | null
     chain: DelegationChain[]
     error?: DelegationError
@@ -110,7 +127,9 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
   const [acuerdos, setAcuerdos] = useState<AcuerdoView[]>([])
   const [myLocks, setMyLocks] = useState<AcuerdoLockView[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [watermarks, setWatermarks] = useState<Record<string, WatermarkInfo>>({})
+  const [watermarks, setWatermarks] = useState<Record<string, WatermarkInfo>>(
+    {},
+  )
   const quorumTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // ─── Load from storage ────────────────────────────────────────────────────
@@ -192,7 +211,10 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
     (lockId: string) => {
       const lock = myLocks.find(l => l.id === lockId)
       if (!lock?.exitCooldownEndsAt) return 0
-      return Math.max(0, new Date(lock.exitCooldownEndsAt).getTime() - Date.now())
+      return Math.max(
+        0,
+        new Date(lock.exitCooldownEndsAt).getTime() - Date.now(),
+      )
     },
     [myLocks],
   )
@@ -200,7 +222,9 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
   // ─── Actions ──────────────────────────────────────────────────────────────
 
   const createAcuerdo = useCallback(
-    async (data: Omit<AcuerdoRecord, 'createdAt' | 'uri'>): Promise<AcuerdoView> => {
+    async (
+      data: Omit<AcuerdoRecord, 'createdAt' | 'uri'>,
+    ): Promise<AcuerdoView> => {
       const now = new Date().toISOString()
       const uri = `at://${data.author}/com.para.civic.acuerdo/${Date.now()}`
       const acuerdo: AcuerdoView = {
@@ -256,7 +280,9 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
       setMyLocks(prev => [...prev, lock])
       setAcuerdos(prev =>
         prev.map(a =>
-          a.uri === acuerdoUri ? {...a, lockedCount: a.lockedCount + 1, isLockedByViewer: true} : a,
+          a.uri === acuerdoUri
+            ? {...a, lockedCount: a.lockedCount + 1, isLockedByViewer: true}
+            : a,
         ),
       )
     },
@@ -279,32 +305,41 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
   }, [])
 
   // FIX #2: Admin cancellation with cascading cleanup
-  const cancelAcuerdo = useCallback(async (acuerdoUri: string, reason: string) => {
-    // Get all acuerdos that are children of this one (cascade)
-    const childUris = new Set<string>()
-    const findChildren = (parentUri: string) => {
-      acuerdos.forEach(a => {
-        if (a.parentAcuerdo === parentUri) {
-          childUris.add(a.uri)
-          findChildren(a.uri)
-        }
-      })
-    }
-    findChildren(acuerdoUri)
-    const allUrisToCancel = [acuerdoUri, ...Array.from(childUris)]
+  const cancelAcuerdo = useCallback(
+    async (acuerdoUri: string, reason: string) => {
+      // Get all acuerdos that are children of this one (cascade)
+      const childUris = new Set<string>()
+      const findChildren = (parentUri: string) => {
+        acuerdos.forEach(a => {
+          if (a.parentAcuerdo === parentUri) {
+            childUris.add(a.uri)
+            findChildren(a.uri)
+          }
+        })
+      }
+      findChildren(acuerdoUri)
+      const allUrisToCancel = [acuerdoUri, ...Array.from(childUris)]
 
-    // Cancel all affected acuerdos
-    setAcuerdos(prev =>
-      prev.map(a =>
-        allUrisToCancel.includes(a.uri)
-          ? {...a, phase: 'cancelled' as AcuerdoPhase, description: `${a.description}\n\n[Cancelled: ${reason}]`}
-          : a,
-      ),
-    )
+      // Cancel all affected acuerdos
+      setAcuerdos(prev =>
+        prev.map(a =>
+          allUrisToCancel.includes(a.uri)
+            ? {
+                ...a,
+                phase: 'cancelled' as AcuerdoPhase,
+                description: `${a.description}\n\n[Cancelled: ${reason}]`,
+              }
+            : a,
+        ),
+      )
 
-    // Release ALL locks for cancelled acuerdos (including children)
-    setMyLocks(prev => prev.filter(lock => !allUrisToCancel.includes(lock.acuerdo)))
-  }, [acuerdos])
+      // Release ALL locks for cancelled acuerdos (including children)
+      setMyLocks(prev =>
+        prev.filter(lock => !allUrisToCancel.includes(lock.acuerdo)),
+      )
+    },
+    [acuerdos],
+  )
 
   const updateVisibility = useCallback(
     async (acuerdoUri: string, visibility: 'public' | 'private') => {
@@ -396,7 +431,11 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
 
       // Check parent acuerdo delegation
       if (acuerdo.parentAcuerdo) {
-        const parentResult = resolveEffectiveVote(acuerdo.parentAcuerdo, depth + 1, visited)
+        const parentResult = resolveEffectiveVote(
+          acuerdo.parentAcuerdo,
+          depth + 1,
+          visited,
+        )
         return {
           effectiveDid: parentResult.effectiveDid,
           chain: [...chain, ...parentResult.chain],
@@ -419,18 +458,15 @@ export function AcuerdoProvider({children}: {children: React.ReactNode}) {
     [watermarks],
   )
 
-  const generateWatermark = useCallback(
-    (acuerdoUri: string): WatermarkInfo => {
-      const info: WatermarkInfo = {
-        viewerDid: 'did:plc:viewer', // TODO: use actual DID
-        timestamp: new Date().toISOString(),
-        deviceFingerprint: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      }
-      setWatermarks(prev => ({...prev, [acuerdoUri]: info}))
-      return info
-    },
-    [],
-  )
+  const generateWatermark = useCallback((acuerdoUri: string): WatermarkInfo => {
+    const info: WatermarkInfo = {
+      viewerDid: 'did:plc:viewer', // TODO: use actual DID
+      timestamp: new Date().toISOString(),
+      deviceFingerprint: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    }
+    setWatermarks(prev => ({...prev, [acuerdoUri]: info}))
+    return info
+  }, [])
 
   // FIX #6: Quorum check
   const checkQuorum = useCallback(

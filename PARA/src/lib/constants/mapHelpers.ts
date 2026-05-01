@@ -134,7 +134,7 @@ export interface LatLng {
  * Compute the centroid of a GeoJSON feature (Polygon or MultiPolygon).
  * Falls back to `{latitude:0, longitude:0}` if coords are empty.
  */
-export function computeCentroid(feature: any): LatLng {
+export function computeCentroid(feature: Record<string, unknown>): LatLng {
   const coords: LatLng[] = []
 
   const extractRing = (ring: number[][]) => {
@@ -193,9 +193,9 @@ export function parseMemberCount(str: string): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Computes a quadratic bezier curve between two geographic coordinates to draw 
+ * Computes a quadratic bezier curve between two geographic coordinates to draw
  * visually appealing bridging arcs on the map.
- * 
+ *
  * @param start Starting coordinate
  * @param end Ending coordinate
  * @param offsetMultiplier Controls how high the arc curves. Higher is curvier.
@@ -247,7 +247,7 @@ export function computeBezierCurve(
       2 * oneMinusT * t * controlPoint.longitude +
       Math.pow(t, 2) * end.longitude
 
-    curve.push({ latitude: lat, longitude: lng })
+    curve.push({latitude: lat, longitude: lng})
   }
 
   return curve

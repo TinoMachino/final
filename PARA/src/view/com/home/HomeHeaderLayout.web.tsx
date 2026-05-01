@@ -57,7 +57,7 @@ function HomeHeaderLayoutDesktopAndTablet({
                 a.justify_center,
                 {
                   height: 52,
-                  zIndex: 1, 
+                  zIndex: 1,
                 },
               ]}>
               <View
@@ -66,7 +66,10 @@ function HomeHeaderLayoutDesktopAndTablet({
                   a.align_center,
                   a.justify_center,
                   {
-                    top: 0, bottom: 0, left: 0, right: 0, 
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     zIndex: 1,
                     // @ts-ignore Web-only drop shadow to correctly trace SVG paths
                     filter: 'drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.05))',
@@ -83,7 +86,7 @@ function HomeHeaderLayoutDesktopAndTablet({
                   {
                     zIndex: 2,
                     // No artificial widths. The wrapper natively hugs the 106px Logotype.
-                    paddingHorizontal: 6, 
+                    paddingHorizontal: 6,
                     paddingVertical: 4,
                   },
                 ]}>
@@ -94,10 +97,13 @@ function HomeHeaderLayoutDesktopAndTablet({
                     a.align_center,
                     a.justify_center,
                     {
-                      top: 0, bottom: 0, left: 0, right: 0,
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
                       // Squashed vertically to forcefully widen the angle aperture at the North/South corners, minimizing its vertical footprint
-                      transform: [{ scaleX: 3.15 }, { scaleY: 0.65 }],
-                    }
+                      transform: [{scaleX: 3.15}, {scaleY: 0.65}],
+                    },
                   ]}>
                   <View
                     style={[
@@ -105,10 +111,10 @@ function HomeHeaderLayoutDesktopAndTablet({
                       {
                         width: 24,
                         height: 24,
-                        opacity: 0.90, // Classic frosted glass transparency
-                        transform: [{ rotate: '45deg' }],
+                        opacity: 0.9, // Classic frosted glass transparency
+                        transform: [{rotate: '45deg'}],
                         // Zero border radius to mathematically match the sharp maze geometry
-                      }
+                      },
                     ]}
                   />
                 </View>

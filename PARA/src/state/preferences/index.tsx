@@ -1,4 +1,4 @@
-import  {type PropsWithChildren} from 'react'
+import {type PropsWithChildren} from 'react'
 
 import {Provider as AltTextRequiredProvider} from './alt-text-required'
 import {Provider as AutoplayProvider} from './autoplay'
@@ -32,10 +32,7 @@ export {
   useSetShowAuthorInsignias,
   useShowAuthorInsignias,
 } from './show-author-insignias'
-export {
-  useSetShowPartyShields,
-  useShowPartyShields,
-} from './show-party-shields'
+export {useSetShowPartyShields, useShowPartyShields} from './show-party-shields'
 export {useSetSubtitlesEnabled, useSubtitlesEnabled} from './subtitles'
 
 export function Provider({children}: PropsWithChildren<{}>) {

@@ -11,7 +11,10 @@ import {type RouteProp, useNavigation, useRoute} from '@react-navigation/native'
 import {useQuery} from '@tanstack/react-query'
 
 import {type CabildeoReadView, fetchCabildeos} from '#/lib/api/cabildeo'
-import {type CommonNavigatorParams, type NavigationProp} from '#/lib/routes/types'
+import {
+  type CommonNavigatorParams,
+  type NavigationProp,
+} from '#/lib/routes/types'
 import {
   buildVsScreenViewModel,
   resolveInitialVsTopic,
@@ -66,7 +69,12 @@ function VSScreenContent({
   const t = useTheme()
   const [selectedTopic, setSelectedTopic] = useState(initialTopic)
 
-  const {data = [], isLoading, isError, refetch} = useQuery<CabildeoReadView[]>({
+  const {
+    data = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery<CabildeoReadView[]>({
     staleTime: STALE.MINUTES.ONE,
     queryKey: ['vs-screen', 'cabildeos'],
     placeholderData: previous => previous,
@@ -240,7 +248,10 @@ function CompactHero({
       <View
         style={[
           styles.compactVsBadge,
-          {backgroundColor: t.palette.contrast_25, borderColor: t.palette.contrast_100},
+          {
+            backgroundColor: t.palette.contrast_25,
+            borderColor: t.palette.contrast_100,
+          },
         ]}>
         <Text style={[styles.compactVsText, t.atoms.text]}>VS</Text>
         <Text style={[styles.compactVsMeta, t.atoms.text_contrast_medium]}>
@@ -319,7 +330,10 @@ function EntityPanel({entity}: {entity: VsEntitySummary}) {
         <Metric label="Debates" value={String(entity.debateCount)} />
         <Metric label="Activos" value={String(entity.activeCount)} />
         <Metric label="Compartidos" value={String(entity.sharedCount)} />
-        <Metric label="Participacion" value={String(entity.participationTotal)} />
+        <Metric
+          label="Participacion"
+          value={String(entity.participationTotal)}
+        />
       </View>
 
       <Meter
@@ -386,7 +400,9 @@ function DebateCard({card}: {card: VsDebateCard}) {
       ]}>
       <View style={styles.cardHeader}>
         <View style={styles.cardCommunity}>
-          <View style={[styles.smallDot, {backgroundColor: card.communityColor}]} />
+          <View
+            style={[styles.smallDot, {backgroundColor: card.communityColor}]}
+          />
           <Text style={[styles.cardCommunityText, t.atoms.text]}>
             {card.community}
           </Text>
@@ -394,7 +410,10 @@ function DebateCard({card}: {card: VsDebateCard}) {
         <View
           style={[
             styles.phasePill,
-            {backgroundColor: t.palette.contrast_25, borderColor: t.palette.contrast_100},
+            {
+              backgroundColor: t.palette.contrast_25,
+              borderColor: t.palette.contrast_100,
+            },
           ]}>
           <Text style={[styles.phasePillText, t.atoms.text_contrast_medium]}>
             {card.phaseLabel}
@@ -413,12 +432,12 @@ function DebateCard({card}: {card: VsDebateCard}) {
 
       <View style={styles.metricRow}>
         <Metric label="Votos" value={String(card.totalVotes)} compact />
-        <Metric label="Posiciones" value={String(card.totalPositions)} compact />
         <Metric
-          label="Consenso"
-          value={card.consensusLabel}
+          label="Posiciones"
+          value={String(card.totalPositions)}
           compact
         />
+        <Metric label="Consenso" value={card.consensusLabel} compact />
       </View>
 
       <Meter
@@ -440,7 +459,8 @@ function DebateCard({card}: {card: VsDebateCard}) {
                   borderColor: t.palette.contrast_100,
                 },
               ]}>
-              <Text style={[styles.footerPillText, t.atoms.text_contrast_medium]}>
+              <Text
+                style={[styles.footerPillText, t.atoms.text_contrast_medium]}>
                 {name}
               </Text>
             </View>
@@ -497,10 +517,7 @@ function Meter({
         <Text style={[styles.meterValueLabel, t.atoms.text]}>{valueLabel}</Text>
       </View>
       <View
-        style={[
-          styles.meterTrack,
-          {backgroundColor: t.palette.contrast_50},
-        ]}>
+        style={[styles.meterTrack, {backgroundColor: t.palette.contrast_50}]}>
         <View
           style={[
             styles.meterFill,

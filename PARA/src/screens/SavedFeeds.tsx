@@ -258,7 +258,6 @@ function SavedFeedsInner({
           </Toggle.Item>
         </SettingsList.Container>
 
-
         <View style={[a.px_lg, a.py_xl]}>
           <Text
             style={[a.text_sm, t.atoms.text_contrast_medium, a.leading_snug]}>

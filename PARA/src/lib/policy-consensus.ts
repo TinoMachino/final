@@ -25,7 +25,12 @@ export type PolicyConsensusTally = {
   sumSignal: number
   averageSignal: number
   breakdown: Record<WeightedPolicySignal, number>
-  outcome: 'insufficient_quorum' | 'passed' | 'strong_passed' | 'failed' | 'contested'
+  outcome:
+    | 'insufficient_quorum'
+    | 'passed'
+    | 'strong_passed'
+    | 'failed'
+    | 'contested'
   state: PolicyConsensusState
 }
 
@@ -129,7 +134,9 @@ export function getCommunityConsensusRoles(
   }
 
   const isModerator = governance.moderators.some(mod => mod.did === did)
-  const isDeputy = governance.deputies.some(role => role.activeHolder?.did === did)
+  const isDeputy = governance.deputies.some(
+    role => role.activeHolder?.did === did,
+  )
   const isDelegate = governance.officials.some(rep => rep.did === did)
 
   if (isModerator) {

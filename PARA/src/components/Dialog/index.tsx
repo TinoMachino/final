@@ -86,7 +86,7 @@ export function Outer({
     for (const cb of closeCallbacks.current) {
       try {
         cb()
-      } catch (e: any) {
+      } catch (e: unknown) {
         logger.error(e || 'Error running close callback')
       }
     }
@@ -283,7 +283,7 @@ export const ScrollableInner = forwardRef<ScrollView, DialogInnerProps>(
 
 export const InnerFlatList = forwardRef<
   ListMethods,
-  ListProps<any> & {
+  ListProps<Record<string, unknown>> & {
     webInnerStyle?: StyleProp<ViewStyle>
     webInnerContentContainerStyle?: StyleProp<ViewStyle>
     footer?: React.ReactNode

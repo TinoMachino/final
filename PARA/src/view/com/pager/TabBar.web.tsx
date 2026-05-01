@@ -107,7 +107,7 @@ export function TabBar({
               testID={`${testID}-selector-${i}`}
               key={`${item}-${i}`}
               ref={node => {
-                itemRefs.current[i] = node as any
+                itemRefs.current[i] = node as unknown as Element
               }}
               style={styles.item}
               hoverStyle={t.atoms.bg_contrast_25}

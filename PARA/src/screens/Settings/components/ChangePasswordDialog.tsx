@@ -89,7 +89,7 @@ function Inner() {
         email: currentAccount.email,
       })
       setStage(Stages.ChangePassword)
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isNetworkError(e)) {
         setError(
           _(
@@ -97,7 +97,7 @@ function Inner() {
           ),
         )
       } else {
-        logger.error('Failed to request password reset', {safeMessage: e})
+        logger.error('Failed to request password reset', {safeMessage: String(e)})
         setError(cleanError(e))
       }
     } finally {
@@ -134,17 +134,17 @@ function Inner() {
         password: newPassword,
       })
       setStage(Stages.Done)
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (isNetworkError(e)) {
         setError(
           _(
             msg`Unable to contact your service. Please check your internet connection and try again.`,
           ),
         )
-      } else if (e?.toString().includes('Token is invalid')) {
+      } else if (String(e).includes('Token is invalid')) {
         setError(_(msg`This confirmation code is not valid. Please try again.`))
       } else {
-        logger.error('Failed to set new password', {safeMessage: e})
+        logger.error('Failed to set new password', {safeMessage: String(e)})
         setError(cleanError(e))
       }
     } finally {

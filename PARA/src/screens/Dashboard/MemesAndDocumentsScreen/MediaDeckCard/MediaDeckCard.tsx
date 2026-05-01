@@ -10,7 +10,7 @@ import {
   MediaVisualMeta,
   showDeckOptionsAlert,
 } from '../cardPrimitives'
-import {buildSubmetaLabel,DECK_VISUAL_HEIGHT} from '../helpers'
+import {buildSubmetaLabel, DECK_VISUAL_HEIGHT} from '../helpers'
 import {styles} from '../styles'
 import {type MediaItem, type Mode} from '../types'
 

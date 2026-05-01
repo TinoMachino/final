@@ -13,6 +13,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native'
+import {type AppBskyGraphDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {useNavigation} from '@react-navigation/native'
@@ -86,7 +87,13 @@ export function ProfileLists({
   const isSelf = currentAccount?.did === did
 
   const items = useMemo(() => {
-    let items: any[] = []
+    let items: (
+      | AppBskyGraphDefs.ListView
+      | typeof LOADING
+      | typeof EMPTY
+      | typeof ERROR_ITEM
+      | typeof LOAD_MORE_ERROR_ITEM
+    )[] = []
     if (isError && isEmpty) {
       items = items.concat([ERROR_ITEM])
     }
@@ -149,7 +156,16 @@ export function ProfileLists({
   // =
 
   const renderItem = useCallback(
-    ({item, index}: ListRenderItemInfo<any>) => {
+    ({
+      item,
+      index,
+    }: ListRenderItemInfo<
+      | AppBskyGraphDefs.ListView
+      | typeof LOADING
+      | typeof EMPTY
+      | typeof ERROR_ITEM
+      | typeof LOAD_MORE_ERROR_ITEM
+    >) => {
       if (item === EMPTY) {
         return (
           <EmptyState
@@ -265,6 +281,13 @@ export function ProfileLists({
   )
 }
 
-function keyExtractor(item: any) {
-  return item._reactKey || item.uri
+function keyExtractor(
+  item:
+    | AppBskyGraphDefs.ListView
+    | typeof LOADING
+    | typeof EMPTY
+    | typeof ERROR_ITEM
+    | typeof LOAD_MORE_ERROR_ITEM,
+) {
+  return item._reactKey || (item as AppBskyGraphDefs.ListView).uri
 }

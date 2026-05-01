@@ -89,7 +89,7 @@ export function FlairSelectionList({
   // Group Unofficial Flairs by Category
   const unofficialGroups = useMemo(() => {
     const grouped: Record<string, CustomPostFlair[]> = {}
-    userCreatedFlairs.forEach((f: any) => {
+    userCreatedFlairs.forEach((f: CustomPostFlair) => {
       const cat = f.category || 'Uncategorized'
       if (!grouped[cat]) grouped[cat] = []
       grouped[cat].push(f)

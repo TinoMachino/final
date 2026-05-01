@@ -28,9 +28,10 @@ const PARTY_PREFIX_REGEX = /^\[([^\]]+)\]\s*/
  * Extract a party insignia from the beginning of post text.
  * PARA posts prefix the party as `[MC] Title...` or `[PT] Title...`.
  */
-export function extractPartyInsignia(
-  text: string,
-): {insignia: CivicInsigniaInfo | null; textWithoutPrefix: string} {
+export function extractPartyInsignia(text: string): {
+  insignia: CivicInsigniaInfo | null
+  textWithoutPrefix: string
+} {
   const match = text.match(PARTY_PREFIX_REGEX)
   if (!match) {
     return {insignia: null, textWithoutPrefix: text}
@@ -66,9 +67,10 @@ export function hasPartyPrefix(text: string): boolean {
  * Create a display RichText with the party prefix stripped.
  * Adjusts facet byte offsets to account for the removed prefix.
  */
-export function createDisplayRichText(
-  original: RichTextAPI,
-): {richText: RichTextAPI; prefixLength: number} {
+export function createDisplayRichText(original: RichTextAPI): {
+  richText: RichTextAPI
+  prefixLength: number
+} {
   const text = original.text
   const match = text.match(PARTY_PREFIX_REGEX)
   if (!match) {
@@ -156,5 +158,5 @@ function darkenColor(hex: string, amount: number): string {
   const r = Math.max((num >> 16) - amount, 0)
   const g = Math.max(((num >> 8) & 0x00ff) - amount, 0)
   const b = Math.max((num & 0x0000ff) - amount, 0)
-  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
 }

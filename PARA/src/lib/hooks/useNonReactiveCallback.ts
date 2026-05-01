@@ -14,7 +14,7 @@ export function useNonReactiveCallback<T extends Function>(fn: T): T {
     ref.current = fn
   }, [fn])
   return useCallback(
-    (...args: any) => {
+    (...args: unknown[]) => {
       const latestFn = ref.current
       return latestFn(...args)
     },

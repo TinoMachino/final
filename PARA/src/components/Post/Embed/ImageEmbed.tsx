@@ -50,7 +50,7 @@ export function ImageEmbed({
     }
     const onPress = (
       index: number,
-      refs: AnimatedRef<any>[],
+      refs: AnimatedRef<View>[],
       fetchedDims: (Dimensions | null)[],
     ) => {
       runOnUI(() => {

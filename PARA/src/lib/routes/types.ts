@@ -90,7 +90,7 @@ export type CommonNavigatorParams = {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
   }
-  PolicyDetails: {item?: any; cabildeoUri?: string}
+  PolicyDetails: {item?: Record<string, unknown>; cabildeoUri?: string}
   Representatives: {category?: string; q?: string}
   NotificationsActivityList: {posts: string}
   LegacyNotificationSettings: undefined
@@ -118,7 +118,7 @@ export type CommonNavigatorParams = {
   ProposedRAQList: undefined
   OpenQuestionsList: undefined
   AxesDiscoveryList: {initialTab?: 'official' | 'unofficial'}
-  RAQResults: {results: any[]}
+  RAQResults: {results: Record<string, unknown>[]}
   OpenQuestionThread: {id: string}
   CommunityRAQ: {communityId: string; communityName: string}
   CommunityVoters: {communityId: string; communityName: string}
@@ -126,7 +126,13 @@ export type CommonNavigatorParams = {
   Highlights: undefined
   SeeHighlightDetails: {highlightId: string}
   Map: undefined
-  Compass: {initialZoom?: '9ths' | '25ths' | '69ths'; highlightNinth?: string; mode?: 'explore' | 'affiliate'} | undefined
+  Compass:
+    | {
+        initialZoom?: '9ths' | '25ths' | '69ths'
+        highlightNinth?: string
+        mode?: 'explore' | 'affiliate'
+      }
+    | undefined
   CabildeoList: {communityId?: string; communityName?: string} | undefined
   CabildeoDetail: {cabildeoUri: string}
   DelegateVote: {cabildeoUri: string}
@@ -171,7 +177,7 @@ export type BaseTabNavigatorParams = CommonNavigatorParams & {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
   }
-  PolicyDetails: {item?: any; cabildeoUri?: string}
+  PolicyDetails: {item?: Record<string, unknown>; cabildeoUri?: string}
   MemesAndDocuments: {mode?: 'Memes' | 'Documents'; view?: 'board' | 'deck'}
   DistrictProfile: {districtId: number; initialTab?: 'overview' | 'activity'}
 }
@@ -187,7 +193,7 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
   }
-  PolicyDetails: {item?: any; cabildeoUri?: string}
+  PolicyDetails: {item?: Record<string, unknown>; cabildeoUri?: string}
   Representatives: {category?: string; q?: string}
   Base: undefined
   CreatePost: undefined
@@ -198,7 +204,7 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   ProposedRAQList: undefined
   OpenQuestionsList: undefined
   AxesDiscoveryList: {initialTab?: 'official' | 'unofficial'}
-  RAQResults: {results: any[]}
+  RAQResults: {results: Record<string, unknown>[]}
   OpenQuestionThread: {id: string}
 }
 
@@ -209,7 +215,7 @@ export type AllNavigatorParams = CommonNavigatorParams & {
     filter?: 'Communities' | 'Parties' | 'Both'
     mode?: 'Policies' | 'Matters'
   }
-  PolicyDetails: {item?: any; cabildeoUri?: string}
+  PolicyDetails: {item?: Record<string, unknown>; cabildeoUri?: string}
   Representatives: {category?: string; q?: string}
   SearchTab: undefined
   Search: {q?: string; tab?: 'user' | 'profile' | 'feed'}
@@ -227,7 +233,7 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   RAQ: undefined
   OpenQuestionsList: undefined
   AxesDiscoveryList: {initialTab?: 'official' | 'unofficial'}
-  RAQResults: {results: any[]}
+  RAQResults: {results: Record<string, unknown>[]}
   OpenQuestionThread: {id: string}
   Highlights: undefined
   SeeHighlightDetails: {highlightId: string}
@@ -252,5 +258,5 @@ export type RouteParams = Record<string, string>
 export type MatchResult = {params: RouteParams}
 export type Route = {
   match: (path: string) => MatchResult | undefined
-  build: (params?: Record<string, any>) => string
+  build: (params?: Record<string, string>) => string
 }

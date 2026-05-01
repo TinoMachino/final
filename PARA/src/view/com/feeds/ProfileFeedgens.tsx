@@ -13,6 +13,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native'
+import {type AppBskyFeedDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {useNavigation} from '@react-navigation/native'
@@ -86,7 +87,13 @@ export function ProfileFeedgens({
   const isSelf = currentAccount?.did === did
 
   const items = useMemo(() => {
-    let items: any[] = []
+    let items: (
+      | AppBskyFeedDefs.GeneratorView
+      | typeof LOADING
+      | typeof EMPTY
+      | typeof ERROR_ITEM
+      | typeof LOAD_MORE_ERROR_ITEM
+    )[] = []
     if (isError && isEmpty) {
       items = items.concat([ERROR_ITEM])
     }
@@ -149,7 +156,16 @@ export function ProfileFeedgens({
   // =
 
   const renderItem = useCallback(
-    ({item, index}: ListRenderItemInfo<any>) => {
+    ({
+      item,
+      index,
+    }: ListRenderItemInfo<
+      | AppBskyFeedDefs.GeneratorView
+      | typeof LOADING
+      | typeof EMPTY
+      | typeof ERROR_ITEM
+      | typeof LOAD_MORE_ERROR_ITEM
+    >) => {
       if (item === EMPTY) {
         return (
           <EmptyState
@@ -266,6 +282,13 @@ export function ProfileFeedgens({
   )
 }
 
-function keyExtractor(item: any) {
-  return item._reactKey || item.uri
+function keyExtractor(
+  item:
+    | AppBskyFeedDefs.GeneratorView
+    | typeof LOADING
+    | typeof EMPTY
+    | typeof ERROR_ITEM
+    | typeof LOAD_MORE_ERROR_ITEM,
+) {
+  return item._reactKey || (item as AppBskyFeedDefs.GeneratorView).uri
 }

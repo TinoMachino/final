@@ -69,7 +69,11 @@ export function PolicyCategoryModal({
           {category.policies?.map(policy => (
             <View
               key={policy.id}
-              style={[styles.policyItemCard, t.atoms.border_contrast_low, t.atoms.bg]}>
+              style={[
+                styles.policyItemCard,
+                t.atoms.border_contrast_low,
+                t.atoms.bg,
+              ]}>
               <View style={styles.policyHeader}>
                 <Text style={[styles.policyTitle, t.atoms.text]}>
                   {policy.title}
@@ -99,7 +103,8 @@ export function PolicyCategoryModal({
 
               <View style={styles.alignmentRow}>
                 <View style={styles.voteInfo}>
-                  <Text style={[styles.voteLabel, t.atoms.text_contrast_medium]}>
+                  <Text
+                    style={[styles.voteLabel, t.atoms.text_contrast_medium]}>
                     You Voted
                   </Text>
                   <Text
@@ -116,31 +121,22 @@ export function PolicyCategoryModal({
                 <View style={styles.synergyBadgeRow}>
                   {policy.vote === policy.communityVote ? (
                     <View
-                      style={[
-                        styles.synergyBadge,
-                        styles.synergyConsensus,
-                      ]}>
-                      <Text style={styles.synergyBadgeText}>
-                        🤝 Consensus
-                      </Text>
+                      style={[styles.synergyBadge, styles.synergyConsensus]}>
+                      <Text style={styles.synergyBadgeText}>🤝 Consensus</Text>
                     </View>
                   ) : policy.communityVote === 'Split' ? (
-                    <View
-                      style={[
-                        styles.synergyBadge,
-                        styles.synergySplit,
-                      ]}>
+                    <View style={[styles.synergyBadge, styles.synergySplit]}>
                       <Text
-                        style={[styles.synergyBadgeText, styles.synergySplitText]}>
+                        style={[
+                          styles.synergyBadgeText,
+                          styles.synergySplitText,
+                        ]}>
                         ⚖️ Split
                       </Text>
                     </View>
                   ) : (
                     <View
-                      style={[
-                        styles.synergyBadge,
-                        styles.synergyContrarian,
-                      ]}>
+                      style={[styles.synergyBadge, styles.synergyContrarian]}>
                       <Text
                         style={[
                           styles.synergyBadgeText,

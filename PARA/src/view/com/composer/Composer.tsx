@@ -17,6 +17,8 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Pressable,
   ScrollView,
   type StyleProp,
@@ -135,7 +137,7 @@ import {VideoPreview} from '#/view/com/composer/videos/VideoPreview'
 import {VideoTranscodeProgress} from '#/view/com/composer/videos/VideoTranscodeProgress'
 import {Text} from '#/view/com/util/text/Text'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
-import {atoms as a, native, useBreakpoints,useTheme, web} from '#/alf'
+import {atoms as a, native, useBreakpoints, useTheme, web} from '#/alf'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import * as EmojiPicker from '#/components/EmojiPicker'
 import {
@@ -225,7 +227,7 @@ export const ComposePost = ({
   const {closeComposer} = useComposerControls()
   const {_} = useLingui()
   const ax = useAnalytics()
-  const t = useTheme()
+  const _t = useTheme()
   const requireAltTextEnabled = useRequireAltTextEnabled()
   const langPrefs = useLanguagePrefs()
   const setLangPrefs = useLanguagePrefsApi()
@@ -954,18 +956,18 @@ export const ComposePost = ({
             posts,
           }
         }
-      } catch (waitErr: any) {
+      } catch (waitErr: unknown) {
         logger.info(`composer: waiting for app view failed`, {
           safeMessage: waitErr,
         })
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error(e, {
         message: `Composer: create post failed`,
         hasImages: thread.posts.some(p => p.embed.media?.type === 'images'),
       })
 
-      let err = cleanError(e.message)
+      let err = cleanError(e instanceof Error ? e.message : String(e))
       if (err.includes('not locate record')) {
         err = _(
           msg`We're sorry! The post you are replying to has been deleted.`,
@@ -1682,7 +1684,11 @@ function ComposerTopBar({
             color="primary"
             shape="default"
             size="small"
-            style={[a.rounded_full, a.py_sm, {backgroundColor: t.palette.primary_500}]}
+            style={[
+              a.rounded_full,
+              a.py_sm,
+              {backgroundColor: t.palette.primary_500},
+            ]}
             hoverStyle={{backgroundColor: t.palette.primary_600}}
             onPress={onPublish}
             disabled={!canPost || isPublishQueued}>
@@ -1878,7 +1884,7 @@ function ComposerPills({
   }, [scrollRef])
 
   const onScroll = useCallback(
-    (e: any) => {
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (IS_WEB) {
         checkScroll()
         return

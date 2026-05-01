@@ -30,7 +30,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     ninthDistribution: {
       'auth-left': 22,
       'center-left': 38,
-      'center': 18,
+      center: 18,
       'lib-left': 10,
       'auth-center': 6,
       'lib-center': 4,
@@ -48,7 +48,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     ninthDistribution: {
       'auth-right': 28,
       'center-right': 34,
-      'center': 16,
+      center: 16,
       'lib-right': 12,
       'auth-center': 6,
       'lib-center': 4,
@@ -63,7 +63,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     color: '#CC0000',
     totalMembers: 1562,
     ninthDistribution: {
-      'center': 32,
+      center: 32,
       'center-right': 24,
       'auth-center': 18,
       'center-left': 14,
@@ -80,7 +80,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     color: '#FF6600',
     totalMembers: 987,
     ninthDistribution: {
-      'center': 28,
+      center: 28,
       'lib-center': 22,
       'center-right': 18,
       'center-left': 16,
@@ -101,7 +101,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
       'center-left': 30,
       'lib-left': 14,
       'auth-center': 10,
-      'center': 4,
+      center: 4,
     },
     avgInfluence: 29,
     descriptors: ['Worker-left', 'Radical', 'Union-aligned'],
@@ -114,7 +114,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     totalMembers: 521,
     ninthDistribution: {
       'center-left': 26,
-      'center': 24,
+      center: 24,
       'lib-left': 18,
       'lib-center': 16,
       'auth-left': 10,
@@ -132,7 +132,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
     ninthDistribution: {
       'center-left': 30,
       'lib-left': 24,
-      'center': 18,
+      center: 18,
       'lib-center': 14,
       'auth-left': 10,
       'lib-right': 4,
@@ -153,8 +153,7 @@ export function getPartiesInNinth(ninthId: string): PartyCompassProfile[] {
     p => (p.ninthDistribution[ninthId] || 0) > 5,
   ).sort(
     (a, b) =>
-      (b.ninthDistribution[ninthId] || 0) -
-      (a.ninthDistribution[ninthId] || 0),
+      (b.ninthDistribution[ninthId] || 0) - (a.ninthDistribution[ninthId] || 0),
   )
 }
 

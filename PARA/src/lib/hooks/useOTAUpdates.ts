@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {Alert, AppState, type AppStateStatus} from 'react-native'
 import {nativeBuildVersion} from 'expo-application'
 import {
@@ -112,8 +107,8 @@ export function useApplyPullRequestOTAUpdate() {
   const revertToEmbedded = async () => {
     try {
       await updateTestflight()
-    } catch (e: any) {
-      logger.error('Internal OTA Update Error', {error: `${e}`})
+    } catch (e: unknown) {
+      logger.error('Internal OTA Update Error', {error: `${String(e)}`})
     }
   }
 
@@ -161,9 +156,9 @@ export function useOTAUpdates() {
   const onIsTestFlight = useCallback(async () => {
     try {
       await updateTestflight()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!isNetworkError(err)) {
-        logger.error('Internal OTA Update Error', {safeMessage: err})
+        logger.error('Internal OTA Update Error', {safeMessage: String(err)})
       }
     }
   }, [])

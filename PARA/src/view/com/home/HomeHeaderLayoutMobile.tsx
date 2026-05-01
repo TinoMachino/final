@@ -1,21 +1,22 @@
-import { Platform, View } from 'react-native'
+import {Platform, View} from 'react-native'
 import Animated from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { msg } from '@lingui/core/macro'
-import { useLingui } from '@lingui/react'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {msg} from '@lingui/core/macro'
+import {useLingui} from '@lingui/react'
 
-import { HITSLOP_10 } from '#/lib/constants'
-import { useMinimalShellHeaderTransform } from '#/lib/hooks/useMinimalShellTransform'
-import { useSession } from '#/state/session'
-import { useShellLayout } from '#/state/shell/shell-layout'
-import { Logomark } from '#/view/icons/Logomark'
-import { Logotype } from '#/view/icons/Logotype'
-import { atoms as a, useTheme } from '#/alf'
-import { ButtonIcon } from '#/components/Button'
-import { Hashtag_Stroke2_Corner0_Rounded as FeedsIcon } from '#/components/icons/Hashtag'
+import {HITSLOP_10} from '#/lib/constants'
+import {useMinimalShellHeaderTransform} from '#/lib/hooks/useMinimalShellTransform'
+import {useSession} from '#/state/session'
+import {useShellLayout} from '#/state/shell/shell-layout'
+import {Logomark} from '#/view/icons/Logomark'
+import {Logotype} from '#/view/icons/Logotype'
+import {atoms as a, useTheme} from '#/alf'
+import {ButtonIcon} from '#/components/Button'
+import {Hashtag_Stroke2_Corner0_Rounded as FeedsIcon} from '#/components/icons/Hashtag'
+import {Message_Stroke2_Corner0_Rounded as MessageIcon} from '#/components/icons/Message'
 import * as Layout from '#/components/Layout'
-import { Link } from '#/components/Link'
-import { IS_IOS } from '#/env'
+import {Link} from '#/components/Link'
+import {IS_IOS} from '#/env'
 
 const HOME_HEADER_TOP_ROW_HEIGHT = 52
 
@@ -26,11 +27,11 @@ export function HomeHeaderLayoutMobile({
   tabBarAnchor: React.ReactElement | null | undefined
 }) {
   const t = useTheme()
-  const { _ } = useLingui()
-  const { headerHeight } = useShellLayout()
+  const {_} = useLingui()
+  const {headerHeight} = useShellLayout()
   const insets = useSafeAreaInsets()
   const headerMinimalShellTransform = useMinimalShellHeaderTransform()
-  const { hasSession } = useSession()
+  const {hasSession} = useSession()
   const topRowOffset = insets.top
 
   return (
@@ -90,15 +91,18 @@ export function HomeHeaderLayoutMobile({
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    ...(Platform.OS === 'web' ? {
-                      // @ts-ignore Web drop-shadow to trace SVG
-                      filter: 'drop-shadow(0px 2px 5px rgba(71, 70, 82, 0.15))',
-                    } : {
-                      shadowColor: '#474652', // Physical 3D emboss on the maze
-                      shadowOpacity: 0.15,
-                      shadowRadius: 5,
-                      shadowOffset: { width: 0, height: 2 },
-                    }),
+                    ...(Platform.OS === 'web'
+                      ? {
+                          // @ts-ignore Web drop-shadow to trace SVG
+                          filter:
+                            'drop-shadow(0px 2px 5px rgba(71, 70, 82, 0.15))',
+                        }
+                      : {
+                          shadowColor: '#474652', // Physical 3D emboss on the maze
+                          shadowOpacity: 0.15,
+                          shadowRadius: 5,
+                          shadowOffset: {width: 0, height: 2},
+                        }),
                   },
                 ]}>
                 <Logomark width={51} fill="#474652" />
@@ -123,10 +127,13 @@ export function HomeHeaderLayoutMobile({
                     a.align_center,
                     a.justify_center,
                     {
-                      top: 0, bottom: 0, left: 0, right: 0,
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
                       // Squashed vertically to forcefully widen the angle aperture at the North/South corners, minimizing its vertical footprint
-                      transform: [{ scaleX: 3.15 }, { scaleY: 0.65 }],
-                    }
+                      transform: [{scaleX: 3.15}, {scaleY: 0.65}],
+                    },
                   ]}>
                   <View
                     style={[
@@ -134,24 +141,26 @@ export function HomeHeaderLayoutMobile({
                       {
                         width: 24,
                         height: 24,
-                        opacity: 0.90, // Classic frosted glass transparency
-                        transform: [{ rotate: '45deg' }],
+                        opacity: 0.9, // Classic frosted glass transparency
+                        transform: [{rotate: '45deg'}],
                         // Zero border radius to mathematically match the sharp maze geometry
-                      }
+                      },
                     ]}
                   />
                 </View>
                 <View
                   style={{
-                    ...(Platform.OS === 'web' ? {
-                      // @ts-ignore Web drop-shadow to trace SVG
-                      filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2))',
-                    } : {
-                      shadowColor: t.palette.black || '#000',
-                      shadowOpacity: 0.2, // Boosted lift
-                      shadowRadius: 3,
-                      shadowOffset: { width: 0, height: 2 },
-                    }),
+                    ...(Platform.OS === 'web'
+                      ? {
+                          // @ts-ignore Web drop-shadow to trace SVG
+                          filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2))',
+                        }
+                      : {
+                          shadowColor: t.palette.black || '#000',
+                          shadowOpacity: 0.2, // Boosted lift
+                          shadowRadius: 3,
+                          shadowOffset: {width: 0, height: 2},
+                        }),
                   }}>
                   <Logotype width={106} fill={t.atoms.text.color} />
                 </View>
@@ -161,22 +170,39 @@ export function HomeHeaderLayoutMobile({
 
           <Layout.Header.Slot>
             {hasSession && (
-              <Link
-                testID="viewHeaderHomeFeedPrefsBtn"
-                to={{ screen: 'Feeds' }}
-                hitSlop={HITSLOP_10}
-                label={_(msg`View your feeds and explore more`)}
-                size="small"
-                variant="ghost"
-                color="secondary"
-                shape="square"
-                style={[
-                  a.justify_center,
-                  { marginRight: -Layout.BUTTON_VISUAL_ALIGNMENT_OFFSET },
-                  a.bg_transparent,
-                ]}>
-                <ButtonIcon icon={FeedsIcon} size="lg" />
-              </Link>
+              <View style={[a.flex_row, a.align_center, a.gap_sm]}>
+                <Link
+                  testID="viewHeaderHomeMessagesBtn"
+                  to={{screen: 'Messages'}}
+                  hitSlop={HITSLOP_10}
+                  label={_(msg`Messages`)}
+                  size="small"
+                  variant="ghost"
+                  color="secondary"
+                  shape="square"
+                  style={[
+                    a.justify_center,
+                    a.bg_transparent,
+                  ]}>
+                  <ButtonIcon icon={MessageIcon} size="lg" />
+                </Link>
+                <Link
+                  testID="viewHeaderHomeFeedPrefsBtn"
+                  to={{screen: 'Feeds'}}
+                  hitSlop={HITSLOP_10}
+                  label={_(msg`View your feeds and explore more`)}
+                  size="small"
+                  variant="ghost"
+                  color="secondary"
+                  shape="square"
+                  style={[
+                    a.justify_center,
+                    {marginRight: -Layout.BUTTON_VISUAL_ALIGNMENT_OFFSET},
+                    a.bg_transparent,
+                  ]}>
+                  <ButtonIcon icon={FeedsIcon} size="lg" />
+                </Link>
+              </View>
             )}
           </Layout.Header.Slot>
         </Layout.Header.Outer>

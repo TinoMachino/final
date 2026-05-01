@@ -94,21 +94,23 @@ export class ParaFeedAPI implements FeedAPI {
     }
 
     // Hydrate Images (Basic)
-    let embed: any = undefined
+    let embed: AppBskyFeedDefs.PostView['embed'] = undefined
     if (val.embed && val.embed.$type === 'app.bsky.embed.images') {
-      const images = (val.embed.images || []).map((img: any) => {
-        // Construct Link to Blob
-        // format: <service>/xrpc/com.atproto.sync.getBlob?did=<did>&cid=<cid>
-        // Use agent.service (PDS)
-        // Ensure serviceUrl does not have trailing slash?
-        const serviceUrl = this.agent.service.toString().replace(/\/$/, '')
-        const thumb = `${serviceUrl}/xrpc/com.atproto.sync.getBlob?did=${this.actor}&cid=${img.image.ref.toString()}`
-        return {
-          thumb,
-          fullsize: thumb,
-          alt: img.alt || '',
-        }
-      })
+      const images = (val.embed.images || []).map(
+        (img: Record<string, unknown>) => {
+          // Construct Link to Blob
+          // format: <service>/xrpc/com.atproto.sync.getBlob?did=<did>&cid=<cid>
+          // Use agent.service (PDS)
+          // Ensure serviceUrl does not have trailing slash?
+          const serviceUrl = this.agent.service.toString().replace(/\/$/, '')
+          const thumb = `${serviceUrl}/xrpc/com.atproto.sync.getBlob?did=${this.actor}&cid=${img.image.ref.toString()}`
+          return {
+            thumb,
+            fullsize: thumb,
+            alt: img.alt || '',
+          }
+        },
+      )
       embed = {
         $type: 'app.bsky.embed.images#view',
         images,

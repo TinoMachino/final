@@ -4,7 +4,11 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {msg, plural} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Plural, Trans} from '@lingui/react/macro'
-import {StackActions, useNavigation, useNavigationState} from '@react-navigation/native'
+import {
+  StackActions,
+  useNavigation,
+  useNavigationState,
+} from '@react-navigation/native'
 
 import {useActorStatus} from '#/lib/actor-status'
 import {FEEDBACK_FORM_URL, HELP_DESK_URL} from '#/lib/constants'
@@ -34,10 +38,7 @@ import {
   Bell_Stroke2_Corner0_Rounded as Bell,
 } from '#/components/icons/Bell'
 import {Bookmark, BookmarkFilled} from '#/components/icons/Bookmark'
-import {
-  BulletList_Filled_Corner0_Rounded as ListFilled,
-  BulletList_Stroke2_Corner0_Rounded as List,
-} from '#/components/icons/BulletList'
+import {BulletList_Stroke2_Corner0_Rounded as List} from '#/components/icons/BulletList'
 import {
   CommunityIcon_Filled as CommunityFilled,
   CommunityIcon_Stroke as Community,
@@ -54,7 +55,10 @@ import {
   Library_Filled_Corner0_Rounded as LibraryFilled,
   Library_Stroke2_Corner0_Rounded as Library,
 } from '#/components/icons/Library'
-import {MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled,MagnifyingGlass_Stroke2_Corner0_Rounded as MagnifyingGlass} from '#/components/icons/MagnifyingGlass'
+import {
+  MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as MagnifyingGlassFilled,
+  MagnifyingGlass_Stroke2_Corner0_Rounded as MagnifyingGlass,
+} from '#/components/icons/MagnifyingGlass'
 import {
   Message_Stroke2_Corner0_Rounded as Message,
   Message_Stroke2_Corner0_Rounded_Filled as MessageFilled,
@@ -380,10 +384,7 @@ let DrawerContent = ({}: React.PropsWithoutRef<{}>): React.ReactNode => {
             />
             <FeedsMenuItem isActive={isAtFeeds} onPress={onPressMyFeeds} />
             <BaseMenuItem isActive={isAtBase} onPress={onPressBase} />
-            <MyBaseMenuItem
-              isActive={isAtMyBase}
-              onPress={onPressMyBase}
-            />
+            <MyBaseMenuItem isActive={isAtMyBase} onPress={onPressMyBase} />
             <CommunitiesMenuItem
               isActive={isAtCommunities}
               onPress={onPressCommunities}

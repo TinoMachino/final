@@ -39,10 +39,9 @@ export function ServerInputDialog({
   const formRef = useRef<DialogInnerRef>(null)
 
   // persist these options between dialog open/close
-  const [fixedOption, setFixedOption] =
-    useState<SegmentedControlOptions>(
-      serviceUrl === BSKY_SERVICE ? BSKY_SERVICE : 'custom',
-    )
+  const [fixedOption, setFixedOption] = useState<SegmentedControlOptions>(
+    serviceUrl === BSKY_SERVICE ? BSKY_SERVICE : 'custom',
+  )
   const [previousCustomAddress, setPreviousCustomAddress] = useState(
     serviceUrl === BSKY_SERVICE ? '' : serviceUrl,
   )

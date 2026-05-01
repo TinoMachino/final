@@ -1,4 +1,10 @@
-import {useCallback, useMemo, useRef, useState} from 'react'
+import {
+  type ComponentType,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   Modal,
   ScrollView,
@@ -22,7 +28,7 @@ import {getCitiesWithCoordinatesForState} from '#/lib/constants/mexicoCityCoordi
 import {type CityData, MEXICO_CITY_DATA} from '#/lib/constants/mexicoCityData'
 import * as MexicoGeoJSON from '#/lib/constants/mexicoGeoJSON.json'
 import {type CommonNavigatorParams} from '#/lib/routes/types'
-import {POST_FLAIRS} from '#/lib/tags'
+import {POST_FLAIRS, type PostFlair} from '#/lib/tags'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
 import {FlairSelectionList} from '#/components/FlairSelectionList'
 import {Filter_Stroke2_Corner0_Rounded as FilterIcon} from '#/components/icons/Filter'
@@ -54,7 +60,7 @@ type Coordinate = {
 type GeoFeature = {
   geometry?: {
     type?: string
-    coordinates?: any[]
+    coordinates?: unknown[]
   }
   properties: {
     state_name?: string
@@ -63,10 +69,10 @@ type GeoFeature = {
 }
 
 type MapScreenImplProps = Props & {
-  MapViewComponent?: any
-  PolygonComponent?: any
-  MarkerComponent?: any
-  MarkerClustererComponent?: any
+  MapViewComponent?: ComponentType<any>
+  PolygonComponent?: ComponentType<any>
+  MarkerComponent?: ComponentType<any>
+  MarkerClustererComponent?: ComponentType<any>
   unavailableMessage?: string
 }
 
@@ -235,7 +241,7 @@ export function MapScreenImpl({
   const t = useTheme()
   const {gtMobile} = useBreakpoints()
   const insets = useSafeAreaInsets()
-  const mapRef = useRef<any>(null)
+  const mapRef = useRef<ComponentType<any> | null>(null)
 
   const [selectedState, setSelectedState] = useState<{name: string} | null>(
     null,
@@ -257,7 +263,7 @@ export function MapScreenImpl({
   const [mapRegion, setMapRegion] = useState<MapRegion>(INITIAL_REGION)
 
   const geoFeatures = useMemo(
-    () => ((MexicoGeoJSON as any).features || []) as GeoFeature[],
+    () => ((MexicoGeoJSON as {features: GeoFeature[]}).features || []) as GeoFeature[],
     [],
   )
 
@@ -401,7 +407,7 @@ export function MapScreenImpl({
 
     mapRef.current
       .getCamera()
-      .then((camera: any) => {
+      .then((camera: {zoom?: number; altitude?: number}) => {
         if (typeof camera?.zoom === 'number') {
           mapRef.current?.animateCamera?.({
             zoom: direction === 'in' ? camera.zoom + 1 : camera.zoom - 1,
@@ -896,11 +902,11 @@ export function MapScreenImpl({
                 selectedFlairs={
                   selectedDiscourseItem && selectedDiscourseItem !== 'Any'
                     ? Object.values(POST_FLAIRS).filter(
-                        (f: any) => f.label === selectedDiscourseItem,
+                        (f: PostFlair) => f.label === selectedDiscourseItem,
                       )
                     : []
                 }
-                setSelectedFlairs={(flairs: any[]) => {
+                setSelectedFlairs={(flairs: PostFlair[]) => {
                   if (flairs.length > 0) {
                     const flair = flairs[0]
                     setDiscourseType(

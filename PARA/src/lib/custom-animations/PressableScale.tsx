@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import {IS_NATIVE,IS_WEB_TOUCH_DEVICE} from '#/env'
+import {IS_NATIVE, IS_WEB_TOUCH_DEVICE} from '#/env'
 
 const DEFAULT_TARGET_SCALE = IS_NATIVE || IS_WEB_TOUCH_DEVICE ? 0.98 : 1
 

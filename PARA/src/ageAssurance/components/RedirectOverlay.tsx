@@ -25,8 +25,8 @@ import {CheckThick_Stroke2_Corner0_Rounded as SuccessIcon} from '#/components/ic
 import {CircleInfo_Stroke2_Corner0_Rounded as ErrorIcon} from '#/components/icons/CircleInfo'
 import {Loader} from '#/components/Loader'
 import {Text} from '#/components/Typography'
-import {logger,refetchAgeAssuranceServerState} from '#/ageAssurance'
-import {IS_IOS,IS_WEB} from '#/env'
+import {logger, refetchAgeAssuranceServerState} from '#/ageAssurance'
+import {IS_IOS, IS_WEB} from '#/env'
 
 export type RedirectOverlayState = {
   result: 'success' | 'unknown'

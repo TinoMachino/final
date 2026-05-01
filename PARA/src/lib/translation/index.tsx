@@ -1,9 +1,4 @@
-import {
-  type PropsWithChildren,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
+import {type PropsWithChildren, useCallback, useEffect, useState} from 'react'
 import {LayoutAnimation, Platform} from 'react-native'
 import {getLocales} from 'expo-localization'
 import {onTranslateTask} from '@bsky.app/expo-translate-text'

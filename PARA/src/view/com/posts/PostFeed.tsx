@@ -18,10 +18,7 @@ import {
 import {useLingui} from '@lingui/react/macro'
 import {useQueryClient} from '@tanstack/react-query'
 
-import {
-  isDefaultDiscoverFeedUri,
-  KNOWN_SHUTDOWN_FEEDS,
-} from '#/lib/constants'
+import {isDefaultDiscoverFeedUri, KNOWN_SHUTDOWN_FEEDS} from '#/lib/constants'
 import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
 import {useNonReactiveCallback} from '#/lib/hooks/useNonReactiveCallback'
 import {isNetworkError} from '#/lib/strings/errors'
@@ -229,7 +226,7 @@ let PostFeed = ({
   progressViewOffset?: number
   desktopFixedHeightOffset?: number
   ListHeaderComponent?: () => React.ReactElement
-  extraData?: any
+  extraData?: unknown
   savedFeedConfig?: AppBskyActorDefs.SavedFeed
   initialNumToRender?: number
   isVideoFeed?: boolean

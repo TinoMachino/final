@@ -14,10 +14,7 @@ import {useLingui} from '@lingui/react'
 import {type NavigationProp, useNavigation} from '@react-navigation/native'
 import {useQueryClient} from '@tanstack/react-query'
 
-import {
-  isDefaultDiscoverFeedUri,
-  VIDEO_FEED_URIS,
-} from '#/lib/constants'
+import {isDefaultDiscoverFeedUri, VIDEO_FEED_URIS} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {ComposeIcon2} from '#/lib/icons'
 import {getRootNavigation, getTabState, TabState} from '#/lib/routes/helpers'

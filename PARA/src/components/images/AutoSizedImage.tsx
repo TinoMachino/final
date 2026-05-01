@@ -74,7 +74,7 @@ export function AutoSizedImage({
   crop?: 'none' | 'square' | 'constrained'
   hideBadge?: boolean
   onPress?: (
-    containerRef: AnimatedRef<any>,
+    containerRef: AnimatedRef<View>,
     fetchedDims: Dimensions | null,
   ) => void
   onLongPress?: () => void

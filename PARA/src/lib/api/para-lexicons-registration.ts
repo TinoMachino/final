@@ -27,10 +27,10 @@ const listCabildeos = {
             type: 'string' as const,
             maxLength: 100,
           },
-            phase: {
-              type: 'string',
-              enum: ['draft', 'open', 'deliberating', 'voting', 'resolved'],
-            },
+          phase: {
+            type: 'string',
+            enum: ['draft', 'open', 'deliberating', 'voting', 'resolved'],
+          },
           limit: {
             type: 'integer' as const,
             minimum: 1,
@@ -49,7 +49,10 @@ const listCabildeos = {
             cursor: {type: 'string' as const},
             cabildeos: {
               type: 'array' as const,
-              items: {type: 'ref' as const, ref: 'lex:com.para.civic.defs#cabildeoView'},
+              items: {
+                type: 'ref' as const,
+                ref: 'lex:com.para.civic.defs#cabildeoView',
+              },
             },
           },
         },
@@ -76,7 +79,10 @@ const getCabildeo = {
         schema: {
           type: 'object' as const,
           properties: {
-            cabildeo: {type: 'ref' as const, ref: 'lex:com.para.civic.defs#cabildeoView'},
+            cabildeo: {
+              type: 'ref' as const,
+              ref: 'lex:com.para.civic.defs#cabildeoView',
+            },
           },
         },
       },
@@ -117,7 +123,10 @@ const listCabildeoPositions = {
             cursor: {type: 'string' as const},
             positions: {
               type: 'array' as const,
-              items: {type: 'ref' as const, ref: 'lex:com.para.civic.defs#positionView'},
+              items: {
+                type: 'ref' as const,
+                ref: 'lex:com.para.civic.defs#positionView',
+              },
             },
           },
         },
@@ -154,7 +163,10 @@ const listDelegationCandidates = {
           required: ['candidates'],
           properties: {
             cursor: {type: 'string' as const},
-            candidates: {type: 'array' as const, items: {type: 'unknown' as const}},
+            candidates: {
+              type: 'array' as const,
+              items: {type: 'unknown' as const},
+            },
           },
         },
       },
@@ -257,7 +269,10 @@ const getPolicyTally = {
         schema: {
           type: 'object' as const,
           properties: {
-            tally: {type: 'ref' as const, ref: 'lex:com.para.civic.defs#policyTally'},
+            tally: {
+              type: 'ref' as const,
+              ref: 'lex:com.para.civic.defs#policyTally',
+            },
           },
         },
       },
@@ -276,7 +291,12 @@ const listBoards = {
       parameters: {
         type: 'params' as const,
         properties: {
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 12},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 12,
+          },
           query: {type: 'string' as const},
           state: {type: 'string' as const},
           quadrant: {type: 'string' as const},
@@ -310,7 +330,12 @@ const listMembers = {
         type: 'params' as const,
         properties: {
           communityId: {type: 'string' as const},
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 50},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 50,
+          },
           membershipState: {type: 'string' as const},
           role: {type: 'string' as const},
           sort: {type: 'string' as const},
@@ -323,7 +348,10 @@ const listMembers = {
           type: 'object' as const,
           properties: {
             cursor: {type: 'string' as const},
-            members: {type: 'array' as const, items: {type: 'unknown' as const}},
+            members: {
+              type: 'array' as const,
+              items: {type: 'unknown' as const},
+            },
           },
         },
       },
@@ -373,9 +401,18 @@ const createBoard = {
             description: {type: 'string' as const},
             quadrant: {type: 'string' as const},
             participationKind: {type: 'string' as const},
-            officialRepresentatives: {type: 'array' as const, items: {type: 'unknown' as const}},
-            matterFlairIds: {type: 'array' as const, items: {type: 'string' as const}},
-            policyFlairIds: {type: 'array' as const, items: {type: 'string' as const}},
+            officialRepresentatives: {
+              type: 'array' as const,
+              items: {type: 'unknown' as const},
+            },
+            matterFlairIds: {
+              type: 'array' as const,
+              items: {type: 'string' as const},
+            },
+            policyFlairIds: {
+              type: 'array' as const,
+              items: {type: 'string' as const},
+            },
           },
         },
       },
@@ -419,7 +456,10 @@ const joinCommunity = {
             cid: {type: 'string' as const, format: 'cid'},
             communityUri: {type: 'string' as const, format: 'at-uri'},
             membershipState: {type: 'string' as const},
-            viewerCapabilities: {type: 'array' as const, items: {type: 'string' as const}},
+            viewerCapabilities: {
+              type: 'array' as const,
+              items: {type: 'string' as const},
+            },
           },
         },
       },
@@ -494,7 +534,12 @@ const listPosts = {
         type: 'params' as const,
         properties: {
           communityId: {type: 'string' as const},
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 30},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 30,
+          },
           cursor: {type: 'string' as const},
         },
       },
@@ -636,7 +681,12 @@ const getAuthorFeed = {
         type: 'params' as const,
         properties: {
           actor: {type: 'string' as const, format: 'did'},
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 30},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 30,
+          },
           cursor: {type: 'string' as const},
         },
       },
@@ -690,7 +740,10 @@ const getPosts = {
       parameters: {
         type: 'params' as const,
         properties: {
-          uris: {type: 'array' as const, items: {type: 'string' as const, format: 'at-uri'}},
+          uris: {
+            type: 'array' as const,
+            items: {type: 'string' as const, format: 'at-uri'},
+          },
         },
       },
       output: {
@@ -716,7 +769,12 @@ const getTimeline = {
         type: 'params' as const,
         properties: {
           algorithm: {type: 'string' as const},
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 30},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 30,
+          },
           cursor: {type: 'string' as const},
         },
       },
@@ -882,7 +940,12 @@ const listHighlights = {
         type: 'params' as const,
         properties: {
           subjectUri: {type: 'string' as const, format: 'at-uri'},
-          limit: {type: 'integer' as const, minimum: 1, maximum: 100, default: 30},
+          limit: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 100,
+            default: 30,
+          },
           cursor: {type: 'string' as const},
         },
       },
@@ -892,7 +955,10 @@ const listHighlights = {
           type: 'object' as const,
           properties: {
             cursor: {type: 'string' as const},
-            highlights: {type: 'array' as const, items: {type: 'unknown' as const}},
+            highlights: {
+              type: 'array' as const,
+              items: {type: 'unknown' as const},
+            },
           },
         },
       },
@@ -951,10 +1017,14 @@ export function registerParaLexicons(agent: BskyAgent) {
     try {
       // @ts-ignore — lex is plain JSON, Lexicons.add expects LexiconDoc
       agent.lex.add(lex)
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e)
       // Already registered or schema mismatch — ignore
-      if (!e?.message?.includes('already registered')) {
-        console.warn(`[para-lexicons] Failed to register ${lex.id}:`, e?.message)
+      if (!errorMessage?.includes('already registered')) {
+        console.warn(
+          `[para-lexicons] Failed to register ${lex.id}:`,
+          errorMessage,
+        )
       }
     }
   }

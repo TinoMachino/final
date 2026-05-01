@@ -65,14 +65,20 @@ export function CaptchaWebView({
           <Text style={{fontWeight: 'bold', marginBottom: 8}}>
             [DEV ONLY] Captcha blocked by iframe?
           </Text>
-          <Button title="Open Captcha in New Tab" onPress={() => window.open(url, '_blank')} />
+          <Button
+            title="Open Captcha in New Tab"
+            onPress={() => window.open(url, '_blank')}
+          />
           <TextInput
             placeholder="Paste code here from redirect URL..."
             value={devCode}
             onChangeText={setDevCode}
             style={styles.devInput}
           />
-          <Button title="Submit Dev Code" onPress={() => onSuccess(devCode || 'test-captcha')} />
+          <Button
+            title="Submit Dev Code"
+            onPress={() => onSuccess(devCode || 'test-captcha')}
+          />
         </View>
       )}
       <iframe

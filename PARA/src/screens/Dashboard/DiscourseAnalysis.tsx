@@ -298,7 +298,8 @@ export function DiscourseAnalysisScreen() {
   const dynamicData = useMemo(() => {
     const isMorena = activeFilters.includes('Morena')
     const isOpposition = activeFilters.includes('Frente Amplio')
-    const tfMultiplier = timeframe === '24h' ? 0.8 : timeframe === '7d' ? 1 : 1.2
+    const tfMultiplier =
+      timeframe === '24h' ? 0.8 : timeframe === '7d' ? 1 : 1.2
 
     const indicators = DISCOURSE_INDICATORS.map((ind, i) => {
       const labelsEs = [

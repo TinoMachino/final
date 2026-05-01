@@ -1,4 +1,7 @@
-import {isLikelyLocalServiceUrl, normalizeLocalServiceUrl} from '#/lib/constants'
+import {
+  isLikelyLocalServiceUrl,
+  normalizeLocalServiceUrl,
+} from '#/lib/constants'
 import {type PersistedAccount} from '#/state/persisted'
 
 type AccountLike = Pick<
@@ -14,7 +17,9 @@ function normalizeServiceForComparison(service: string) {
   return normalized.replace(/\/+$/, '').toLowerCase()
 }
 
-function getAccountIdentityKey(account: Pick<AccountLike, 'service' | 'handle'>) {
+function getAccountIdentityKey(
+  account: Pick<AccountLike, 'service' | 'handle'>,
+) {
   return `${normalizeServiceForComparison(account.service)}::${account.handle.toLowerCase()}`
 }
 
@@ -50,7 +55,9 @@ export function dedupeAccounts<T extends AccountLike>(
     }
 
     const existing = deduped[existingIndex]
-    if (getPriority(account, preferredDid) > getPriority(existing, preferredDid)) {
+    if (
+      getPriority(account, preferredDid) > getPriority(existing, preferredDid)
+    ) {
       deduped[existingIndex] = account
     }
   }

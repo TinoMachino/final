@@ -25,6 +25,7 @@ import {useHighlightVoteMutation} from '#/state/mutations/highlights'
 import {useHighlightQuery} from '#/state/queries/highlights'
 import {
   PostThreadContextProvider,
+  type PostThreadContextType,
   type ThreadItem,
   usePostThread,
 } from '#/state/queries/usePostThread'
@@ -214,7 +215,7 @@ export function SeeHighlightDetailsScreen({route}: Props) {
           authorName: post.author.displayName || post.author.handle,
           avatarUrl: post.author.avatar || 'https://i.pravatar.cc/150',
           postPreview: text,
-          color: color as any,
+          color: color as HighlightColor,
           community,
           state: state || 'Unknown',
           createdAt: new Date(post.indexedAt).getTime(),
@@ -313,7 +314,9 @@ export function SeeHighlightDetailsScreen({route}: Props) {
       if (!highlight || !sourceUri) return
       const start = typeof highlight.start === 'number' ? highlight.start : 0
       const end =
-        typeof highlight.end === 'number' ? highlight.end : highlight.text.length
+        typeof highlight.end === 'number'
+          ? highlight.end
+          : highlight.text.length
       void addHighlight(
         start,
         end,
@@ -674,7 +677,8 @@ export function SeeHighlightDetailsScreen({route}: Props) {
       </Layout.Header.Outer>
 
       <Layout.Content>
-        <PostThreadContextProvider context={threadContext as any}>
+        <PostThreadContextProvider
+          context={threadContext as PostThreadContextType}>
           <FeedFeedbackProvider value={feedFeedback}>
             <List
               data={slices}

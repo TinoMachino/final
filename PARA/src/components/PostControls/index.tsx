@@ -148,8 +148,8 @@ let PostControls = ({
           await queueUnlike()
         }
       }
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
+    } catch (e: unknown) {
+      if ((e as {name?: string})?.name !== 'AbortError') {
         throw e
       }
     }
@@ -178,8 +178,8 @@ let PostControls = ({
       if (post.viewer?.like) {
         try {
           await queueUnlike()
-        } catch (e: any) {
-          if (e?.name !== 'AbortError') {
+        } catch (e: unknown) {
+          if ((e as {name?: string})?.name !== 'AbortError') {
             throw e
           }
         }

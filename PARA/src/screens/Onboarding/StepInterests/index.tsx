@@ -45,9 +45,9 @@ export function StepInterests() {
         selectedInterests,
         selectedInterestsLength: selectedInterests.length,
       })
-    } catch (e: any) {
-      logger.info(`onboading: error saving interests`)
-      logger.error(e)
+    } catch (e: unknown) {
+      logger.info(`onboarding: error saving interests`)
+      logger.error(String(e))
     }
   }, [selectedInterests, setSaving, dispatch])
 

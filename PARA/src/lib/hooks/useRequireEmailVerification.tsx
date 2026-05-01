@@ -18,7 +18,7 @@ export function useRequireEmailVerification() {
   const closeAll = useCloseAllActiveElements()
 
   return useCallback(
-    <T extends (...args: any[]) => any>(
+    <T extends (...args: unknown[]) => unknown>(
       cb: T,
       config: Omit<
         Extract<Screen, {id: EmailDialogScreenID.Verify}>,

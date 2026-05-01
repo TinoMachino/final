@@ -36,26 +36,25 @@ export type ViewSelectorHandle = {
   scrollToTop: () => void
 }
 
-export const ViewSelector = forwardRef<
-  ViewSelectorHandle,
-  {
-    sections: string[]
-    items: any[]
-    refreshing?: boolean
-    swipeEnabled?: boolean
-    renderHeader?: () => JSX.Element
-    renderItem: (item: any) => JSX.Element
-    ListFooterComponent?:
-      | ComponentType<any>
-      | ReactElement<any>
-      | null
-      | undefined
-    onSelectView?: (viewIndex: number) => void
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
-    onRefresh?: () => void
-    onEndReached?: (info: {distanceFromEnd: number}) => void
-  }
->(function ViewSelectorImpl(
+export type ViewSelectorProps<T> = {
+  sections: string[]
+  items: T[]
+  refreshing?: boolean
+  swipeEnabled?: boolean
+  renderHeader?: () => JSX.Element
+  renderItem: (item: T) => JSX.Element
+  ListFooterComponent?:
+    | ComponentType<unknown>
+    | ReactElement<unknown>
+    | null
+    | undefined
+  onSelectView?: (viewIndex: number) => void
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void
+  onRefresh?: () => void
+  onEndReached?: (info: {distanceFromEnd: number}) => void
+}
+
+export const ViewSelector = forwardRef(function ViewSelectorImpl<T>(
   {
     sections,
     items,
@@ -67,8 +66,8 @@ export const ViewSelector = forwardRef<
     onScroll,
     onRefresh,
     onEndReached,
-  },
-  ref,
+  }: ViewSelectorProps<T>,
+  ref: React.Ref<ViewSelectorHandle>,
 ) {
   const pal = usePalette('default')
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
@@ -77,7 +76,11 @@ export const ViewSelector = forwardRef<
   // events
   // =
 
-  const keyExtractor = useCallback((item: any) => item._reactKey, [])
+  const keyExtractor = useCallback(
+    (item: T | typeof HEADER_ITEM | typeof SELECTOR_ITEM) =>
+      (item as {_reactKey?: string})._reactKey || '',
+    [],
+  )
 
   const onPressSelection = useCallback(
     (index: number) => setSelectedIndex(clamp(index, 0, sections.length)),
@@ -97,7 +100,7 @@ export const ViewSelector = forwardRef<
   // =
 
   const renderItemInternal = useCallback(
-    ({item}: {item: any}) => {
+    ({item}: {item: T | typeof HEADER_ITEM | typeof SELECTOR_ITEM}) => {
       if (item === HEADER_ITEM) {
         if (renderHeader) {
           return renderHeader()
@@ -112,7 +115,7 @@ export const ViewSelector = forwardRef<
           />
         )
       } else {
-        return renderItem(item)
+        return renderItem(item as T)
       }
     },
     [sections, selectedIndex, onPressSelection, renderHeader, renderItem],
@@ -144,7 +147,9 @@ export const ViewSelector = forwardRef<
       scrollIndicatorInsets={{right: 1}} // fixes a bug where the scroll indicator is on the middle of the screen https://github.com/pararepo/PARA/pull/464
     />
   )
-})
+}) as <T>(
+  props: ViewSelectorProps<T> & {ref?: React.Ref<ViewSelectorHandle>},
+) => ReactElement
 
 export function Selector({
   selectedIndex,

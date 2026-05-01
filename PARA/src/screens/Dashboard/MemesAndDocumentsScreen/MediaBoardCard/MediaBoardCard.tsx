@@ -76,7 +76,9 @@ export function MediaBoardCard({
           />
 
           <ActionButton
-            icon={<CommentIcon size="sm" style={t.atoms.text_contrast_medium} />}
+            icon={
+              <CommentIcon size="sm" style={t.atoms.text_contrast_medium} />
+            }
             label={String(item.comments)}
             onPress={() => {}}
           />

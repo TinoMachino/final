@@ -3,8 +3,9 @@ import {
   Pressable,
   type PressableProps,
   type StyleProp,
-type View,
-  type ViewStyle} from 'react-native'
+  type View,
+  type ViewStyle,
+} from 'react-native'
 
 import {addStyle} from '#/lib/styles'
 import {useInteractionState} from '#/components/hooks/useInteractionState'

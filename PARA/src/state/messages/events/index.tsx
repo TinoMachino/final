@@ -1,10 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react'
+import {createContext, useContext, useEffect, useState} from 'react'
 import {AppState} from 'react-native'
 
 import {MessagesEventBus} from '#/state/messages/events/agent'
@@ -23,7 +17,11 @@ export function useMessagesEventBus() {
   return ctx
 }
 
-export function MessagesEventBusProvider({children}: {children: ReactNode}) {
+export function MessagesEventBusProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const {currentAccount} = useSession()
 
   if (!currentAccount) {
@@ -42,7 +40,7 @@ export function MessagesEventBusProvider({children}: {children: ReactNode}) {
 export function MessagesEventBusProviderInner({
   children,
 }: {
-  children: ReactNode
+  children: React.ReactNode
 }) {
   const agent = useAgent()
   const [bus] = useState(

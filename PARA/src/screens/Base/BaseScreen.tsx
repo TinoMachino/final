@@ -439,9 +439,7 @@ export function BaseScreen() {
                   {/* Simple cards — DataCard component */}
                   <DataCard
                     title="Representatives"
-                    onPress={() =>
-                      navigation.navigate('Representatives', {})
-                    }
+                    onPress={() => navigation.navigate('Representatives', {})}
                     icon={
                       <PersonIcon
                         width={48}
@@ -560,9 +558,7 @@ export function BaseScreen() {
                   />
                   <DataCard
                     title="Discourse Analysis"
-                    onPress={() =>
-                      navigation.navigate('DiscourseAnalysis')
-                    }
+                    onPress={() => navigation.navigate('DiscourseAnalysis')}
                     icon={
                       <MessageIcon
                         width={48}

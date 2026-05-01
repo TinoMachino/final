@@ -94,7 +94,9 @@ import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 export function PolicyDetailsScreen({route, navigation}: Props) {
   const t = useTheme()
   const insets = useSafeAreaInsets()
-  const cabildeoUri = route.params?.cabildeoUri ? fromCabildeoRouteParam(route.params.cabildeoUri) : undefined
+  const cabildeoUri = route.params?.cabildeoUri
+    ? fromCabildeoRouteParam(route.params.cabildeoUri)
+    : undefined
   const legacyItem = route.params?.item as PolicyItem | undefined
   const {currentAccount} = useSession()
 
@@ -198,7 +200,9 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
           <Layout.Header.TitleText>
             <Trans>Details</Trans>
           </Layout.Header.TitleText>
-          <Layout.Header.SubtitleText>{model.eyebrow}</Layout.Header.SubtitleText>
+          <Layout.Header.SubtitleText>
+            {model.eyebrow}
+          </Layout.Header.SubtitleText>
         </Layout.Header.Content>
       </Layout.Header.Outer>
 
@@ -221,7 +225,8 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   styles.heroBadge,
                   {backgroundColor: model.categoryBackground},
                 ]}>
-                <Text style={[styles.heroBadgeText, {color: model.categoryColor}]}>
+                <Text
+                  style={[styles.heroBadgeText, {color: model.categoryColor}]}>
                   {model.categoryLabel}
                 </Text>
               </View>
@@ -282,7 +287,11 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   t.atoms.bg_contrast_25,
                   t.atoms.border_contrast_low,
                 ]}>
-                <Text style={[styles.metricCardLabel, t.atoms.text_contrast_medium]}>
+                <Text
+                  style={[
+                    styles.metricCardLabel,
+                    t.atoms.text_contrast_medium,
+                  ]}>
                   {metric.label}
                 </Text>
                 <Text style={[styles.metricCardValue, t.atoms.text]}>
@@ -330,10 +339,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                   No option analytics yet
                 </Text>
                 <Text
-                  style={[
-                    styles.emptyStateText,
-                    t.atoms.text_contrast_medium,
-                  ]}>
+                  style={[styles.emptyStateText, t.atoms.text_contrast_medium]}>
                   Once the backend publishes option-level vote totals, the
                   breakdown will appear here automatically.
                 </Text>
@@ -436,10 +442,7 @@ export function PolicyDetailsScreen({route, navigation}: Props) {
                     : 'No positions yet'}
                 </Text>
                 <Text
-                  style={[
-                    styles.emptyStateText,
-                    t.atoms.text_contrast_medium,
-                  ]}>
+                  style={[styles.emptyStateText, t.atoms.text_contrast_medium]}>
                   {cabildeoUri && isPositionsError
                     ? 'We could not load the latest written positions for this debate.'
                     : 'As people publish positions, the latest ones will appear here.'}
@@ -666,19 +669,19 @@ function buildLiveDetailModel({
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, 4)
       .map((position, index) => {
-      const meta = STANCE_META[position.stance]
-      return {
-        id: `${position.createdAt}:${index}`,
-        stanceLabel: meta.label,
-        stanceColor: meta.color,
-        stanceBackground: meta.background,
-        text: position.text,
-        optionLabel:
-          typeof position.optionIndex === 'number'
-            ? cabildeo.options[position.optionIndex]?.label
-            : undefined,
-      }
-    }),
+        const meta = STANCE_META[position.stance]
+        return {
+          id: `${position.createdAt}:${index}`,
+          stanceLabel: meta.label,
+          stanceColor: meta.color,
+          stanceBackground: meta.background,
+          text: position.text,
+          optionLabel:
+            typeof position.optionIndex === 'number'
+              ? cabildeo.options[position.optionIndex]?.label
+              : undefined,
+        }
+      }),
     cabildeoUri: cabildeo.uri,
     governanceCommunity: cabildeo.community,
   }

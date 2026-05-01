@@ -342,7 +342,7 @@ export function MessagesScreenInner({navigation, route}: Props) {
     <Layout.Screen testID="messagesScreen">
       <Header newChatControl={newChatControl} />
       <NewChat onNewChat={onNewChat} control={newChatControl} />
-      <List
+      <List<ListItem>
         ref={scrollElRef}
         data={conversations}
         renderItem={renderItem}

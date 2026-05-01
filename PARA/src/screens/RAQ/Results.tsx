@@ -7,6 +7,7 @@ import {Trans} from '@lingui/react/macro'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
+import type {AxisResult} from './logic/scoring'
 import {
   calculateCompassXY,
   calculateIdeology,
@@ -20,7 +21,11 @@ const CHART_SIZE = Math.min(width - 40, 350)
 const CENTER = CHART_SIZE / 2
 const RADIUS = CENTER - 40
 
-export default function RAQResultsScreen({route}: {route: any}) {
+export default function RAQResultsScreen({
+  route,
+}: {
+  route: {params?: {results?: AxisResult[]}}
+}) {
   const t = useTheme()
 
   // Fix: Memoize results to prevent dependency issues
@@ -30,7 +35,10 @@ export default function RAQResultsScreen({route}: {route: any}) {
   )
 
   // Extract scores for the vector [0-100]
-  const userVector = useMemo(() => results.map((r: any) => r.score), [results])
+  const userVector = useMemo(
+    () => results.map((r: AxisResult) => r.score),
+    [results],
+  )
   const {primary, secondary} = useMemo(
     () => calculateIdeology(userVector),
     [userVector],
@@ -47,7 +55,7 @@ export default function RAQResultsScreen({route}: {route: any}) {
   const points = useMemo(() => {
     const angleStep = (Math.PI * 2) / 12
     return results
-      .map((res: any, i: number) => {
+      .map((res: AxisResult, i: number) => {
         const angle = i * angleStep - Math.PI / 2
         const r = (res.score / 100) * RADIUS
         // Fix: Rename variables to avoid shadowing
@@ -91,7 +99,8 @@ export default function RAQResultsScreen({route}: {route: any}) {
               styles.ninthBadge,
               {
                 backgroundColor:
-                  (NINTHS_COLORS as any)[ninthMatch] || t.palette.primary_500,
+                  (NINTHS_COLORS as Record<string, string>)[ninthMatch] ||
+                  t.palette.primary_500,
               },
             ]}>
             <Text style={styles.ninthBadgeText}>{ninthMatch}</Text>
@@ -254,7 +263,7 @@ export default function RAQResultsScreen({route}: {route: any}) {
               />
 
               {/* Labels */}
-              {results.map((res: any, i: number) => {
+              {results.map((res: AxisResult, i: number) => {
                 const angle = i * ((Math.PI * 2) / 12) - Math.PI / 2
                 // Fix: Rename variables to avoid shadowing
                 const labelX = CENTER + (RADIUS + 20) * Math.cos(angle)
@@ -282,7 +291,7 @@ export default function RAQResultsScreen({route}: {route: any}) {
             Detailed Axis Breakdown
           </Text>
           {/* Fix: Prefix unused variable with underscore */}
-          {results.map((res: any, _i: number) => (
+          {results.map((res: AxisResult, _i: number) => (
             <View
               key={res.axisId}
               style={[styles.axisRow, t.atoms.border_contrast_low]}>

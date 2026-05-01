@@ -71,13 +71,7 @@ function MetaPill({label, icon}: {label: string; icon?: ReactNode}) {
   )
 }
 
-export function MediaVisualMeta({
-  item,
-  mode,
-}: {
-  item: MediaItem
-  mode: Mode
-}) {
+export function MediaVisualMeta({item, mode}: {item: MediaItem; mode: Mode}) {
   const t = useTheme()
 
   if (mode === 'Documents') {

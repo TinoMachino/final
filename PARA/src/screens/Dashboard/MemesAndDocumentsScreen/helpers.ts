@@ -11,7 +11,10 @@ export const DECK_VELOCITY_SCALE = 0.18
 export const DECK_CURRENT_X_DRIFT = 24
 export const DECK_STACK_X_DRIFT = 18
 
-export function matchesSearch(values: Array<string | undefined>, query: string) {
+export function matchesSearch(
+  values: Array<string | undefined>,
+  query: string,
+) {
   const normalized = query.trim().toLowerCase()
   if (!normalized) return true
   return values.some(value => value?.toLowerCase().includes(normalized))

@@ -67,8 +67,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
     [candidates, selectedRep],
   )
   const hasDelegated =
-    Boolean(cabildeo?.userContext?.hasDelegatedTo) ||
-    delegateMutation.isSuccess
+    Boolean(cabildeo?.userContext?.hasDelegatedTo) || delegateMutation.isSuccess
 
   if (!cabildeo && (isLoading || !isFetched || isError)) {
     return (
@@ -301,143 +300,146 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                   emptyMessage="Esta comunidad todavía no tiene representantes o miembros con roles delegables."
                 />
               ) : (
-              <View style={styles.repList}>
-                {candidates.map(rep => {
-                  const isSelected = selectedRep === rep.did
-                  const power = calcQuadraticPower(rep.activeDelegationCount)
-                  const newPower = calcQuadraticPower(
-                    rep.activeDelegationCount + 1,
-                  )
-                  const displayName = rep.displayName || rep.handle || rep.did
+                <View style={styles.repList}>
+                  {candidates.map(rep => {
+                    const isSelected = selectedRep === rep.did
+                    const power = calcQuadraticPower(rep.activeDelegationCount)
+                    const newPower = calcQuadraticPower(
+                      rep.activeDelegationCount + 1,
+                    )
+                    const displayName = rep.displayName || rep.handle || rep.did
 
-                  return (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={rep.did}
-                      onPress={() => setSelectedRep(rep.did)}
-                      activeOpacity={0.8}
-                      style={[
-                        styles.repCard,
-                        t.atoms.bg_contrast_25,
-                        isSelected && {
-                          borderColor: t.palette.primary_500,
-                          borderWidth: 2,
-                        },
-                      ]}>
-                      {/* Avatar placeholder */}
-                      <View
+                    return (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        key={rep.did}
+                        onPress={() => setSelectedRep(rep.did)}
+                        activeOpacity={0.8}
                         style={[
-                          styles.repAvatar,
-                          {backgroundColor: t.palette.primary_500 + '20'},
-                        ]}>
-                        <Text style={{fontSize: 20}}>
-                          {displayName.charAt(0)}
-                        </Text>
-                      </View>
-
-                      <View style={styles.repInfo}>
-                        <Text style={[styles.repName, t.atoms.text]}>
-                          {displayName}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.repHandle,
-                            t.atoms.text_contrast_medium,
-                          ]}>
-                          {rep.handle ? `@${rep.handle}` : rep.did}
-                        </Text>
-                        <Text
-                          style={[styles.repBio, t.atoms.text_contrast_medium]}>
-                          {rep.description ||
-                            rep.roles?.join(' · ') ||
-                            'Representante comunitario'}
-                        </Text>
-                      </View>
-
-                      <View style={styles.repStats}>
-                        {/* Current delegations */}
-                        <View style={styles.repStatItem}>
-                          <Text style={[styles.repStatValue, t.atoms.text]}>
-                            {rep.activeDelegationCount}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.repStatLabel,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            delegaciones
-                          </Text>
-                        </View>
-
-                        {/* Power */}
-                        <View style={styles.repStatItem}>
-                          <Text
-                            style={[styles.repStatValue, {color: '#FF9500'}]}>
-                            √{power.toFixed(1)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.repStatLabel,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            poder actual
-                          </Text>
-                        </View>
-
-                        {/* Power if you delegate */}
-                        <View style={styles.repStatItem}>
-                          <Text
-                            style={[styles.repStatValue, {color: '#34C759'}]}>
-                            →√{newPower.toFixed(1)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.repStatLabel,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            con tu voto
-                          </Text>
-                        </View>
-
-                        {/* Compass */}
-                        <View
-                          style={[
-                            styles.compassBadge,
-                            {backgroundColor: t.palette.contrast_50},
-                          ]}>
-                          <Text
-                            style={[
-                              styles.compassBadgeText,
-                              t.atoms.text_contrast_medium,
-                            ]}>
-                            {rep.hasVoted ? 'Ya votó' : 'Sin voto registrado'}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Selection radio */}
-                      <View
-                        style={[
-                          styles.radioOuter,
-                          {
-                            borderColor: isSelected
-                              ? t.palette.primary_500
-                              : t.palette.contrast_200,
+                          styles.repCard,
+                          t.atoms.bg_contrast_25,
+                          isSelected && {
+                            borderColor: t.palette.primary_500,
+                            borderWidth: 2,
                           },
                         ]}>
-                        {isSelected && (
+                        {/* Avatar placeholder */}
+                        <View
+                          style={[
+                            styles.repAvatar,
+                            {backgroundColor: t.palette.primary_500 + '20'},
+                          ]}>
+                          <Text style={{fontSize: 20}}>
+                            {displayName.charAt(0)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.repInfo}>
+                          <Text style={[styles.repName, t.atoms.text]}>
+                            {displayName}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.repHandle,
+                              t.atoms.text_contrast_medium,
+                            ]}>
+                            {rep.handle ? `@${rep.handle}` : rep.did}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.repBio,
+                              t.atoms.text_contrast_medium,
+                            ]}>
+                            {rep.description ||
+                              rep.roles?.join(' · ') ||
+                              'Representante comunitario'}
+                          </Text>
+                        </View>
+
+                        <View style={styles.repStats}>
+                          {/* Current delegations */}
+                          <View style={styles.repStatItem}>
+                            <Text style={[styles.repStatValue, t.atoms.text]}>
+                              {rep.activeDelegationCount}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.repStatLabel,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              delegaciones
+                            </Text>
+                          </View>
+
+                          {/* Power */}
+                          <View style={styles.repStatItem}>
+                            <Text
+                              style={[styles.repStatValue, {color: '#FF9500'}]}>
+                              √{power.toFixed(1)}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.repStatLabel,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              poder actual
+                            </Text>
+                          </View>
+
+                          {/* Power if you delegate */}
+                          <View style={styles.repStatItem}>
+                            <Text
+                              style={[styles.repStatValue, {color: '#34C759'}]}>
+                              →√{newPower.toFixed(1)}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.repStatLabel,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              con tu voto
+                            </Text>
+                          </View>
+
+                          {/* Compass */}
                           <View
                             style={[
-                              styles.radioInner,
-                              {backgroundColor: t.palette.primary_500},
-                            ]}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  )
-                })}
-              </View>
+                              styles.compassBadge,
+                              {backgroundColor: t.palette.contrast_50},
+                            ]}>
+                            <Text
+                              style={[
+                                styles.compassBadgeText,
+                                t.atoms.text_contrast_medium,
+                              ]}>
+                              {rep.hasVoted ? 'Ya votó' : 'Sin voto registrado'}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Selection radio */}
+                        <View
+                          style={[
+                            styles.radioOuter,
+                            {
+                              borderColor: isSelected
+                                ? t.palette.primary_500
+                                : t.palette.contrast_200,
+                            },
+                          ]}>
+                          {isSelected && (
+                            <View
+                              style={[
+                                styles.radioInner,
+                                {backgroundColor: t.palette.primary_500},
+                              ]}
+                            />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
               )}
 
               {/* Delegate Button */}
@@ -448,9 +450,10 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                 style={[
                   styles.delegateBtn,
                   {
-                    backgroundColor: selectedRep && !delegateMutation.isPending
-                      ? '#FF9500'
-                      : t.palette.contrast_200,
+                    backgroundColor:
+                      selectedRep && !delegateMutation.isPending
+                        ? '#FF9500'
+                        : t.palette.contrast_200,
                   },
                 ]}>
                 <Text style={styles.delegateBtnText}>

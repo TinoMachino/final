@@ -11,7 +11,7 @@ import {useSignupContext} from '#/screens/Signup/state'
 import {CaptchaWebView} from '#/screens/Signup/StepCaptcha/CaptchaWebView'
 import {atoms as a, useTheme} from '#/alf'
 import {FormError} from '#/components/forms/FormError'
-import {GCP_PROJECT_ID,IS_ANDROID, IS_IOS, IS_NATIVE, IS_WEB} from '#/env'
+import {GCP_PROJECT_ID, IS_ANDROID, IS_IOS, IS_NATIVE, IS_WEB} from '#/env'
 import {BackNextButtons} from '../BackNextButtons'
 
 const CAPTCHA_PATH =
@@ -47,8 +47,8 @@ export function StepCaptchaNative() {
           setToken(token)
           setPayload(base64UrlEncode(payload))
         }
-      } catch (e: any) {
-        logger.error(e)
+      } catch (e: unknown) {
+        logger.error(String(e))
       } finally {
         setReady(true)
       }

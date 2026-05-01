@@ -632,7 +632,11 @@ function MyBaseNavItem() {
     <NavItem
       href="/my-base"
       icon={
-        <UserCircle style={pal.text} aria-hidden={true} width={NAV_ICON_WIDTH} />
+        <UserCircle
+          style={pal.text}
+          aria-hidden={true}
+          width={NAV_ICON_WIDTH}
+        />
       }
       iconFilled={
         <UserCircleFilled

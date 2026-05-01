@@ -33,12 +33,9 @@ export function Provider({children}: PropsWithChildren<{}>) {
   )
 
   useEffect(() => {
-    return persisted.onUpdate(
-      'showPartyShields',
-      nextShowPartyShields => {
-        setState(nextShowPartyShields)
-      },
-    )
+    return persisted.onUpdate('showPartyShields', nextShowPartyShields => {
+      setState(nextShowPartyShields)
+    })
   }, [setStateWrapped])
 
   return (

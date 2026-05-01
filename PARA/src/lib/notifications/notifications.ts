@@ -2,7 +2,7 @@ import {useCallback, useEffect} from 'react'
 import {Platform} from 'react-native'
 import * as Notifications from 'expo-notifications'
 import {getBadgeCountAsync, setBadgeCountAsync} from 'expo-notifications'
-import {type AppBskyNotificationRegisterPush,type AtpAgent} from '@atproto/api'
+import {type AppBskyNotificationRegisterPush, type AtpAgent} from '@atproto/api'
 import debounce from 'lodash.debounce'
 
 import {
@@ -15,7 +15,7 @@ import {isNetworkError} from '#/lib/strings/errors'
 import {type SessionAccount, useAgent, useSession} from '#/state/session'
 import BackgroundNotificationHandler from '#/../modules/expo-background-notification-handler'
 import {useAgeAssurance} from '#/ageAssurance'
-import {IS_DEV,IS_NATIVE} from '#/env'
+import {IS_DEV, IS_NATIVE} from '#/env'
 
 /**
  * @private

@@ -48,7 +48,7 @@ interface Props extends React.ComponentProps<typeof TouchableOpacity> {
   hoverStyle?: StyleProp<ViewStyle>
   noFeedback?: boolean
   asAnchor?: boolean
-  dataSet?: any
+  dataSet?: Record<string, string | undefined>
   anchorNoUnderline?: boolean
   navigationAction?: 'push' | 'replace' | 'navigate'
   onPointerEnter?: () => void
@@ -186,7 +186,7 @@ export const TextLink = memo(function TextLink({
   text: string | JSX.Element | React.ReactNode
   numberOfLines?: number
   lineHeight?: number
-  dataSet?: any
+  dataSet?: Record<string, string | undefined>
   title?: string
   disableMismatchWarning?: boolean
   navigationAction?: 'push' | 'replace' | 'navigate'

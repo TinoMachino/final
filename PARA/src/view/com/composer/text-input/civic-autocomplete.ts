@@ -3,7 +3,12 @@ import {
   isPolicyFlair,
   normalizeComposerFlairs,
 } from '#/lib/post-flairs'
-import {getOpenQuestionSearchQuery, POST_FLAIRS, POST_TYPES, type PostType} from '#/lib/tags'
+import {
+  getOpenQuestionSearchQuery,
+  POST_FLAIRS,
+  POST_TYPES,
+  type PostType,
+} from '#/lib/tags'
 
 export type ComposerAutocompleteContext =
   | {
@@ -58,16 +63,16 @@ export type CivicAutocompleteItem =
 type ApplyCivicAutocompleteItemArgs = {
   item: CivicAutocompleteItem
   text: string
-  context: Extract<
-    ComposerAutocompleteContext,
-    {type: 'hashtag' | 'command'}
-  >
+  context: Extract<ComposerAutocompleteContext, {type: 'hashtag' | 'command'}>
   selectedFlairs: ComposerFlair[]
   postType: PostType | null
 }
 
 const SPACE_REGEX = /\s+/
-const SPECIAL_POST_TYPE_TAGS = [POST_TYPES.RAQ.tag, POST_TYPES.OPEN_QUESTION.tag]
+const SPECIAL_POST_TYPE_TAGS = [
+  POST_TYPES.RAQ.tag,
+  POST_TYPES.OPEN_QUESTION.tag,
+]
 
 const COMMAND_ITEMS: Extract<
   CivicAutocompleteItem,
@@ -165,28 +170,27 @@ export function getCivicAutocompleteItems(
   const flairItems: Extract<
     CivicAutocompleteItem,
     {type: 'policyFlair' | 'matterFlair'}
-  >[] = Object.values(POST_FLAIRS)
-    .map(flair => {
-      const itemType = isPolicyFlair(flair) ? 'policyFlair' : 'matterFlair'
-      const searchParts = [
-        flair.label,
-        flair.tag,
-        flair.tag.replace(/^\|+#/, ''),
-        flair.id.replace(/^(policy_|matter_)/, ''),
-      ]
-      const searchText = normalizeForSearch(searchParts.join(' '))
-      const label = flair.label
-      const value = `#${flair.tag.replace(/^\|+#/, '')}`
+  >[] = Object.values(POST_FLAIRS).map(flair => {
+    const itemType = isPolicyFlair(flair) ? 'policyFlair' : 'matterFlair'
+    const searchParts = [
+      flair.label,
+      flair.tag,
+      flair.tag.replace(/^\|+#/, ''),
+      flair.id.replace(/^(policy_|matter_)/, ''),
+    ]
+    const searchText = normalizeForSearch(searchParts.join(' '))
+    const label = flair.label
+    const value = `#${flair.tag.replace(/^\|+#/, '')}`
 
-      return {
-        key: flair.id,
-        type: itemType,
-        flair,
-        label,
-        value,
-        searchText,
-      }
-    })
+    return {
+      key: flair.id,
+      type: itemType,
+      flair,
+      label,
+      value,
+      searchText,
+    }
+  })
 
   return flairItems
     .filter(item => item.searchText.includes(query))
@@ -207,7 +211,11 @@ export function applyCivicAutocompleteItem({
 } {
   const baseText =
     context.type === 'command'
-      ? replaceAutocompleteContext(text, context, item.type === 'composerCommand' ? item.postType.tag ?? '' : '')
+      ? replaceAutocompleteContext(
+          text,
+          context,
+          item.type === 'composerCommand' ? (item.postType.tag ?? '') : '',
+        )
       : replaceAutocompleteContext(text, context, '')
 
   if (item.type === 'composerCommand') {
@@ -220,7 +228,9 @@ export function applyCivicAutocompleteItem({
 
   const nextSelectedFlairs = normalizeComposerFlairs([
     ...selectedFlairs.filter(flair =>
-      item.type === 'policyFlair' ? !isPolicyFlair(flair) : isPolicyFlair(flair),
+      item.type === 'policyFlair'
+        ? !isPolicyFlair(flair)
+        : isPolicyFlair(flair),
     ),
     item.flair,
   ])
@@ -261,9 +271,16 @@ export function syncComposerSpecialPostTypeText(
     seenRequiredTag = true
     return requiredTag
   })
-  next = next.replace(/[ \t]{2,}/g, ' ').replace(/\s+\n/g, '\n').trim()
+  next = next
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\s+\n/g, '\n')
+    .trim()
 
-  return next.includes(requiredTag) ? next : next ? `${next} ${requiredTag}` : requiredTag
+  return next.includes(requiredTag)
+    ? next
+    : next
+      ? `${next} ${requiredTag}`
+      : requiredTag
 }
 
 export function stripComposerSpecialPostTypeTags(text: string): string {
@@ -273,24 +290,25 @@ export function stripComposerSpecialPostTypeTags(text: string): string {
     next = next.replace(new RegExp(escapeRegExp(tag), 'g'), ' ')
   }
 
-  return next.replace(/[ \t]{2,}/g, ' ').replace(/\s+\n/g, '\n').trim()
+  return next
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\s+\n/g, '\n')
+    .trim()
 }
 
 export function replaceAutocompleteContext(
   text: string,
-  context: Extract<
-    ComposerAutocompleteContext,
-    {type: 'hashtag' | 'command'}
-  >,
+  context: Extract<ComposerAutocompleteContext, {type: 'hashtag' | 'command'}>,
   replacement: string,
 ): string {
   return `${text.slice(0, context.start)}${replacement}${text.slice(context.end)}`
 }
 
 export function isOpenQuestionTextCompatible(text: string): boolean {
-  return syncComposerSpecialPostTypeText(text, POST_TYPES.OPEN_QUESTION).includes(
-    getOpenQuestionSearchQuery(),
-  )
+  return syncComposerSpecialPostTypeText(
+    text,
+    POST_TYPES.OPEN_QUESTION,
+  ).includes(getOpenQuestionSearchQuery())
 }
 
 function compareCivicItems(

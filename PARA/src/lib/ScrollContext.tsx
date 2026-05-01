@@ -1,7 +1,7 @@
 import {createContext, useContext, useMemo} from 'react'
 import {type ScrollHandlers} from 'react-native-reanimated'
 
-const ScrollContext = createContext<ScrollHandlers<any>>({
+const ScrollContext = createContext<ScrollHandlers<unknown>>({
   onBeginDrag: undefined,
   onEndDrag: undefined,
   onScroll: undefined,
@@ -9,11 +9,11 @@ const ScrollContext = createContext<ScrollHandlers<any>>({
 })
 ScrollContext.displayName = 'ScrollContext'
 
-export function useScrollHandlers(): ScrollHandlers<any> {
+export function useScrollHandlers(): ScrollHandlers<unknown> {
   return useContext(ScrollContext)
 }
 
-type ProviderProps = {children: React.ReactNode} & ScrollHandlers<any>
+type ProviderProps = {children: React.ReactNode} & ScrollHandlers<unknown>
 
 // Note: this completely *overrides* the parent handlers.
 // It's up to you to compose them with the parent ones via useScrollHandlers() if needed.

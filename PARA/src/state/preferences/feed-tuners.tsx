@@ -1,6 +1,6 @@
 import {useMemo} from 'react'
 
-import {FeedTuner} from '#/lib/api/feed-manip'
+import {FeedTuner, FeedViewPostsSlice} from '#/lib/api/feed-manip'
 import {type FeedDescriptor} from '../queries/post-feed'
 import {usePreferencesQuery} from '../queries/preferences'
 import {useSession} from '../session'
@@ -93,7 +93,7 @@ export function useFeedTuners(
                 newSlice.items = filteredItems
                 return newSlice
               })
-              .filter(slice => slice !== null) as any
+              .filter((slice): slice is FeedViewPostsSlice => slice !== null)
           } catch (e) {
             console.error('Error filtering feed:', e)
             return slices

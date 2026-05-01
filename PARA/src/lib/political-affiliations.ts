@@ -182,7 +182,9 @@ export function inferPoliticalAffiliation(
 ): PoliticalAffiliation | null {
   const normalized = value.trim().toLowerCase()
   for (const options of Object.values(POLITICAL_AFFILIATION_OPTIONS)) {
-    const match = options.find(option => option.name.toLowerCase() === normalized)
+    const match = options.find(
+      option => option.name.toLowerCase() === normalized,
+    )
     if (match) return match
   }
   if (!normalized) return null

@@ -1,0 +1,60 @@
+yarn run v1.22.22
+$ /Users/mlv/Desktop/MASTER/mvp/PARA/node_modules/.bin/eslint --quiet src
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/components/BaseFilterControls.tsx
+  267:7  error  has accessibilityLabel prop but no accessibilityHint  react-native-a11y/has-accessibility-hint
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/components/CivicInsignia.tsx
+  1:8  error  'default' import from 'react' is restricted. React is already in the global type namespace. Use named imports for runtime modules  no-restricted-imports
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/lib/api/cabildeo.ts
+  360:16  error  'safeJson' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/lib/constants.ts
+  35:7  error  'HELP_DESK_LANG' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Base/CompassScreen.tsx
+  430:10  error  '_' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Base/MyAffiliationsScreen.tsx
+  381:14  error  'CompassMini' is not defined  react/jsx-no-undef
+  466:18  error  'XIcon' is not defined        react/jsx-no-undef
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Communities/AcuerdoListScreen.tsx
+  11:9   error  'msg' is defined but never used. Allowed unused vars must match /^_.+/u                   @typescript-eslint/no-unused-vars
+  27:10  error  '_' is assigned a value but never used. Allowed unused vars must match /^_.+/u            @typescript-eslint/no-unused-vars
+  29:9   error  'navigation' is assigned a value but never used. Allowed unused vars must match /^_.+/u   @typescript-eslint/no-unused-vars
+  33:5   error  'isLoading' is assigned a value but never used. Allowed unused vars must match /^_.+/u    @typescript-eslint/no-unused-vars
+  34:5   error  'joinAcuerdo' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Communities/CommunityProfileScreen.tsx
+  144:5  error  'hasNextPage' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Communities/CommunityRolesScreen.tsx
+   1:1   error  Run autofix to sort these imports!                                                           simple-import-sort/imports
+  36:9   error  'usePoliticalAffiliation' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+  38:9   error  'Button' is defined but never used. Allowed unused vars must match /^_.+/u                   @typescript-eslint/no-unused-vars
+  39:9   error  'Header' is defined but never used. Allowed unused vars must match /^_.+/u                   @typescript-eslint/no-unused-vars
+  39:17  error  'Screen' is defined but never used. Allowed unused vars must match /^_.+/u                   @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Settings/NotificationSettings/index.tsx
+  18:43  error  'UpvoteIcon' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+  23:43  error  'HeartIcon' is defined but never used. Allowed unused vars must match /^_.+/u   @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/state/queries/community-boards.ts
+  454:16  error  'extractErrorMessage' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+  490:10  error  'buildIdempotencyKey' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+  506:10  error  'setParam' is defined but never used. Allowed unused vars must match /^_.+/u             @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/state/shell/political-affiliation.tsx
+   1:1  error  Run autofix to sort these imports!                                                                 simple-import-sort/imports
+  19:3  error  'POLITICAL_AFFILIATION_OPTIONS' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/view/com/composer/Composer.tsx
+  228:9  error  't' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+✖ 26 problems (26 errors, 0 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
+
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

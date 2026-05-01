@@ -78,7 +78,13 @@ export function ListMembers({
     currentAccount && data?.pages[0].list.creator.did === currentAccount.did
 
   const items = useMemo(() => {
-    let items: any[] = []
+    let items: (
+      | AppBskyGraphDefs.ListItemView
+      | typeof LOADING_ITEM
+      | typeof EMPTY_ITEM
+      | typeof ERROR_ITEM
+      | typeof LOAD_MORE_ERROR_ITEM
+    )[] = []
     if (isFetched) {
       if (isEmpty && isError) {
         items = items.concat([ERROR_ITEM])
@@ -142,7 +148,16 @@ export function ListMembers({
   // =
 
   const renderItem = useCallback(
-    ({item}: {item: any}) => {
+    ({
+      item,
+    }: {
+      item:
+        | AppBskyGraphDefs.ListItemView
+        | typeof LOADING_ITEM
+        | typeof EMPTY_ITEM
+        | typeof ERROR_ITEM
+        | typeof LOAD_MORE_ERROR_ITEM
+    }) => {
       if (item === EMPTY_ITEM) {
         return renderEmptyState()
       } else if (item === ERROR_ITEM) {
@@ -247,7 +262,16 @@ export function ListMembers({
         testID={testID ? `${testID}-flatlist` : undefined}
         ref={scrollElRef}
         data={items}
-        keyExtractor={(item: any) => item.subject?.did || item._reactKey}
+        keyExtractor={(
+          item:
+            | AppBskyGraphDefs.ListItemView
+            | typeof LOADING_ITEM
+            | typeof EMPTY_ITEM
+            | typeof ERROR_ITEM
+            | typeof LOAD_MORE_ERROR_ITEM,
+        ) =>
+          (item as AppBskyGraphDefs.ListItemView).subject?.did || item._reactKey
+        }
         renderItem={renderItem}
         ListHeaderComponent={!isEmpty ? renderHeader : undefined}
         ListFooterComponent={renderFooter}

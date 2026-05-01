@@ -244,7 +244,20 @@ function LightboxGallery({
         </View>
       ) : null}
       {imgs.length > 1 && (
-        <div aria-live="polite" aria-atomic="true" style={{position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', borderWidth: 0}}>
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            borderWidth: 0,
+          }}>
           <Text>{_(msg`Image ${index + 1} of ${imgs.length}`)}</Text>
         </div>
       )}

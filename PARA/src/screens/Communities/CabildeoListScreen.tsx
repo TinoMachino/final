@@ -1,5 +1,11 @@
 import {useMemo, useState} from 'react'
-import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
 
@@ -16,10 +22,9 @@ import * as Layout from '#/components/Layout'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
 
-function getPhaseConfig(t: ReturnType<typeof useTheme>): Record<
-  CabildeoPhase,
-  {label: string; color: string; icon: string}
-> {
+function getPhaseConfig(
+  t: ReturnType<typeof useTheme>,
+): Record<CabildeoPhase, {label: string; color: string; icon: string}> {
   return {
     draft: {label: 'Borrador', color: t.palette.contrast_400, icon: '📝'},
     open: {label: 'Abierto', color: t.palette.primary_500, icon: '📖'},
@@ -324,7 +329,10 @@ export function CabildeoListScreen() {
                             {backgroundColor: t.palette.yellow + '20'},
                           ]}>
                           <Text
-                            style={[styles.quadraticText, {color: t.palette.yellow}]}>
+                            style={[
+                              styles.quadraticText,
+                              {color: t.palette.yellow},
+                            ]}>
                             √ Cuadrático
                           </Text>
                         </View>
@@ -336,7 +344,10 @@ export function CabildeoListScreen() {
                             {backgroundColor: t.palette.negative_500 + '15'},
                           ]}>
                           <Text
-                            style={[styles.quadraticText, {color: t.palette.negative_500}]}>
+                            style={[
+                              styles.quadraticText,
+                              {color: t.palette.negative_500},
+                            ]}>
                             🔒 Solo {cabildeo.region}
                           </Text>
                         </View>
@@ -487,7 +498,11 @@ const styles = StyleSheet.create({
   impactItem: {flex: 1, alignItems: 'center'},
   impactValue: {fontSize: 16, fontWeight: '900'},
   impactLabel: {fontSize: 10, fontWeight: '700', marginTop: 2},
-  impactDivider: {width: 1, height: 20, backgroundColor: 'rgba(128,128,128,0.2)'},
+  impactDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: 'rgba(128,128,128,0.2)',
+  },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',

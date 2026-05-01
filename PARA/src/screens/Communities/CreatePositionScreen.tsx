@@ -58,9 +58,12 @@ export function CreatePositionScreen(_props: Props) {
       await publishCabildeoPosition(agent, recordData)
       Toast.show('Posición publicada exitosamente')
       navigation.goBack()
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e)
-      Toast.show('Error al publicar: ' + (e?.message || 'Error desconocido'))
+      Toast.show(
+        'Error al publicar: ' +
+          (e instanceof Error ? e.message : 'Error desconocido'),
+      )
     } finally {
       setIsSubmitting(false)
     }

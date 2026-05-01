@@ -1,8 +1,9 @@
 import {useMemo, useState} from 'react'
 import {StyleSheet, TouchableOpacity, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
-import {useRoute} from '@react-navigation/native'
+import {RouteProp, useRoute} from '@react-navigation/native'
 
+import {CommonNavigatorParams} from '#/lib/routes/types'
 import {
   type CommunityMemberView,
   useCommunityMembersQuery,
@@ -73,7 +74,7 @@ function MemberRow({item}: {item: CommunityMemberView}) {
 
 export function CommunityVotersScreen() {
   const t = useTheme()
-  const route = useRoute<any>()
+  const route = useRoute<RouteProp<CommonNavigatorParams, 'CommunityVoters'>>()
   const {communityId, communityName = 'Community'} = route.params || {}
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [sortMode, setSortMode] = useState<SortMode>('participation')

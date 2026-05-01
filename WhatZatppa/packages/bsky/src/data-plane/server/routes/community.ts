@@ -228,12 +228,11 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     const { ref } = db.db.dynamic
     let builder = db.db
       .selectFrom('para_post')
-      .innerJoin('para_post_meta', 'para_post_meta.postUri', 'para_post.uri')
       .selectAll('para_post')
-      .where('para_post_meta.community', '=', req.community)
+      .where('para_post.community', '=', req.community)
 
     if (req.postType) {
-      builder = builder.where('para_post_meta.postType', '=', req.postType)
+      builder = builder.where('para_post.postType', '=', req.postType)
     }
 
     const keyset = new TimeCidKeyset(

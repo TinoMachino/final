@@ -10,7 +10,7 @@ import {atoms as a, useTheme} from '#/alf'
 import {Compass_Stroke2_Corner0_Rounded as CompassIcon} from '#/components/icons/Compass'
 import {Text} from '#/components/Typography'
 
-export function GlobalFilterBar({style}: {style?: any}) {
+export function GlobalFilterBar({style}: {style?: StyleProp<ViewStyle>}) {
   const t = useTheme()
   const {selectedCommunities, toggleCommunity} = useGlobalFilter()
   const [isExpanded, setIsExpanded] = useState(false)

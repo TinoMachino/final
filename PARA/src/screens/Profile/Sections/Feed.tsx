@@ -34,7 +34,7 @@ interface FeedSectionProps {
   setScrollViewTag: (tag: number | null) => void
   emptyStateMessage?: string
   emptyStateButton?: EmptyStateButtonProps
-  emptyStateIcon?: React.ComponentType<any> | React.ReactElement
+  emptyStateIcon?: React.ComponentType<{}> | React.ReactElement
 }
 
 export function ProfileFeedSection({

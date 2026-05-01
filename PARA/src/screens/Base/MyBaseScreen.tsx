@@ -1,29 +1,20 @@
 import {useCallback, useMemo, useState} from 'react'
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-import {AtUri} from '@atproto/api'
+import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {type AppBskyActorDefs, AtUri} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useFocusEffect, useNavigation} from '@react-navigation/native'
 
 import {type CabildeoView} from '#/lib/cabildeo-client'
-import {
-  type PoliticalAffiliation,
-} from '#/lib/political-affiliations'
+import {type PoliticalAffiliation} from '#/lib/political-affiliations'
 import {type NavigationProp} from '#/lib/routes/types'
 import {deleteHighlight, getAllHighlights} from '#/state/highlights'
 import {type HighlightData} from '#/state/highlights'
 import {useCabildeosQuery} from '#/state/queries/cabildeo'
 import {useProfileQuery} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
-import {
-  usePoliticalAffiliation,
-} from '#/state/shell/political-affiliation'
+import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {FOLLOWED_ITEM_CATEGORIES, useFollowedItems} from '#/state/topics'
 import {type FollowedItem} from '#/state/topics'
 import {Text} from '#/view/com/util/text/Text'
@@ -31,9 +22,7 @@ import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useTheme} from '#/alf'
 import {CompassMini} from '#/components/CompassMini'
 import {ArrowLeft_Stroke2_Corner0_Rounded as BackIcon} from '#/components/icons/Arrow'
-import {
-  CommunityIcon_Stroke as CommunityIcon,
-} from '#/components/icons/Community'
+import {CommunityIcon_Stroke as CommunityIcon} from '#/components/icons/Community'
 import {SettingsGear2_Stroke2_Corner0_Rounded as SettingsIcon} from '#/components/icons/SettingsGear2'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
 import {Tree_Stroke2_Corner0_Rounded as TreeIcon} from '#/components/icons/Tree'
@@ -78,7 +67,7 @@ function MyBaseHeader({
   onPressPoliticalAffiliation,
   onPressBack,
 }: {
-  profile: any
+  profile: AppBskyActorDefs.ProfileViewDetailed
   influenceScore: number
   votedCount: number
   affiliations: PoliticalAffiliation[]
@@ -96,17 +85,13 @@ function MyBaseHeader({
 
   const profileHandle = profile?.handle
   const profileHandleText = profileHandle ? `@${profileHandle}` : '@para'
-  const profileDisplayName =
-    profile?.displayName || profile?.handle || 'User'
+  const profileDisplayName = profile?.displayName || profile?.handle || 'User'
 
   return (
     <View>
       {/* Banner / top bar */}
       <View
-        style={[
-          styles.headerTopBar,
-          {backgroundColor: t.palette.primary_500},
-        ]}>
+        style={[styles.headerTopBar, {backgroundColor: t.palette.primary_500}]}>
         <TouchableOpacity
           accessibilityRole="button"
           onPress={onPressBack}
@@ -145,59 +130,58 @@ function MyBaseHeader({
             <Text style={[styles.headerName, t.atoms.text]}>
               {profileDisplayName}
             </Text>
-            <Text
-              style={[styles.headerHandle, t.atoms.text_contrast_medium]}>
+            <Text style={[styles.headerHandle, t.atoms.text_contrast_medium]}>
               {profileHandleText}
             </Text>
 
             {/* Flair */}
-              {activeFlair ? (
-                <TouchableOpacity
-                  accessibilityRole="button"
+            {activeFlair ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={[
+                  styles.flairBadge,
+                  {backgroundColor: activeFlair.color + '20'},
+                ]}
+                onPress={onPressPoliticalAffiliation}>
+                <View
                   style={[
-                    styles.flairBadge,
-                    {backgroundColor: activeFlair.color + '20'},
+                    styles.flairDot,
+                    {backgroundColor: activeFlair.color},
                   ]}
-                  onPress={onPressPoliticalAffiliation}>
-                  <View
-                    style={[
-                      styles.flairDot,
-                      {backgroundColor: activeFlair.color},
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.flairText,
-                      {color: activeFlair.color},
-                      a.font_bold,
-                    ]}>
-                    {activeFlair.label}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  accessibilityRole="button"
+                />
+                <Text
                   style={[
-                    styles.flairBadge,
-                    {backgroundColor: t.palette.contrast_300 + '30'},
+                    styles.flairText,
+                    {color: activeFlair.color},
+                    a.font_bold,
+                  ]}>
+                  {activeFlair.label}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={[
+                  styles.flairBadge,
+                  {backgroundColor: t.palette.contrast_300 + '30'},
+                ]}
+                onPress={onPressPoliticalAffiliation}>
+                <View
+                  style={[
+                    styles.flairDot,
+                    {backgroundColor: t.palette.contrast_300},
                   ]}
-                  onPress={onPressPoliticalAffiliation}>
-                  <View
-                    style={[
-                      styles.flairDot,
-                      {backgroundColor: t.palette.contrast_300},
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.flairText,
-                      {color: t.palette.contrast_400},
-                      a.font_bold,
-                    ]}>
-                    Set position →
-                  </Text>
-                </TouchableOpacity>
-              )}
+                />
+                <Text
+                  style={[
+                    styles.flairText,
+                    {color: t.palette.contrast_400},
+                    a.font_bold,
+                  ]}>
+                  Set position →
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <CompassMini
@@ -294,6 +278,7 @@ function MyBaseSummaryTab({
   onPressViewProfile: () => void
 }) {
   const t = useTheme()
+  const {_} = useLingui()
   const now = Date.now()
 
   // ── Upcoming: cabildeos in voting where user hasn't voted ──
@@ -333,7 +318,6 @@ function MyBaseSummaryTab({
     <ScrollView
       style={styles.tabScroll}
       contentContainerStyle={styles.tabScrollContent}>
-
       {/* ── UPCOMING ACTIONS ── */}
       {upcoming.length > 0 && (
         <View style={styles.section}>
@@ -405,10 +389,7 @@ function MyBaseSummaryTab({
                 style={[styles.viewAllButton, t.atoms.bg_contrast_25]}
                 onPress={onPressViewAllHighlights}>
                 <Text
-                  style={[
-                    styles.viewAllText,
-                    {color: t.palette.primary_500},
-                  ]}>
+                  style={[styles.viewAllText, {color: t.palette.primary_500}]}>
                   View all {myHighlights.length} highlights →
                 </Text>
               </TouchableOpacity>
@@ -458,7 +439,9 @@ function MyBaseSummaryTab({
         <View>
           <Text style={[styles.raqTitle, t.atoms.text]}>RAQ</Text>
           <Text style={[styles.raqProgress, t.atoms.text_contrast_medium]}>
-            <Trans>Open your questionnaire and review your latest results.</Trans>
+            <Trans>
+              Open your questionnaire and review your latest results.
+            </Trans>
           </Text>
         </View>
         <TouchableOpacity
@@ -539,11 +522,7 @@ function CabildeoMiniCard({
         {cabildeo.title}
       </Text>
       <View style={styles.miniCardMeta}>
-        <View
-          style={[
-            styles.phasePill,
-            {backgroundColor: phase.color + '18'},
-          ]}>
+        <View style={[styles.phasePill, {backgroundColor: phase.color + '18'}]}>
           <Text style={[styles.phasePillText, {color: phase.color}]}>
             {phase.label}
           </Text>
@@ -559,53 +538,6 @@ function CabildeoMiniCard({
           </Text>
         )}
       </View>
-    </TouchableOpacity>
-  )
-}
-
-function HighlightCard({
-  highlight,
-  onPress,
-  onDelete,
-}: {
-  highlight: HighlightData
-  onPress: () => void
-  onDelete: () => void
-}) {
-  const t = useTheme()
-  return (
-    <TouchableOpacity
-      accessibilityRole="button"
-      onPress={onPress}
-      style={[
-        styles.highlightCard,
-        t.atoms.bg_contrast_25,
-        t.atoms.border_contrast_low,
-      ]}>
-      <View style={styles.highlightCardContent}>
-        <View
-          style={[
-            styles.highlightDot,
-            {backgroundColor: t.palette.primary_500},
-          ]}
-        />
-        <View style={{flex: 1}}>
-          <Text
-            style={[styles.highlightTag, t.atoms.text_contrast_medium]}
-            numberOfLines={1}>
-            {highlight.postTitle}
-          </Text>
-          <Text style={[styles.highlightText, t.atoms.text]} numberOfLines={2}>
-            {highlight.text}
-          </Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        accessibilityRole="button"
-        onPress={onDelete}
-        style={{padding: 4}}>
-        <XIcon size="sm" style={t.atoms.text_contrast_medium} />
-      </TouchableOpacity>
     </TouchableOpacity>
   )
 }
@@ -722,8 +654,6 @@ function EmptyState({
   )
 }
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Screen
 // ─────────────────────────────────────────────────────────────────────────────
@@ -733,8 +663,7 @@ export function MyBaseScreen() {
   const navigation = useNavigation<NavigationProp>()
   const currentDid = currentAccount?.did
   const {data: currentProfile} = useProfileQuery({did: currentDid})
-  const {data: cabildeos = []} =
-    useCabildeosQuery()
+  const {data: cabildeos = []} = useCabildeosQuery()
   const {affiliations, activeFlair} = usePoliticalAffiliation()
 
   const [myHighlights, setMyHighlights] = useState<HighlightData[]>([])
@@ -760,7 +689,11 @@ export function MyBaseScreen() {
   const influenceScore = useMemo(() => {
     const followerClout = toClout(currentProfile?.followersCount ?? 0) ?? 0
     return followerClout + myHighlights.length + followedItems.length
-  }, [currentProfile?.followersCount, myHighlights.length, followedItems.length])
+  }, [
+    currentProfile?.followersCount,
+    myHighlights.length,
+    followedItems.length,
+  ])
 
   const onPressMetric = useCallback(
     (metric: MetricKey) => {
@@ -818,7 +751,9 @@ export function MyBaseScreen() {
         onPressSettings={() => navigation.navigate('AccountSettings')}
         onPressCommunities={() => navigation.navigate('MyCommunities')}
         onPressCompass={() => navigation.navigate('MyAffiliations')}
-        onPressPoliticalAffiliation={() => navigation.navigate('PoliticalAffiliation')}
+        onPressPoliticalAffiliation={() =>
+          navigation.navigate('PoliticalAffiliation')
+        }
         onPressBack={() => {
           if (navigation.canGoBack()) {
             navigation.goBack()
@@ -835,16 +770,13 @@ export function MyBaseScreen() {
         onUnfollowItem={unfollowItem}
         onPressRAQ={() => navigation.navigate('MyRAQ')}
         onPressPolicyTree={() => navigation.navigate('Compass')}
-        onPressViewAllHighlights={() =>
-          navigation.navigate('Highlights')
-        }
+        onPressViewAllHighlights={() => navigation.navigate('Highlights')}
         onPressViewProfile={() =>
           navigation.navigate('Profile', {
             name: currentProfile?.handle || '',
           })
         }
       />
-
     </Layout.Screen>
   )
 }

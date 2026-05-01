@@ -20,14 +20,22 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     flairs: ['||#PresupuestoParticipativo', '|#Cultura'],
     options: [
       {label: 'Autogestión total', description: 'Cooperativa ciudadana'},
-      {label: 'Convenio público-privado', description: 'Alcaldía aporta espacio'},
+      {
+        label: 'Convenio público-privado',
+        description: 'Alcaldía aporta espacio',
+      },
       {label: 'Venta a desarrollador', description: 'Liberar espacio'},
     ],
     phase: 'voting',
     phaseDeadline: new Date(Date.now() + 7 * 864e5).toISOString(),
     optionSummary: [
       {optionIndex: 0, label: 'Autogestión total', votes: 142, positions: 38},
-      {optionIndex: 1, label: 'Convenio público-privado', votes: 89, positions: 27},
+      {
+        optionIndex: 1,
+        label: 'Convenio público-privado',
+        votes: 89,
+        positions: 27,
+      },
       {optionIndex: 2, label: 'Venta a desarrollador', votes: 12, positions: 5},
     ],
     positionCounts: {
@@ -37,8 +45,18 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       amendment: 7,
       byOption: [
         {optionIndex: 0, label: 'Autogestión total', votes: 142, positions: 38},
-        {optionIndex: 1, label: 'Convenio público-privado', votes: 89, positions: 27},
-        {optionIndex: 2, label: 'Venta a desarrollador', votes: 12, positions: 5},
+        {
+          optionIndex: 1,
+          label: 'Convenio público-privado',
+          votes: 89,
+          positions: 27,
+        },
+        {
+          optionIndex: 2,
+          label: 'Venta a desarrollador',
+          votes: 12,
+          positions: 5,
+        },
       ],
     },
     voteTotals: {total: 243, direct: 198, delegated: 45},
@@ -56,13 +74,26 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     options: [
       {label: 'Construir red completa', description: '45 km en 24 meses'},
       {label: 'Construir tramo piloto', description: '8 km zona universitaria'},
-      {label: 'Ampliar ciclovías existentes', description: 'Sin carriles protegidos'},
+      {
+        label: 'Ampliar ciclovías existentes',
+        description: 'Sin carriles protegidos',
+      },
     ],
     phase: 'deliberating',
     phaseDeadline: new Date(Date.now() + 14 * 864e5).toISOString(),
     optionSummary: [
-      {optionIndex: 0, label: 'Construir red completa', votes: 67, positions: 22},
-      {optionIndex: 1, label: 'Construir tramo piloto', votes: 54, positions: 18},
+      {
+        optionIndex: 0,
+        label: 'Construir red completa',
+        votes: 67,
+        positions: 22,
+      },
+      {
+        optionIndex: 1,
+        label: 'Construir tramo piloto',
+        votes: 54,
+        positions: 18,
+      },
       {optionIndex: 2, label: 'Ampliar existentes', votes: 31, positions: 12},
     ],
     positionCounts: {
@@ -71,8 +102,18 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       against: 15,
       amendment: 7,
       byOption: [
-        {optionIndex: 0, label: 'Construir red completa', votes: 67, positions: 22},
-        {optionIndex: 1, label: 'Construir tramo piloto', votes: 54, positions: 18},
+        {
+          optionIndex: 0,
+          label: 'Construir red completa',
+          votes: 67,
+          positions: 22,
+        },
+        {
+          optionIndex: 1,
+          label: 'Construir tramo piloto',
+          votes: 54,
+          positions: 18,
+        },
         {optionIndex: 2, label: 'Ampliar existentes', votes: 31, positions: 12},
       ],
     },
@@ -125,14 +166,22 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     flairs: ['||#MedioAmbiente', '|#Reforestacion'],
     options: [
       {label: '100,000 árboles', description: '18 meses, $120M MXN'},
-      {label: '50,000 + mantenimiento', description: 'Priorizar zonas críticas'},
+      {
+        label: '50,000 + mantenimiento',
+        description: 'Priorizar zonas críticas',
+      },
       {label: 'Adopción vecinal', description: 'Vecinos plantan y cuidan'},
     ],
     phase: 'voting',
     phaseDeadline: new Date(Date.now() + 5 * 864e5).toISOString(),
     optionSummary: [
       {optionIndex: 0, label: '100,000 árboles', votes: 312, positions: 67},
-      {optionIndex: 1, label: '50,000 + mantenimiento', votes: 198, positions: 41},
+      {
+        optionIndex: 1,
+        label: '50,000 + mantenimiento',
+        votes: 198,
+        positions: 41,
+      },
       {optionIndex: 2, label: 'Adopción vecinal', votes: 87, positions: 22},
     ],
     positionCounts: {
@@ -142,7 +191,12 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       amendment: 13,
       byOption: [
         {optionIndex: 0, label: '100,000 árboles', votes: 312, positions: 67},
-        {optionIndex: 1, label: '50,000 + mantenimiento', votes: 198, positions: 41},
+        {
+          optionIndex: 1,
+          label: '50,000 + mantenimiento',
+          votes: 198,
+          positions: 41,
+        },
         {optionIndex: 2, label: 'Adopción vecinal', votes: 87, positions: 22},
       ],
     },
@@ -160,7 +214,10 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     flairs: ['||#DerechosLaborales', '|#SalarioMinimo'],
     options: [
       {label: 'Aumento inmediato a $12,000', description: '6 meses'},
-      {label: 'Escalón progresivo', description: '$10,500 en 2026, $12,000 en 2027'},
+      {
+        label: 'Escalón progresivo',
+        description: '$10,500 en 2026, $12,000 en 2027',
+      },
       {label: 'Bonificación productividad', description: 'Bono escalonado'},
     ],
     phase: 'resolved',
@@ -176,8 +233,18 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       against: 65,
       amendment: 30,
       byOption: [
-        {optionIndex: 0, label: 'Aumento inmediato', votes: 890, positions: 145},
-        {optionIndex: 1, label: 'Escalón progresivo', votes: 678, positions: 112},
+        {
+          optionIndex: 0,
+          label: 'Aumento inmediato',
+          votes: 890,
+          positions: 145,
+        },
+        {
+          optionIndex: 1,
+          label: 'Escalón progresivo',
+          votes: 678,
+          positions: 112,
+        },
         {optionIndex: 2, label: 'Bonificación', votes: 234, positions: 48},
       ],
     },
@@ -213,7 +280,12 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     phase: 'deliberating',
     phaseDeadline: new Date(Date.now() + 10 * 864e5).toISOString(),
     optionSummary: [
-      {optionIndex: 0, label: 'Implementación total', votes: 445, positions: 89},
+      {
+        optionIndex: 0,
+        label: 'Implementación total',
+        votes: 445,
+        positions: 89,
+      },
       {optionIndex: 1, label: 'Fase federal', votes: 312, positions: 67},
       {optionIndex: 2, label: 'Auditoría externa', votes: 156, positions: 34},
     ],
@@ -223,7 +295,12 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       against: 42,
       amendment: 18,
       byOption: [
-        {optionIndex: 0, label: 'Implementación total', votes: 445, positions: 89},
+        {
+          optionIndex: 0,
+          label: 'Implementación total',
+          votes: 445,
+          positions: 89,
+        },
         {optionIndex: 1, label: 'Fase federal', votes: 312, positions: 67},
         {optionIndex: 2, label: 'Auditoría externa', votes: 156, positions: 34},
       ],
@@ -241,14 +318,22 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     community: 'Roma Norte',
     flairs: ['||#PresupuestoParticipativo', '|#EspacioPublico'],
     options: [
-      {label: 'Aprobar presupuesto completo', description: '12 parques, 18 meses'},
+      {
+        label: 'Aprobar presupuesto completo',
+        description: '12 parques, 18 meses',
+      },
       {label: 'Aprobar fase piloto', description: '4 parques, 6 meses'},
       {label: 'Rechazar y reponer', description: 'Esperar dictamen ambiental'},
     ],
     phase: 'voting',
     phaseDeadline: new Date(Date.now() + 4 * 864e5).toISOString(),
     optionSummary: [
-      {optionIndex: 0, label: 'Presupuesto completo', votes: 178, positions: 42},
+      {
+        optionIndex: 0,
+        label: 'Presupuesto completo',
+        votes: 178,
+        positions: 42,
+      },
       {optionIndex: 1, label: 'Fase piloto', votes: 134, positions: 35},
       {optionIndex: 2, label: 'Rechazar', votes: 45, positions: 12},
     ],
@@ -258,7 +343,12 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
       against: 22,
       amendment: 9,
       byOption: [
-        {optionIndex: 0, label: 'Presupuesto completo', votes: 178, positions: 42},
+        {
+          optionIndex: 0,
+          label: 'Presupuesto completo',
+          votes: 178,
+          positions: 42,
+        },
         {optionIndex: 1, label: 'Fase piloto', votes: 134, positions: 35},
         {optionIndex: 2, label: 'Rechazar', votes: 45, positions: 12},
       ],
@@ -276,9 +366,15 @@ export const MOCK_CABILDEO_VIEWS: CabildeoView[] = [
     community: 'Roma Norte',
     flairs: ['||#Cultura', '|#ArteUrbano'],
     options: [
-      {label: '50 murales en 12 meses', description: '$25M MXN, concurso abierto'},
+      {
+        label: '50 murales en 12 meses',
+        description: '$25M MXN, concurso abierto',
+      },
       {label: '25 murales + galerías', description: 'Arte itinerante'},
-      {label: 'Residencias artísticas', description: 'Nacionales e internacionales'},
+      {
+        label: 'Residencias artísticas',
+        description: 'Nacionales e internacionales',
+      },
     ],
     phase: 'voting',
     phaseDeadline: new Date(Date.now() + 6 * 864e5).toISOString(),

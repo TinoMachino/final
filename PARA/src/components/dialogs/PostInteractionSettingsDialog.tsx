@@ -229,10 +229,10 @@ export function PostInteractionSettingsDialogControlledInner(
       await Promise.all(requests)
 
       props.control.close()
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error(`Failed to save post interaction settings`, {
         source: 'PostInteractionSettingsDialogControlledInner',
-        safeMessage: e.message,
+        safeMessage: e instanceof Error ? e.message : String(e),
       })
       Toast.show(
         _(

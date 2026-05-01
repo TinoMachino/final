@@ -33,7 +33,12 @@ export const delegationCandidatesQueryKey = ({
 }: {
   cabildeoUri?: string
   communityId?: string
-}) => [RQKEY_ROOT, 'delegation-candidates', cabildeoUri || '', communityId || '']
+}) => [
+  RQKEY_ROOT,
+  'delegation-candidates',
+  cabildeoUri || '',
+  communityId || '',
+]
 
 export function useCabildeosQuery() {
   const agent = useAgent()
@@ -55,14 +60,14 @@ export function useCabildeosQuery() {
           return MOCK_CABILDEO_VIEWS
         }
         return views
-      } catch (err: any) {
+      } catch (err: unknown) {
         // In dev mode, serve mocks so UI work can continue even when the
         // backend isn't fully wired. In production, let the error propagate
         // so React Query's isError state is surfaced to the user.
         if (USE_MOCK_DATA) {
           console.warn(
             '[useCabildeosQuery] Fetch failed — serving mock cabildeos for dev preview. Error:',
-            err?.message,
+            err instanceof Error ? err.message : String(err),
           )
           return MOCK_CABILDEO_VIEWS
         }
@@ -84,7 +89,7 @@ export function useCabildeoQuery(cabildeoUri: string | undefined) {
       try {
         const cabildeo = await fetchCabildeo(agent, cabildeoUri)
         return cabildeo ? mapCabildeoReadViewToView(cabildeo) : null
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (USE_MOCK_DATA) {
           const mock = MOCK_CABILDEO_VIEWS.find(c => c.uri === cabildeoUri)
           if (mock) {
@@ -202,14 +207,13 @@ export function useVoteMutation() {
 
       if (previous) {
         const nextOptionSummary = previous.optionSummary.map(s =>
-          s.optionIndex === selectedOption
-            ? {...s, votes: s.votes + 1}
-            : s,
+          s.optionIndex === selectedOption ? {...s, votes: s.votes + 1} : s,
         )
         // Add entry if this option hasn't been voted on yet
         if (!nextOptionSummary.find(s => s.optionIndex === selectedOption)) {
           const optionLabel =
-            previous.options[selectedOption]?.label || `Opción ${selectedOption + 1}`
+            previous.options[selectedOption]?.label ||
+            `Opción ${selectedOption + 1}`
           nextOptionSummary.push({
             optionIndex: selectedOption,
             label: optionLabel,

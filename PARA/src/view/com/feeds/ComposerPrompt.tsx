@@ -99,7 +99,7 @@ export function ComposerPrompt() {
           openComposer({imageUris, logContext: 'Other'})
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!String(err).toLowerCase().includes('cancel')) {
         logger.warn('Error opening image picker', {error: err})
       }
@@ -139,7 +139,7 @@ export function ComposerPrompt() {
         imageUris: IS_NATIVE ? imageUris : undefined,
         logContext: 'Other',
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!String(err).toLowerCase().includes('cancel')) {
         logger.warn('Error opening camera', {error: err})
       }

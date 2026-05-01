@@ -44,7 +44,7 @@ export const THIRD_PARTY_ALLOWED_INTERACTIONS = new Set<
 
 export type StateContext = {
   enabled: boolean
-  onItemSeen: (item: any) => void
+  onItemSeen: (item: Parameters<typeof getItemsForFeedback>[0]) => void
   sendInteraction: (interaction: AppBskyFeedDefs.Interaction) => void
   feedDescriptor: FeedDescriptor | undefined
   feedSourceInfo: FeedSourceInfo | undefined
@@ -52,7 +52,7 @@ export type StateContext = {
 
 const stateContext = createContext<StateContext>({
   enabled: false,
-  onItemSeen: (_item: any) => {},
+  onItemSeen: (_item: Parameters<typeof getItemsForFeedback>[0]) => {},
   sendInteraction: (_interaction: AppBskyFeedDefs.Interaction) => {},
   feedDescriptor: undefined,
   feedSourceInfo: undefined,
@@ -197,7 +197,7 @@ export function useFeedFeedback(
   }, [enabled, sendToFeed])
 
   const onItemSeen = useCallback(
-    (feedItem: any) => {
+    (feedItem: Parameters<typeof getItemsForFeedback>[0]) => {
       if (!enabled) {
         return
       }

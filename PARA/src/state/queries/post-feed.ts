@@ -674,7 +674,7 @@ export function resetProfilePostsQueries(
   }, timeout)
 }
 
-export function isFeedPostSlice(v: any): v is FeedPostSlice {
+export function isFeedPostSlice(v: unknown): v is FeedPostSlice {
   return (
     v && typeof v === 'object' && '_isFeedPostSlice' in v && v._isFeedPostSlice
   )

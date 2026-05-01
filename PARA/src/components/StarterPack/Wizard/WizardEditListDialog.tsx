@@ -58,7 +58,11 @@ export function WizardEditListDialog({
     return [profile, ...state.profiles.filter(p => p.did !== profile.did)]
   }
 
-  const renderItem = ({item}: ListRenderItemInfo<any>) =>
+  const renderItem = ({
+    item,
+  }: ListRenderItemInfo<
+    AppBskyActorDefs.ProfileViewDetailed | AppBskyFeedDefs.GeneratorView
+  >) =>
     state.currentStep === 'Profiles' ? (
       <WizardProfileCard
         profile={item}

@@ -41,10 +41,15 @@ export function MyRAQScreen() {
             <Text style={[styles.cardDesc, t.atoms.text_contrast_medium]}>
               You have completed 42 of 96 questions in the Official RAQ.
             </Text>
-            
+
             {/* Progress Bar */}
             <View style={[styles.progressBarBg, t.atoms.bg_contrast_50]}>
-              <View style={[styles.progressBarFill, {backgroundColor: t.palette.primary_500, width: '44%'}]} />
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {backgroundColor: t.palette.primary_500, width: '44%'},
+                ]}
+              />
             </View>
             <Text style={[styles.progressText, t.atoms.text_contrast_medium]}>
               44% Complete
@@ -63,39 +68,63 @@ export function MyRAQScreen() {
 
           {/* Results Summary */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, t.atoms.text]}>Latest Results</Text>
-            <TouchableOpacity accessibilityRole="button"
+            <Text style={[styles.sectionTitle, t.atoms.text]}>
+              Latest Results
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
               onPress={() => navigation.navigate('RAQResults', {results: []})}
               activeOpacity={0.8}
               style={[styles.resultCard, t.atoms.bg_contrast_25]}>
               <View style={styles.resultHeader}>
-                <Text style={[styles.resultType, {color: t.palette.primary_500}]}>OFFICIAL AXES</Text>
-                <Text style={[styles.resultDate, t.atoms.text_contrast_medium]}>Apr 28, 2026</Text>
+                <Text
+                  style={[styles.resultType, {color: t.palette.primary_500}]}>
+                  OFFICIAL AXES
+                </Text>
+                <Text style={[styles.resultDate, t.atoms.text_contrast_medium]}>
+                  Apr 28, 2026
+                </Text>
               </View>
-              <Text style={[styles.resultTitle, t.atoms.text]}>Centrist / Pragmatic</Text>
-              <Text style={[styles.resultDesc, t.atoms.text_contrast_medium]}>
-                Based on your current progress, you lean towards decentralized policy solutions.
+              <Text style={[styles.resultTitle, t.atoms.text]}>
+                Centrist / Pragmatic
               </Text>
-              <View style={[styles.resultFooter, {borderTopColor: t.palette.contrast_100}]}>
-                <Text style={[styles.viewResults, {color: t.palette.primary_500}]}>View Full Breakdown →</Text>
+              <Text style={[styles.resultDesc, t.atoms.text_contrast_medium]}>
+                Based on your current progress, you lean towards decentralized
+                policy solutions.
+              </Text>
+              <View
+                style={[
+                  styles.resultFooter,
+                  {borderTopColor: t.palette.contrast_100},
+                ]}>
+                <Text
+                  style={[styles.viewResults, {color: t.palette.primary_500}]}>
+                  View Full Breakdown →
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Participation Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, t.atoms.text]}>Community Questions</Text>
+            <Text style={[styles.sectionTitle, t.atoms.text]}>
+              Community Questions
+            </Text>
             <View style={styles.participationRow}>
               <View style={[styles.participationItem, t.atoms.bg_contrast_25]}>
                 <Text style={[styles.pCount, t.atoms.text]}>12</Text>
-                <Text style={[styles.pLabel, t.atoms.text_contrast_medium]}>Answered</Text>
+                <Text style={[styles.pLabel, t.atoms.text_contrast_medium]}>
+                  Answered
+                </Text>
               </View>
               <View style={[styles.participationItem, t.atoms.bg_contrast_25]}>
                 <Text style={[styles.pCount, t.atoms.text]}>5</Text>
-                <Text style={[styles.pLabel, t.atoms.text_contrast_medium]}>Proposed</Text>
+                <Text style={[styles.pLabel, t.atoms.text_contrast_medium]}>
+                  Proposed
+                </Text>
               </View>
             </View>
-            
+
             <Button
               label="Explore Questions"
               onPress={() => navigation.navigate('OpenQuestionsList')}
@@ -105,7 +134,6 @@ export function MyRAQScreen() {
               <ButtonText>Manage Proposed Questions</ButtonText>
             </Button>
           </View>
-
         </Layout.Center>
       </ScrollView>
     </Layout.Screen>
@@ -135,7 +163,12 @@ const styles = StyleSheet.create({
   },
   iconEmoji: {fontSize: 32},
   cardTitle: {fontSize: 22, fontWeight: '800', marginBottom: 8},
-  cardDesc: {fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 20},
+  cardDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
   progressBarBg: {
     width: '100%',
     height: 8,
@@ -178,6 +211,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.05)',
   },
   pCount: {fontSize: 20, fontWeight: '900'},
-  pLabel: {fontSize: 11, fontWeight: '600', textTransform: 'uppercase', marginTop: 2},
+  pLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
   outlineButton: {borderRadius: 14},
 })

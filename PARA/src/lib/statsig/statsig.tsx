@@ -8,11 +8,11 @@
 
 export function logEvent(
   _eventName: string,
-  _rawMetadata?: any,
+  _rawMetadata?: unknown,
   _options?: {lake?: boolean},
 ) {}
 
-export function useGate(): (_gateName: string, _options?: any) => boolean {
+export function useGate(): (_gateName: string, _options?: unknown) => boolean {
   return () => false
 }
 

@@ -28,7 +28,10 @@ export function CustomFeedEmptyState() {
     // Log the empty feed error event
     if (feedFeedback.feedSourceInfo && currentAccount?.did) {
       const uri = feedFeedback.feedSourceInfo.uri
-      if (isDefaultDiscoverFeedUri(uri) && !hasLoggedDiscoverEmptyErrorRef.current) {
+      if (
+        isDefaultDiscoverFeedUri(uri) &&
+        !hasLoggedDiscoverEmptyErrorRef.current
+      ) {
         hasLoggedDiscoverEmptyErrorRef.current = true
         logger.metric('feed:discover:emptyError', {
           userDid: currentAccount.did,

@@ -5,9 +5,7 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
 import {type PoliticalAffiliationType} from '#/lib/political-affiliations'
-import {
-  BADGE_INFO,
-} from '#/state/shell/political-affiliation'
+import {BADGE_INFO} from '#/state/shell/political-affiliation'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
@@ -22,7 +20,11 @@ export function useAffiliationChangeGuard() {
   } | null>(null)
 
   const requestChange = useCallback(
-    (type: PoliticalAffiliationType, onConfirm: () => void, onCancel?: () => void) => {
+    (
+      type: PoliticalAffiliationType,
+      onConfirm: () => void,
+      onCancel?: () => void,
+    ) => {
       setPendingChange({type, onConfirm, onCancel})
     },
     [],
@@ -81,15 +83,11 @@ export function AffiliationChangeModal({
           style={styles.backdrop}
           onPress={onCancel}
         />
-        <View
-          style={[
-            styles.content,
-            t.atoms.bg,
-            t.atoms.border_contrast_low,
-          ]}>
+        <View style={[styles.content, t.atoms.bg, t.atoms.border_contrast_low]}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={[styles.badgeIcon, {backgroundColor: info.color + '20'}]}>
+            <View
+              style={[styles.badgeIcon, {backgroundColor: info.color + '20'}]}>
               <View style={[styles.badgeDot, {backgroundColor: info.color}]} />
             </View>
             <View style={styles.headerText}>
@@ -109,14 +107,20 @@ export function AffiliationChangeModal({
           </View>
 
           {/* Warning */}
-          <View style={[styles.warningBox, {backgroundColor: t.palette.negative_500 + '15'}]}>
+          <View
+            style={[
+              styles.warningBox,
+              {backgroundColor: t.palette.negative_500 + '15'},
+            ]}>
             <WarningIcon size="sm" style={{color: t.palette.negative_500}} />
-            <Text style={[styles.warningTitle, {color: t.palette.negative_500}]}>
+            <Text
+              style={[styles.warningTitle, {color: t.palette.negative_500}]}>
               <Trans>Cooldown Enforced</Trans>
             </Text>
             <Text style={[styles.warningText, t.atoms.text_contrast_medium]}>
               <Trans>
-                Once you change your {info.name.toLowerCase()}, you cannot modify it again for{' '}
+                Once you change your {info.name.toLowerCase()}, you cannot
+                modify it again for{' '}
                 <Text style={[a.font_bold, t.atoms.text]}>{cooldownText}</Text>.
                 This prevents identity manipulation and ensures accountability.
               </Trans>

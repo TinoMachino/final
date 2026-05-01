@@ -32,27 +32,60 @@ interface CommunityEngagement {
 export function MyCommunitiesScreen() {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
-  const [activeTab, setActiveTab] = useState<'All' | 'Parties' | 'Geographic'>('All')
+  const [activeTab, setActiveTab] = useState<'All' | 'Parties' | 'Geographic'>(
+    'All',
+  )
 
   // Mock engagement data mapped to official IDs
-  const engagement: Record<string, CommunityEngagement> = useMemo(() => ({
-    'party-morena': { id: 'party-morena', uri: 'p/morena', activeDeliberations: 3, unseenActivity: 5, role: 'Delegate' },
-    'ninth-auth-left': { id: 'ninth-auth-left', uri: 'g/auth-left', activeDeliberations: 1, unseenActivity: 0, role: 'Voter' },
-    'ninth-center': { id: 'ninth-center', uri: 'g/center', activeDeliberations: 0, unseenActivity: 2, role: 'Observer' },
-    'twenty-fifth-2-2': { id: 'twenty-fifth-2-2', uri: 'g/25th-2-2', activeDeliberations: 4, unseenActivity: 12, role: 'Voter' },
-  }), [])
+  const engagement: Record<string, CommunityEngagement> = useMemo(
+    () => ({
+      'party-morena': {
+        id: 'party-morena',
+        uri: 'p/morena',
+        activeDeliberations: 3,
+        unseenActivity: 5,
+        role: 'Delegate',
+      },
+      'ninth-auth-left': {
+        id: 'ninth-auth-left',
+        uri: 'g/auth-left',
+        activeDeliberations: 1,
+        unseenActivity: 0,
+        role: 'Voter',
+      },
+      'ninth-center': {
+        id: 'ninth-center',
+        uri: 'g/center',
+        activeDeliberations: 0,
+        unseenActivity: 2,
+        role: 'Observer',
+      },
+      'twenty-fifth-2-2': {
+        id: 'twenty-fifth-2-2',
+        uri: 'g/25th-2-2',
+        activeDeliberations: 4,
+        unseenActivity: 12,
+        role: 'Voter',
+      },
+    }),
+    [],
+  )
 
-  const joinedParties = useMemo(() => 
-    POLITICAL_AFFILIATION_OPTIONS.party.filter(p => engagement[p.id]), 
-  [engagement])
+  const joinedParties = useMemo(
+    () => POLITICAL_AFFILIATION_OPTIONS.party.filter(p => engagement[p.id]),
+    [engagement],
+  )
 
-  const joinedNinths = useMemo(() => 
-    POLITICAL_AFFILIATION_OPTIONS.ninth.filter(n => engagement[n.id]), 
-  [engagement])
+  const joinedNinths = useMemo(
+    () => POLITICAL_AFFILIATION_OPTIONS.ninth.filter(n => engagement[n.id]),
+    [engagement],
+  )
 
-  const joinedTwentyFifths = useMemo(() => 
-    POLITICAL_AFFILIATION_OPTIONS.twentyFifth.filter(tf => engagement[tf.id]), 
-  [engagement])
+  const joinedTwentyFifths = useMemo(
+    () =>
+      POLITICAL_AFFILIATION_OPTIONS.twentyFifth.filter(tf => engagement[tf.id]),
+    [engagement],
+  )
 
   return (
     <Layout.Screen testID="myCommunitiesScreen">
@@ -72,23 +105,30 @@ export function MyCommunitiesScreen() {
         style={styles.container}
         contentContainerStyle={styles.content}
         stickyHeaderIndices={[0]}>
-        
         {/* Tab Bar */}
         <View style={[styles.tabBar, t.atoms.bg]}>
           <Layout.Center>
             <View style={styles.tabRow}>
               {(['All', 'Parties', 'Geographic'] as const).map(tab => (
-                <TouchableOpacity accessibilityRole="button"
+                <TouchableOpacity
+                  accessibilityRole="button"
                   key={tab}
                   onPress={() => setActiveTab(tab)}
                   style={[
                     styles.tabItem,
-                    activeTab === tab && {borderBottomColor: t.palette.primary_500}
+                    activeTab === tab && {
+                      borderBottomColor: t.palette.primary_500,
+                    },
                   ]}>
-                  <Text style={[
-                    styles.tabText,
-                    activeTab === tab ? {color: t.palette.primary_500, fontWeight: '800'} : t.atoms.text_contrast_medium
-                  ]}>{tab}</Text>
+                  <Text
+                    style={[
+                      styles.tabText,
+                      activeTab === tab
+                        ? {color: t.palette.primary_500, fontWeight: '800'}
+                        : t.atoms.text_contrast_medium,
+                    ]}>
+                    {tab}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -97,40 +137,57 @@ export function MyCommunitiesScreen() {
 
         <Layout.Center style={styles.mainCenter}>
           {/* ─── PARTIES (p/) ─── */}
-          {(activeTab === 'All' || activeTab === 'Parties') && joinedParties.length > 0 && (
-            <Section title="Parties" prefix="p/">
-              {joinedParties.map(p => (
-                <CommunityCard 
-                  key={p.id} 
-                  affiliation={p} 
-                  engagement={engagement[p.id]} 
-                  onPress={() => navigation.navigate('CommunityProfile', { communityId: p.id, communityName: p.name })}
-                />
-              ))}
-            </Section>
-          )}
+          {(activeTab === 'All' || activeTab === 'Parties') &&
+            joinedParties.length > 0 && (
+              <Section title="Parties" prefix="p/">
+                {joinedParties.map(p => (
+                  <CommunityCard
+                    key={p.id}
+                    affiliation={p}
+                    engagement={engagement[p.id]}
+                    onPress={() =>
+                      navigation.navigate('CommunityProfile', {
+                        communityId: p.id,
+                        communityName: p.name,
+                      })
+                    }
+                  />
+                ))}
+              </Section>
+            )}
 
           {/* ─── GEOGRAPHIC (g/) ─── */}
-          {(activeTab === 'All' || activeTab === 'Geographic') && (joinedNinths.length > 0 || joinedTwentyFifths.length > 0) && (
-            <Section title="Geographic Regions" prefix="g/">
-              {joinedNinths.map(n => (
-                <CommunityCard 
-                  key={n.id} 
-                  affiliation={n} 
-                  engagement={engagement[n.id]} 
-                  onPress={() => navigation.navigate('CommunityProfile', { communityId: n.id, communityName: n.name })}
-                />
-              ))}
-              {joinedTwentyFifths.map(tf => (
-                <CommunityCard 
-                  key={tf.id} 
-                  affiliation={tf} 
-                  engagement={engagement[tf.id]} 
-                  onPress={() => navigation.navigate('CommunityProfile', { communityId: tf.id, communityName: tf.name })}
-                />
-              ))}
-            </Section>
-          )}
+          {(activeTab === 'All' || activeTab === 'Geographic') &&
+            (joinedNinths.length > 0 || joinedTwentyFifths.length > 0) && (
+              <Section title="Geographic Regions" prefix="g/">
+                {joinedNinths.map(n => (
+                  <CommunityCard
+                    key={n.id}
+                    affiliation={n}
+                    engagement={engagement[n.id]}
+                    onPress={() =>
+                      navigation.navigate('CommunityProfile', {
+                        communityId: n.id,
+                        communityName: n.name,
+                      })
+                    }
+                  />
+                ))}
+                {joinedTwentyFifths.map(tf => (
+                  <CommunityCard
+                    key={tf.id}
+                    affiliation={tf}
+                    engagement={engagement[tf.id]}
+                    onPress={() =>
+                      navigation.navigate('CommunityProfile', {
+                        communityId: tf.id,
+                        communityName: tf.name,
+                      })
+                    }
+                  />
+                ))}
+              </Section>
+            )}
 
           {/* Bottom Actions */}
           <View style={styles.footer}>
@@ -143,10 +200,12 @@ export function MyCommunitiesScreen() {
               style={styles.footerButton}>
               <ButtonText>Explore the Compass</ButtonText>
             </Button>
-            <TouchableOpacity accessibilityRole="button" 
+            <TouchableOpacity
+              accessibilityRole="button"
               onPress={() => navigation.navigate('Communities')}
               style={styles.directoryLink}>
-              <Text style={[styles.directoryText, {color: t.palette.primary_500}]}>
+              <Text
+                style={[styles.directoryText, {color: t.palette.primary_500}]}>
                 View global directory →
               </Text>
             </TouchableOpacity>
@@ -157,14 +216,24 @@ export function MyCommunitiesScreen() {
   )
 }
 
-function Section({title, prefix, children}: {title: string; prefix: string; children: React.ReactNode}) {
+function Section({
+  title,
+  prefix,
+  children,
+}: {
+  title: string
+  prefix: string
+  children: React.ReactNode
+}) {
   const t = useTheme()
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, t.atoms.text]}>{title}</Text>
         <View style={[styles.prefixBadge, t.atoms.bg_contrast_25]}>
-          <Text style={[styles.prefixText, t.atoms.text_contrast_medium]}>{prefix}</Text>
+          <Text style={[styles.prefixText, t.atoms.text_contrast_medium]}>
+            {prefix}
+          </Text>
         </View>
       </View>
       <View style={styles.sectionContent}>{children}</View>
@@ -182,32 +251,49 @@ function CommunityCard({
   onPress: () => void
 }) {
   const t = useTheme()
-  
+
   return (
     <TouchableOpacity
       accessibilityRole="button"
       onPress={onPress}
       activeOpacity={0.8}
       style={[styles.card, t.atoms.bg_contrast_25]}>
-      
       <View style={styles.cardMain}>
         <View style={[styles.colorBar, {backgroundColor: affiliation.color}]} />
         <View style={styles.cardBody}>
           <View style={styles.cardHeaderRow}>
-            <Text style={[styles.cardName, t.atoms.text]}>{affiliation.name}</Text>
-            <View style={[styles.rolePill, {backgroundColor: t.palette.primary_500 + '15'}]}>
-              <Text style={[styles.roleText, {color: t.palette.primary_500}]}>{engagement.role}</Text>
+            <Text style={[styles.cardName, t.atoms.text]}>
+              {affiliation.name}
+            </Text>
+            <View
+              style={[
+                styles.rolePill,
+                {backgroundColor: t.palette.primary_500 + '15'},
+              ]}>
+              <Text style={[styles.roleText, {color: t.palette.primary_500}]}>
+                {engagement.role}
+              </Text>
             </View>
           </View>
-          <Text style={[styles.cardUri, t.atoms.text_contrast_medium]}>{engagement.uri}</Text>
-          
+          <Text style={[styles.cardUri, t.atoms.text_contrast_medium]}>
+            {engagement.uri}
+          </Text>
+
           <View style={styles.cardStats}>
             <Text style={[styles.statItem, t.atoms.text_contrast_medium]}>
-              🗳️ <Text style={[t.atoms.text, {fontWeight: '700'}]}>{engagement.activeDeliberations}</Text> active
+              🗳️{' '}
+              <Text style={[t.atoms.text, {fontWeight: '700'}]}>
+                {engagement.activeDeliberations}
+              </Text>{' '}
+              active
             </Text>
             <View style={styles.dotDivider} />
             <Text style={[styles.statItem, t.atoms.text_contrast_medium]}>
-              📢 <Text style={[t.atoms.text, {fontWeight: '700'}]}>{engagement.unseenActivity}</Text> updates
+              📢{' '}
+              <Text style={[t.atoms.text, {fontWeight: '700'}]}>
+                {engagement.unseenActivity}
+              </Text>{' '}
+              updates
             </Text>
           </View>
         </View>
@@ -221,7 +307,7 @@ const styles = StyleSheet.create({
   container: {flex: 1},
   content: {paddingBottom: 60},
   mainCenter: {paddingHorizontal: 16, paddingTop: 16},
-  
+
   // Tabs
   tabBar: {
     borderBottomWidth: 1,

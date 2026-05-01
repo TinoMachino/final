@@ -3,7 +3,7 @@ import {EventEmitter} from 'eventemitter3'
 import {nanoid} from 'nanoid/non-secure'
 
 import {networkRetry} from '#/lib/async/retry'
-import {getDmServiceHeadersForServiceUrl} from '#/lib/constants'
+import {DM_SERVICE_HEADERS} from '#/lib/constants'
 import {
   isErrorMaybeAppPasswordPermissions,
   isNetworkError,
@@ -35,13 +35,10 @@ export class MessagesEventBus {
   private pollInterval = DEFAULT_POLL_INTERVAL
   private requestedPollIntervals: Map<string, number> = new Map()
 
-  private get dmServiceHeaders() {
-    return getDmServiceHeadersForServiceUrl(this.agent.serviceUrl.toString())
-  }
-
   constructor(params: MessagesEventBusParams) {
     this.id = nanoid(3)
     this.agent = params.agent
+
     this.init()
   }
 
@@ -248,7 +245,7 @@ export class MessagesEventBus {
       const response = await networkRetry(2, () => {
         return this.agent.chat.bsky.convo.getLog(
           {},
-          {headers: this.dmServiceHeaders},
+          {headers: DM_SERVICE_HEADERS},
         )
       })
       // throw new Error('UNCOMMENT TO TEST INIT FAILURE')
@@ -265,8 +262,8 @@ export class MessagesEventBus {
       }
 
       this.dispatch({event: MessagesEventBusDispatchEvent.Ready})
-    } catch (e: any) {
-      if (!isNetworkError(e) && !isErrorMaybeAppPasswordPermissions(e)) {
+    } catch (e: unknown) {
+      if (e instanceof Error && !isNetworkError(e) && !isErrorMaybeAppPasswordPermissions(e)) {
         logger.error(`init failed`, {
           safeMessage: e.message,
         })
@@ -346,7 +343,7 @@ export class MessagesEventBus {
           {
             cursor: this.latestRev,
           },
-          {headers: this.dmServiceHeaders},
+          {headers: DM_SERVICE_HEADERS},
         )
       })
 
@@ -380,8 +377,8 @@ export class MessagesEventBus {
       if (needsEmit) {
         this.emitter.emit('event', {type: 'logs', logs: batch})
       }
-    } catch (e: any) {
-      if (!isNetworkError(e) && !isErrorMaybeAppPasswordPermissions(e)) {
+    } catch (e: unknown) {
+      if (e instanceof Error && !isNetworkError(e) && !isErrorMaybeAppPasswordPermissions(e)) {
         logger.error(`poll events failed`, {
           safeMessage: e.message,
         })

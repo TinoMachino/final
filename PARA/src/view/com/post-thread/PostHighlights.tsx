@@ -51,9 +51,7 @@ export function PostHighlights({uri}: {uri: string}) {
         isError={Boolean(resolveError)}
         emptyType="results"
         emptyTitle={_(msg`No highlights yet`)}
-        emptyMessage={_(
-          msg`There are no highlights on this post yet.`,
-        )}
+        emptyMessage={_(msg`There are no highlights on this post yet.`)}
         errorMessage={String(resolveError)}
         sideBorders={false}
         topBorder={false}
@@ -75,10 +73,19 @@ export function PostHighlights({uri}: {uri: string}) {
             index !== 0 && [a.border_t, t.atoms.border_contrast_low],
           ]}>
           <View style={[a.gap_xs]}>
-            <View style={[a.flex_row, a.align_center, a.justify_between, a.gap_sm]}>
-              <View style={[a.flex_row, a.align_center, a.gap_sm, a.flex_wrap, a.flex_1]}>
+            <View
+              style={[a.flex_row, a.align_center, a.justify_between, a.gap_sm]}>
+              <View
+                style={[
+                  a.flex_row,
+                  a.align_center,
+                  a.gap_sm,
+                  a.flex_wrap,
+                  a.flex_1,
+                ]}>
                 {item.tag ? (
-                  <Text style={[a.text_sm, a.font_semi_bold, {color: item.color}]}>
+                  <Text
+                    style={[a.text_sm, a.font_semi_bold, {color: item.color}]}>
                     #{item.tag}
                   </Text>
                 ) : null}

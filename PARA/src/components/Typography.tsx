@@ -91,7 +91,9 @@ export function P({style, ...rest}: TextProps) {
     web({
       role: 'paragraph',
     }) || {}
-  return <Text {...attr} {...rest} style={[a.text_md, a.leading_relaxed, style]} />
+  return (
+    <Text {...attr} {...rest} style={[a.text_md, a.leading_relaxed, style]} />
+  )
 }
 
 const numberOfLinesClippingFix = {

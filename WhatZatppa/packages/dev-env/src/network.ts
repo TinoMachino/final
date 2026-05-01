@@ -149,7 +149,7 @@ export class TestNetwork extends TestNetworkNoAppView {
     return new TestNetwork(plc, pds, bsky, ozone, introspect)
   }
 
-  async processFullSubscription(timeout = 5000) {
+  async processFullSubscription(timeout = 60000) {
     const sub = this.bsky.sub
     const start = Date.now()
     const lastSeq = await this.pds.ctx.sequencer.curr()

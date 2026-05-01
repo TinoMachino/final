@@ -392,10 +392,7 @@ function Btn({
         </View>
       ) : hasNew ? (
         <View
-          style={[
-            styles.hasNewBadge,
-            {backgroundColor: t.palette.primary_500},
-          ]}
+          style={[styles.hasNewBadge, {backgroundColor: t.palette.primary_500}]}
         />
       ) : null}
     </PressableScale>

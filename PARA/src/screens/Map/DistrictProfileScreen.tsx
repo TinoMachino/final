@@ -57,7 +57,9 @@ function generatePartyBreakdown(district: ElectoralDistrict) {
   results.push({party: district.dominantParty, pct: dominantPct})
   remaining -= dominantPct
 
-  const others = parties.filter(party => party !== district.dominantParty).slice(0, 4)
+  const others = parties
+    .filter(party => party !== district.dominantParty)
+    .slice(0, 4)
   for (let index = 0; index < others.length; index++) {
     const isLast = index === others.length - 1
     const nextPct = isLast
@@ -203,8 +205,7 @@ export function DistrictProfileScreen({navigation, route}: Props) {
                 ]}>
                 DISTRITO ELECTORAL FEDERAL
               </Text>
-              <Text
-                style={[a.text_3xl, a.font_bold, t.atoms.text, a.mb_2xs]}>
+              <Text style={[a.text_3xl, a.font_bold, t.atoms.text, a.mb_2xs]}>
                 {district.displayName}
               </Text>
               <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
@@ -660,11 +661,7 @@ function ActivitySection<T>({
   )
 }
 
-function CabildeoPreviewCard({
-  item,
-}: {
-  item: DistrictScopedCabildeoRecord
-}) {
+function CabildeoPreviewCard({item}: {item: DistrictScopedCabildeoRecord}) {
   const t = useTheme()
   return (
     <View
@@ -680,12 +677,7 @@ function CabildeoPreviewCard({
           {item.title}
         </Text>
         <View
-          style={[
-            a.px_sm,
-            a.py_xs,
-            a.rounded_full,
-            t.atoms.bg_contrast_100,
-          ]}>
+          style={[a.px_sm, a.py_xs, a.rounded_full, t.atoms.bg_contrast_100]}>
           <Text style={[a.text_2xs, a.font_bold, t.atoms.text]}>
             {item.phase}
           </Text>
@@ -714,12 +706,7 @@ function RaqPreviewCard({item}: {item: DistrictRaqRecord}) {
           {item.title}
         </Text>
         <View
-          style={[
-            a.px_sm,
-            a.py_xs,
-            a.rounded_full,
-            t.atoms.bg_contrast_100,
-          ]}>
+          style={[a.px_sm, a.py_xs, a.rounded_full, t.atoms.bg_contrast_100]}>
           <Text style={[a.text_2xs, a.font_bold, t.atoms.text]}>
             {item.status}
           </Text>

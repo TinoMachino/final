@@ -71,7 +71,7 @@ export function usePinnedPostMutation() {
             `author|${currentAccount.did}|posts_with_replies`,
           ),
         })
-      } catch (e: any) {
+      } catch (e: unknown) {
         Toast.show(_(msg`Failed to pin post`))
         logger.error('Failed to pin post', {message: String(e)})
         // revert optimistic update

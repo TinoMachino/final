@@ -1,0 +1,23 @@
+yarn run v1.22.22
+$ /Users/mlv/Desktop/MASTER/mvp/PARA/node_modules/.bin/eslint --quiet src
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/components/BaseFilterControls.tsx
+  267:7  error  has accessibilityLabel prop but no accessibilityHint  react-native-a11y/has-accessibility-hint
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Base/CompassScreen.tsx
+  401:10  error  'i18n' is assigned a value but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+  430:10  error  '_' is assigned a value but never used. Allowed unused vars must match /^_.+/u     @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Communities/AcuerdoListScreen.tsx
+  11:9   error  'useLingui' is defined but never used. Allowed unused vars must match /^_.+/u       @typescript-eslint/no-unused-vars
+  13:9   error  'useNavigation' is defined but never used. Allowed unused vars must match /^_.+/u   @typescript-eslint/no-unused-vars
+  15:14  error  'NavigationProp' is defined but never used. Allowed unused vars must match /^_.+/u  @typescript-eslint/no-unused-vars
+
+/Users/mlv/Desktop/MASTER/mvp/PARA/src/screens/Settings/NotificationSettings/index.tsx
+  1:1  error  Run autofix to sort these imports!  simple-import-sort/imports
+
+✖ 7 problems (7 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

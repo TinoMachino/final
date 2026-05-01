@@ -16,7 +16,7 @@ type WheelPickerProps = {
   items: string[]
   selectedValue: string
   onValueChange: (value: string) => void
-  theme: any
+  theme: Theme
   visibleRowCount?: 3 | 5
 }
 
@@ -70,7 +70,7 @@ export function WheelPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedValue, items])
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y
     const index = getIndexFromOffset(y)
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1))
@@ -101,13 +101,17 @@ export function WheelPicker({
     }
   }
 
-  const handleScrollEndDrag = (event: any) => {
+  const handleScrollEndDrag = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
     const y = event.nativeEvent.contentOffset.y
     const index = getIndexFromOffset(y)
     settleToIndex(index)
   }
 
-  const handleMomentumEnd = (event: any) => {
+  const handleMomentumEnd = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
     if (isProgrammaticScroll.current) {
       isProgrammaticScroll.current = false
       return

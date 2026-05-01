@@ -172,7 +172,10 @@ export function VotingButtonHorizontal({
               style={[
                 styles.tick,
                 tick === 0 && styles.tickCenter,
-                {backgroundColor: tick === 0 ? t.palette.contrast_200 : tickColor},
+                {
+                  backgroundColor:
+                    tick === 0 ? t.palette.contrast_200 : tickColor,
+                },
               ]}
             />
           ))}
@@ -191,7 +194,9 @@ export function VotingButtonHorizontal({
       </GestureDetector>
 
       {/* Neutral hint (fades out when voted) */}
-      <Animated.View style={[styles.neutralHint, labelStyle]} pointerEvents="none">
+      <Animated.View
+        style={[styles.neutralHint, labelStyle]}
+        pointerEvents="none">
         <Text style={[styles.neutralLabel, t.atoms.text_contrast_low]}>
           NEUTRAL
         </Text>

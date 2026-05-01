@@ -47,8 +47,8 @@ export function StepSuggestedStarterpacks() {
       </OnboardingTitleText>
       <OnboardingDescriptionText>
         <Trans>
-          Starter packs help you enter PARA through real clusters of people,
-          not a cold empty timeline.
+          Starter packs help you enter PARA through real clusters of people, not
+          a cold empty timeline.
         </Trans>
       </OnboardingDescriptionText>
 

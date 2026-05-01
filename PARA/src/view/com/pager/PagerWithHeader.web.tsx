@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import {type ScrollView, View} from 'react-native'
-import {useAnimatedRef} from 'react-native-reanimated'
+import {type SharedValue, useAnimatedRef} from 'react-native-reanimated'
 
 import {
   Pager,
@@ -162,8 +162,11 @@ let PagerTabBar = ({
           selectedPage={currentPage}
           onSelect={onSelect}
           onPressSelected={onCurrentPageSelected}
-          dragProgress={undefined as any /* native-only */}
-          dragState={undefined as any /* native-only */}
+          dragProgress={undefined as unknown as SharedValue<number> /* native-only */}
+          dragState={
+            undefined as unknown as SharedValue<'idle' | 'dragging' | 'settling'>
+            /* native-only */
+          }
         />
       </Layout.Center>
     </>

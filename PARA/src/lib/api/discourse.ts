@@ -39,12 +39,14 @@ export class DiscourseAPI {
       community: params.community,
       timeframe: params.timeframe,
     })
-    return (res.data as {sentiment?: SentimentDistribution}).sentiment ?? {
-      anger: 0,
-      fear: 0,
-      trust: 0,
-      uncertainty: 0,
-      neutral: 100,
-    }
+    return (
+      (res.data as {sentiment?: SentimentDistribution}).sentiment ?? {
+        anger: 0,
+        fear: 0,
+        trust: 0,
+        uncertainty: 0,
+        neutral: 100,
+      }
+    )
   }
 }

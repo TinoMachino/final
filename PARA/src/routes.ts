@@ -138,4 +138,6 @@ export const router = new Router<AllNavigatableRoutes>({
   DistrictProfile: '/districts/:districtId',
   Map: '/map',
   Compass: '/compass',
+  MyCommunities: '/my-communities',
+  MyRAQ: '/raq/my',
 })

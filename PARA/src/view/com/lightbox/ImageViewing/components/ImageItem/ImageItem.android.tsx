@@ -467,7 +467,7 @@ function clampTranslation(
   return clampedValue
 }
 
-function withClampedSpring(value: any) {
+function withClampedSpring(value: TransformMatrix) {
   'worklet'
   return withSpring(value, {overshootClamping: true})
 }

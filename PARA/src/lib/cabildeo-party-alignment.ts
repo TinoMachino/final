@@ -33,9 +33,7 @@ export type AlignedParty = {
  * Returns the most-aligned party for a given cabildeo.
  * Deterministic — same cabildeo always returns same party.
  */
-export function getCabildeoAlignedParty(
-  cabildeo: CabildeoView,
-): AlignedParty {
+export function getCabildeoAlignedParty(cabildeo: CabildeoView): AlignedParty {
   const hash = hashString(cabildeo.uri)
   const idx = hash % PARTIES.length
   return PARTIES[idx]

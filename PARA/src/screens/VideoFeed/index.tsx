@@ -21,7 +21,7 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context'
-import {useEvent,useEventListener} from 'expo'
+import {useEvent, useEventListener} from 'expo'
 import {Image, type ImageStyle} from 'expo-image'
 import {LinearGradient} from 'expo-linear-gradient'
 import {createVideoPlayer, type VideoPlayer, VideoView} from 'expo-video'
@@ -66,8 +66,9 @@ import {
 import {useProfileShadow} from '#/state/cache/profile-shadow'
 import {
   FeedFeedbackProvider,
-useFeedFeedback,
-  useFeedFeedbackContext} from '#/state/feed-feedback'
+  useFeedFeedback,
+  useFeedFeedbackContext,
+} from '#/state/feed-feedback'
 import {useFeedInfo} from '#/state/queries/feed'
 import {usePostLikeMutationQueue} from '#/state/queries/post'
 import {
@@ -192,9 +193,7 @@ function Feed() {
       case 'feedgen':
         return `feedgen|${params.uri}` as const
       case 'author':
-        return `author|${params.did}|${
-          params.filter
-        }` as const
+        return `author|${params.did}|${params.filter}` as const
       default:
         throw new Error(`Invalid video feed params ${JSON.stringify(params)}`)
     }

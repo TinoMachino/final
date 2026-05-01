@@ -11,7 +11,7 @@ import {ShieldCheck_Stroke2_Corner0_Rounded as Shield} from '#/components/icons/
 import {TimesLarge_Stroke2_Corner0_Rounded as X} from '#/components/icons/Times'
 import {Link} from '#/components/Link'
 import {Text} from '#/components/Typography'
-import {logger,useAgeAssurance} from '#/ageAssurance'
+import {logger, useAgeAssurance} from '#/ageAssurance'
 
 export function useInternalState() {
   const aa = useAgeAssurance()

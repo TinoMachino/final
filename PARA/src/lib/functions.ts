@@ -18,7 +18,7 @@ export function dedupArray<T>(arr: T[]): T[] {
  * If not, it will replace any deeply equal children of `b` with those of `a`.
  * This can be used for structural sharing between JSON values for example.
  */
-export function replaceEqualDeep(a: any, b: any): any {
+export function replaceEqualDeep(a: unknown, b: unknown): unknown {
   if (a === b) {
     return a
   }
@@ -34,7 +34,7 @@ export function replaceEqualDeep(a: any, b: any): any {
     const aSize = aItems.length
     const bItems = array ? b : Object.keys(b)
     const bSize = bItems.length
-    const copy: any = array ? [] : {}
+    const copy: Record<string, unknown> = array ? [] : {}
 
     let equalItems = 0
 
@@ -67,7 +67,7 @@ export function isPlainArray(value: unknown) {
 }
 
 // Copied from: https://github.com/jonschlinkert/is-plain-object
-export function isPlainObject(o: any): o is object {
+export function isPlainObject(o: unknown): o is object {
   if (!hasObjectPrototype(o)) {
     return false
   }
@@ -93,6 +93,6 @@ export function isPlainObject(o: any): o is object {
   return true
 }
 
-function hasObjectPrototype(o: any): boolean {
+function hasObjectPrototype(o: unknown): boolean {
   return Object.prototype.toString.call(o) === '[object Object]'
 }

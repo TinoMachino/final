@@ -525,8 +525,8 @@ export function FollowButtonInner({
       )
       onPressProp?.(e)
       onFollow?.()
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if ((err as {name?: string})?.name !== 'AbortError') {
         Toast.show(_(msg`An issue occurred, please try again.`), {
           type: 'error',
         })
@@ -548,8 +548,8 @@ export function FollowButtonInner({
         ),
       )
       onPressProp?.(e)
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if ((err as {name?: string})?.name !== 'AbortError') {
         Toast.show(_(msg`An issue occurred, please try again.`), {
           type: 'error',
         })

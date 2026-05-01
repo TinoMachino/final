@@ -16,7 +16,7 @@ import {CheckThick_Stroke2_Corner0_Rounded as SuccessIcon} from '#/components/ic
 import {CircleInfo_Stroke2_Corner0_Rounded as ErrorIcon} from '#/components/icons/CircleInfo'
 import {Loader} from '#/components/Loader'
 import {Text} from '#/components/Typography'
-import {logger,refetchAgeAssuranceServerState} from '#/ageAssurance'
+import {logger, refetchAgeAssuranceServerState} from '#/ageAssurance'
 import {IS_NATIVE} from '#/env'
 
 export type AgeAssuranceRedirectDialogState = {

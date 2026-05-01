@@ -32,7 +32,6 @@ export const DEFAULT_SERVICE =
 export const IS_LOCAL_DEV_MODE = DEFAULT_SERVICE === LOCAL_DEV_SERVICE
 export const DEV_ENV_APPVIEW = `http://${LOCAL_DEV_IP}:2584` // always the same
 export const DEV_ENV_APPVIEW_DID = `did:plc:dw4kbjf5mn7nhenabiqpkyh3` // always the same
-const HELP_DESK_LANG = 'en-us'
 export const HELP_DESK_URL = `https://para.social/support`
 export const EMBED_SERVICE = 'https://embed.bsky.app'
 export const EMBED_SCRIPT = `${EMBED_SERVICE}/static/embed.js`
@@ -256,7 +255,8 @@ export function isDiscoverFeedUri(uri?: string | null) {
   return Boolean(
     uri &&
       (uri === DISCOVER_FEED_URI ||
-        (DEFAULT_DISCOVER_FEED_URI !== null && uri === DEFAULT_DISCOVER_FEED_URI)),
+        (DEFAULT_DISCOVER_FEED_URI !== null &&
+          uri === DEFAULT_DISCOVER_FEED_URI)),
   )
 }
 

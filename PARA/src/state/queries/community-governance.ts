@@ -96,7 +96,10 @@ export function useCommunityGovernanceMutation({
         repo: currentAccount.did,
         collection: PARA_COMMUNITY_GOVERNANCE_COLLECTION,
         rkey: communityGovernanceRkey(communityName),
-        record: createCommunityGovernanceRecord(next) as any,
+        record: createCommunityGovernanceRecord(next) as Record<
+          string,
+          unknown
+        >,
       })
 
       return {
@@ -177,7 +180,12 @@ export function applyForDeputyRole(
     deputies: governance.deputies.map(role => {
       if (role.key !== roleKey) return role
       // Avoid duplicate applications
-      if (role.applicants.some(existing => applicantIdentity(existing) === applicantIdentity(applicant))) {
+      if (
+        role.applicants.some(
+          existing =>
+            applicantIdentity(existing) === applicantIdentity(applicant),
+        )
+      ) {
         return role
       }
       return {

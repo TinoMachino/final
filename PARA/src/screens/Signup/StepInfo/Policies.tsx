@@ -1,4 +1,4 @@
-import {type ReactElement} from 'react'
+import {type ReactNode} from 'react'
 import {View} from 'react-native'
 import {type ComAtprotoServerDescribeServer} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
@@ -37,7 +37,7 @@ export const Policies = ({
     )
   }
 
-  let els: ReactElement<any>
+  let els: ReactNode
   if (tos && pp) {
     els = (
       <Trans>

@@ -72,7 +72,7 @@ export function NotificationFeed({
     !isFetching && !data?.pages.find(page => page.items.length > 0)
 
   const items = useMemo(() => {
-    let arr: any[] = []
+    let arr: unknown[] = []
     if (isFetched) {
       if (isEmpty) {
         arr = arr.concat([EMPTY_FEED_ITEM])
@@ -118,7 +118,7 @@ export function NotificationFeed({
   }, [fetchNextPage])
 
   const renderItem = useCallback(
-    ({item, index}: ListRenderItemInfo<any>) => {
+    ({item, index}: ListRenderItemInfo<unknown>) => {
       if (item === EMPTY_FEED_ITEM) {
         return (
           <EmptyState

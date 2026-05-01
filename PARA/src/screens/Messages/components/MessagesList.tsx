@@ -374,10 +374,7 @@ export function MessagesList({
       return (
         <MessageItem
           item={item}
-          profile={convoState.convo.members.find(
-            member => member.did === item.message.sender.did,
-          )}
-          isGroupChat={convoState.isGroup()}
+          isGroupChat={convoState.convo.kind === 'group'}
         />
       )
     } else if (item.type === 'deleted-message') {
@@ -423,7 +420,7 @@ export function MessagesList({
         style={[a.flex_1]}>
         {/* Custom scroll provider so that we can use the `onScroll` event in our custom List implementation */}
         <ScrollProvider onScroll={onScroll}>
-          <List
+          <List<ConvoItem>
             ref={flatListRef}
             data={convoState.items}
             renderItem={renderItem}
@@ -446,8 +443,8 @@ export function MessagesList({
             ListHeaderComponent={
               <>
                 <MaybeLoader isLoading={convoState.isFetchingHistory} />
-                {convoState.isGroup() && convoState.hasAllHistory ? (
-                  <MessagesListInfoPanel convoState={convoState} />
+                {convoState.convo.kind === 'group' && convoState.hasAllHistory ? (
+                  <MessagesListInfoPanel convo={convoState.convo} />
                 ) : null}
               </>
             }
@@ -531,7 +528,7 @@ function ChatScrollComponent({
   ref?: React.RefObject<KeyboardAwareScrollViewRef>
   inputHeight: SharedValue<number>
 }) {
-  const scrollEdgeRef = useRef<any>(null)
+  const scrollEdgeRef = useRef<View>(null)
   const {bottom: bottomInset} = useSafeAreaInsets()
 
   const offset = platform({
@@ -566,7 +563,7 @@ function getFooterState(
     }
   }
 
-  if (convoState.convo.status === 'request' && !hasAcceptOverride) {
+  if (convoState.convo.view.status === 'request' && !hasAcceptOverride) {
     return 'request'
   }
 

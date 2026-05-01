@@ -12,7 +12,7 @@ interface ImageLayoutGridProps {
   images: AppBskyEmbedImages.ViewImage[]
   onPress?: (
     index: number,
-    containerRefs: AnimatedRef<any>[],
+    containerRefs: AnimatedRef<View>[],
     fetchedDims: (Dimensions | null)[],
   ) => void
   onLongPress?: (index: number) => void
@@ -43,7 +43,7 @@ interface ImageLayoutGridInnerProps {
   images: AppBskyEmbedImages.ViewImage[]
   onPress?: (
     index: number,
-    containerRefs: AnimatedRef<any>[],
+    containerRefs: AnimatedRef<View>[],
     fetchedDims: (Dimensions | null)[],
   ) => void
   onLongPress?: (index: number) => void

@@ -1,4 +1,3 @@
-import React from 'react'
 import {View} from 'react-native'
 import Svg, {G, Path, Text as SvgText} from 'react-native-svg'
 
@@ -75,7 +74,8 @@ export function PieChart({
 
   if (slices.length === 0) {
     return (
-      <View style={[a.align_center, a.justify_center, {width: size, height: size}]}>
+      <View
+        style={[a.align_center, a.justify_center, {width: size, height: size}]}>
         <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>—</Text>
       </View>
     )

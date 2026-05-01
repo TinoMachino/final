@@ -588,7 +588,8 @@ export const MOCK_DISTRICT_RAQS: DistrictRaqRecord[] = [
   },
   {
     id: 'raq-oaxaca-2-land-rights',
-    title: '¿Cómo debería verificarse el consentimiento comunitario en proyectos extractivos?',
+    title:
+      '¿Cómo debería verificarse el consentimiento comunitario en proyectos extractivos?',
     summary:
       'Organizaciones territoriales proponen observadores independientes, actas públicas y vetos vinculantes.',
     stateName: 'Oaxaca',
@@ -646,7 +647,15 @@ export const MOCK_CABILDEO_POSITIONS: CabildeoPositionRecord[] = [
   },
 ]
 
-export const STATE_DEMOGRAPHICS: Record<string, { dominantParty: string; leadingCommunity: string; approval: string; active: string }> = {
+export const STATE_DEMOGRAPHICS: Record<
+  string,
+  {
+    dominantParty: string
+    leadingCommunity: string
+    approval: string
+    active: string
+  }
+> = {
   Jalisco: {
     dominantParty: 'MC',
     leadingCommunity: 'p/Jalisco',
@@ -677,7 +686,7 @@ export const STATE_DEMOGRAPHICS: Record<string, { dominantParty: string; leading
     approval: '54%',
     active: '1.6M',
   },
-  'México': {
+  México: {
     dominantParty: 'Morena',
     leadingCommunity: 'p/Edomex',
     approval: '54%',
@@ -700,5 +709,5 @@ export const STATE_DEMOGRAPHICS: Record<string, { dominantParty: string; leading
     leadingCommunity: 'p/Mexico',
     approval: '42%',
     active: '1.2M',
-  }
+  },
 }

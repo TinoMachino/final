@@ -1,6 +1,5 @@
 import {useCallback, useMemo, useState} from 'react'
 import {
-  type NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,7 +8,6 @@ import {
   View,
 } from 'react-native'
 import {LinearGradient} from 'expo-linear-gradient'
-import {type AppBskyFeedDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
@@ -18,17 +16,15 @@ import {useNavigation, useRoute} from '@react-navigation/native'
 import {getCommunityInsignia} from '#/lib/civic-insignias'
 import {
   canManageGovernance,
+  type CommunityGovernanceApplicant,
   communityGovernanceHandleLabel,
   type CommunityGovernanceView,
   getModeratorCapabilities,
   isCommunityModerator,
 } from '#/lib/community-governance'
 import {type NavigationProp} from '#/lib/routes/types'
-import {
-  buildCommunitySearchQuery,
-  formatCommunityName,
-} from '#/lib/strings/community-names'
-import {cleanError} from '#/lib/strings/errors'
+import {formatCommunityName} from '#/lib/strings/community-names'
+import {useCommunityMembersQuery} from '#/state/queries/community-boards'
 import {
   applyForDeputyRole,
   publishDeputySelection,
@@ -37,7 +33,7 @@ import {
   useCommunityGovernanceQuery,
 } from '#/state/queries/community-governance'
 import {useSession} from '#/state/session'
-import {Text} from '#/view/com/util/text/Text'
+import {PreviewableUserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useTheme} from '#/alf'
 import {At_Stroke2_Corner0_Rounded as AtIcon} from '#/components/icons/At'
 import {Group3_Stroke2_Corner0_Rounded as GroupIcon} from '#/components/icons/Group'
@@ -45,7 +41,8 @@ import {Person_Stroke2_Corner0_Rounded as PersonIcon} from '#/components/icons/P
 import {Shield_Stroke2_Corner0_Rounded as ShieldIcon} from '#/components/icons/Shield'
 import {Verified_Stroke2_Corner2_Rounded as VerifiedIcon} from '#/components/icons/Verified'
 import * as Layout from '#/components/Layout'
-import {ListFooter, ListMaybePlaceholder} from '#/components/Lists'
+import {ListMaybePlaceholder} from '#/components/Lists'
+import {Text} from '#/components/Typography'
 
 type CommunityRolesParams = {
   communityId: string
@@ -62,8 +59,30 @@ const EMPTY_GOVERNANCE: CommunityGovernanceView = {
   moderators: [],
   officials: [],
   deputies: [],
-  metadata: undefined,
   editHistory: [],
+}
+
+interface BadgeSection {
+  badge: {
+    key: string
+    label: string
+    color: string
+    bgColor: string
+  }
+  description: string
+  holders: {
+    author: {
+      did: string
+      handle: string
+      displayName?: string
+      avatar?: string
+      associated?: {
+        labeler?: boolean
+      }
+    }
+    count: number
+    latestIndexedAt: string
+  }[]
 }
 
 export function CommunityRolesScreen() {
@@ -121,16 +140,6 @@ export function CommunityRolesScreen() {
   const canEditGovernance = canManageGovernance(governance, viewerDid)
   const moderatorCapabilities = getModeratorCapabilities(governance, viewerDid)
 
-  const resolvedCommunityName = governanceCommunity || communityName
-  const insigniaColors = getCommunityInsignia(resolvedCommunityName)
-  const brandColor = insigniaColors[0] || '#6366f1'
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r},${g},${b},${alpha})`
-  }
-
   const governanceStats = {
     moderators: governance.moderators.length,
     officials: governance.officials.length,
@@ -149,7 +158,7 @@ export function CommunityRolesScreen() {
     await refetchGovernance()
     setIsPTR(false)
   }, [refetchGovernance])
-  
+
   const onPullToRefresh = useCallback(() => {
     void onRefresh()
   }, [onRefresh])
@@ -277,11 +286,89 @@ export function CommunityRolesScreen() {
           handle: currentAccount.handle,
           status: 'applied',
           appliedAt: new Date().toISOString(),
-        } as any,
+        } as CommunityGovernanceApplicant,
         viewerDid || '',
         viewerHandle,
       ),
     )
+  }
+
+  const {data: membersData} = useCommunityMembersQuery({
+    communityId,
+    sort: 'participation',
+    limit: 50,
+  })
+
+  const badgeSections = useMemo(() => {
+    const members = membersData?.members ?? []
+    const sections: BadgeSection[] = []
+
+    const policyExperts = members
+      .filter(m => m.policyPosts > 0)
+      .map(m => ({
+        author: {
+          did: m.did,
+          handle: m.handle || '',
+          displayName: m.displayName,
+          avatar: m.avatar,
+        },
+        count: m.policyPosts,
+        latestIndexedAt: m.joinedAt || new Date().toISOString(),
+      }))
+      .sort((a, b) => b.count - a.count)
+
+    if (policyExperts.length > 0) {
+      sections.push({
+        badge: {
+          key: 'policy-expert',
+          label: 'Policy Expert',
+          color: '#474652',
+          bgColor: '#47465220',
+        },
+        description:
+          'Members who have contributed significant policy proposals or analysis to the community governance records.',
+        holders: policyExperts,
+      })
+    }
+
+    const matterExperts = members
+      .filter(m => m.matterPosts > 0)
+      .map(m => ({
+        author: {
+          did: m.did,
+          handle: m.handle || '',
+          displayName: m.displayName,
+          avatar: m.avatar,
+        },
+        count: m.matterPosts,
+        latestIndexedAt: m.joinedAt || new Date().toISOString(),
+      }))
+      .sort((a, b) => b.count - a.count)
+
+    if (matterExperts.length > 0) {
+      sections.push({
+        badge: {
+          key: 'matter-expert',
+          label: 'Matter Expert',
+          color: '#6B7280',
+          bgColor: '#6B728020',
+        },
+        description:
+          'Members who actively track, report, and provide evidence for community-driven matters and incident threads.',
+        holders: matterExperts,
+      })
+    }
+
+    return sections
+  }, [membersData])
+
+  const brandColor =
+    getCommunityInsignia(governanceCommunity || communityName)[0] || '#6366f1'
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r},${g},${b},${alpha})`
   }
 
   return (
@@ -320,8 +407,16 @@ export function CommunityRolesScreen() {
           <LinearGradient
             colors={
               t.scheme === 'dark'
-                ? [hexToRgba(brandColor, 0.22), hexToRgba(brandColor, 0.06), 'transparent']
-                : [hexToRgba(brandColor, 0.14), hexToRgba(brandColor, 0.04), 'transparent']
+                ? [
+                    hexToRgba(brandColor, 0.22),
+                    hexToRgba(brandColor, 0.06),
+                    'transparent',
+                  ]
+                : [
+                    hexToRgba(brandColor, 0.14),
+                    hexToRgba(brandColor, 0.04),
+                    'transparent',
+                  ]
             }
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
@@ -334,35 +429,69 @@ export function CommunityRolesScreen() {
                 Governance & Community Directory
               </Text>
 
-              {/* Top Stats Grid */}
               <View style={styles.topStatsRow}>
                 <View
                   style={[
                     styles.topStatCard,
-                    {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.12) : hexToRgba(brandColor, 0.10)},
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.12)
+                          : hexToRgba(brandColor, 0.1),
+                    },
                   ]}>
-                  <Text style={[styles.topStatCount, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
+                  <Text
+                    style={[
+                      styles.topStatCount,
+                      {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
+                    ]}>
                     {governanceStats.moderators + governanceStats.officials}
                   </Text>
                   <Text
-                    style={[styles.topStatLabel, {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.6)}]}>
+                    style={[
+                      styles.topStatLabel,
+                      {
+                        color:
+                          t.scheme === 'dark'
+                            ? 'rgba(255,255,255,0.5)'
+                            : hexToRgba(brandColor, 0.6),
+                      },
+                    ]}>
                     Executives
                   </Text>
                 </View>
                 <View
                   style={[
                     styles.topStatCard,
-                    {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.12) : hexToRgba(brandColor, 0.10)},
+                    {
+                      backgroundColor:
+                        t.scheme === 'dark'
+                          ? hexToRgba(brandColor, 0.12)
+                          : hexToRgba(brandColor, 0.1),
+                    },
                   ]}>
-                  <Text style={[styles.topStatCount, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
-                    {governanceStats.moderators + governanceStats.officials + governanceStats.deputyRoles}
+                  <Text
+                    style={[
+                      styles.topStatCount,
+                      {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
+                    ]}>
+                    {governanceStats.moderators +
+                      governanceStats.officials +
+                      governanceStats.deputyRoles}
                   </Text>
                   <Text
-                    style={[styles.topStatLabel, {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.6)}]}>
+                    style={[
+                      styles.topStatLabel,
+                      {
+                        color:
+                          t.scheme === 'dark'
+                            ? 'rgba(255,255,255,0.5)'
+                            : hexToRgba(brandColor, 0.6),
+                      },
+                    ]}>
                     Executives & Deputies
                   </Text>
                 </View>
-
               </View>
             </View>
           </LinearGradient>
@@ -397,7 +526,12 @@ export function CommunityRolesScreen() {
             <View style={[a.mt_md]}>
               <View style={[a.flex_row, a.align_center, a.gap_sm, a.mb_sm]}>
                 <ShieldIcon size="sm" style={t.atoms.text_contrast_medium} />
-                <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+                <Text
+                  style={[
+                    a.text_sm,
+                    a.font_bold,
+                    t.atoms.text_contrast_medium,
+                  ]}>
                   TIER 1: MODERATORS
                 </Text>
               </View>
@@ -464,9 +598,11 @@ export function CommunityRolesScreen() {
               ))}
             </View>
 
-            <View style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
+            <View
+              style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
               <VerifiedIcon size="sm" style={{color: t.palette.primary_600}} />
-              <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+              <Text
+                style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
                 TIER 2: EXECUTIVE OFFICIALS
               </Text>
             </View>
@@ -532,9 +668,11 @@ export function CommunityRolesScreen() {
               ))}
             </View>
 
-            <View style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
+            <View
+              style={[a.flex_row, a.align_center, a.gap_sm, a.mt_xl, a.mb_sm]}>
               <AtIcon size="sm" style={{color: t.palette.primary_600}} />
-              <Text style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
+              <Text
+                style={[a.text_sm, a.font_bold, t.atoms.text_contrast_medium]}>
                 TIER 3: DEPUTIES
               </Text>
             </View>
@@ -552,7 +690,12 @@ export function CommunityRolesScreen() {
                       <Text
                         style={[
                           styles.deputyTier,
-                          {color: t.scheme === 'dark' ? 'rgba(255,255,255,0.5)' : hexToRgba(brandColor, 0.7)},
+                          {
+                            color:
+                              t.scheme === 'dark'
+                                ? 'rgba(255,255,255,0.5)'
+                                : hexToRgba(brandColor, 0.7),
+                          },
                         ]}>
                         {role.tier}
                       </Text>
@@ -563,7 +706,12 @@ export function CommunityRolesScreen() {
                     <View
                       style={[
                         styles.roleBadge,
-                        {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.15) : hexToRgba(brandColor, 0.1)},
+                        {
+                          backgroundColor:
+                            t.scheme === 'dark'
+                              ? hexToRgba(brandColor, 0.15)
+                              : hexToRgba(brandColor, 0.1),
+                        },
                       ]}>
                       <Text
                         style={[
@@ -579,7 +727,16 @@ export function CommunityRolesScreen() {
                     <View
                       style={[
                         styles.metricCard,
-                        {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.03)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_100},
+                        {
+                          backgroundColor:
+                            t.scheme === 'dark'
+                              ? 'rgba(255,255,255,0.03)'
+                              : t.palette.contrast_25,
+                          borderColor:
+                            t.scheme === 'dark'
+                              ? 'rgba(255,255,255,0.05)'
+                              : t.palette.contrast_100,
+                        },
                       ]}>
                       <Text
                         style={[
@@ -589,15 +746,25 @@ export function CommunityRolesScreen() {
                         holder
                       </Text>
                       <Text style={[styles.metricValue, t.atoms.text]}>
-                        {role.role.toLowerCase().includes('agent') || role.role.toLowerCase().includes('delegate') 
-                          ? 'AI Agent (Predefined)' 
+                        {role.role.toLowerCase().includes('agent') ||
+                        role.role.toLowerCase().includes('delegate')
+                          ? 'AI Agent (Predefined)'
                           : communityGovernanceHandleLabel(role.activeHolder)}
                       </Text>
                     </View>
                     <View
                       style={[
                         styles.metricCard,
-                        {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.03)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_100},
+                        {
+                          backgroundColor:
+                            t.scheme === 'dark'
+                              ? 'rgba(255,255,255,0.03)'
+                              : t.palette.contrast_25,
+                          borderColor:
+                            t.scheme === 'dark'
+                              ? 'rgba(255,255,255,0.05)'
+                              : t.palette.contrast_100,
+                        },
                       ]}>
                       <Text
                         style={[
@@ -625,7 +792,12 @@ export function CommunityRolesScreen() {
                         key={capability}
                         style={[
                           styles.capabilityChip,
-                          {borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.1)' : t.palette.contrast_100},
+                          {
+                            borderColor:
+                              t.scheme === 'dark'
+                                ? 'rgba(255,255,255,0.1)'
+                                : t.palette.contrast_100,
+                          },
                         ]}>
                         <Text
                           style={[a.text_sm, a.font_semi_bold, t.atoms.text]}>
@@ -645,7 +817,16 @@ export function CommunityRolesScreen() {
                         key={`${role.key}-${applicant.did || applicant.handle || applicant.displayName}-${index}`}
                         style={[
                           styles.applicantChip,
-                          {backgroundColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.05)' : t.palette.contrast_25, borderColor: t.scheme === 'dark' ? 'rgba(255,255,255,0.1)' : t.palette.contrast_100},
+                          {
+                            backgroundColor:
+                              t.scheme === 'dark'
+                                ? 'rgba(255,255,255,0.05)'
+                                : t.palette.contrast_25,
+                            borderColor:
+                              t.scheme === 'dark'
+                                ? 'rgba(255,255,255,0.1)'
+                                : t.palette.contrast_100,
+                          },
                         ]}>
                         <PersonIcon
                           size="xs"
@@ -667,12 +848,22 @@ export function CommunityRolesScreen() {
                             }
                             style={[
                               styles.inlineAction,
-                              {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.2) : hexToRgba(brandColor, 0.1)},
+                              {
+                                backgroundColor:
+                                  t.scheme === 'dark'
+                                    ? hexToRgba(brandColor, 0.2)
+                                    : hexToRgba(brandColor, 0.1),
+                              },
                             ]}>
                             <Text
                               style={[
                                 styles.inlineActionText,
-                                {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
+                                {
+                                  color:
+                                    t.scheme === 'dark'
+                                      ? '#e0e7ff'
+                                      : brandColor,
+                                },
                               ]}>
                               Activate
                             </Text>
@@ -681,20 +872,38 @@ export function CommunityRolesScreen() {
                       </View>
                     ))}
                   </View>
-                  {!isModerator && 
-                  currentAccount && 
+                  {!isModerator &&
+                  currentAccount &&
                   !role.role.toLowerCase().includes('agent') &&
                   !role.role.toLowerCase().includes('delegate') &&
-                  !role.applicants.some(a => (a.did || a.handle) === (currentAccount.did || currentAccount.handle)) ? (
+                  !role.applicants.some(
+                    a =>
+                      (a.did || a.handle) ===
+                      (currentAccount.did || currentAccount.handle),
+                  ) ? (
                     <TouchableOpacity
                       accessibilityRole="button"
                       onPress={() => void onApplyForRole(role.key)}
                       style={[
                         styles.primaryActionButton,
                         a.mt_md,
-                        {backgroundColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.15) : hexToRgba(brandColor, 0.1), borderWidth: 1, borderColor: t.scheme === 'dark' ? hexToRgba(brandColor, 0.3) : hexToRgba(brandColor, 0.2)},
+                        {
+                          backgroundColor:
+                            t.scheme === 'dark'
+                              ? hexToRgba(brandColor, 0.15)
+                              : hexToRgba(brandColor, 0.1),
+                          borderWidth: 1,
+                          borderColor:
+                            t.scheme === 'dark'
+                              ? hexToRgba(brandColor, 0.3)
+                              : hexToRgba(brandColor, 0.2),
+                        },
                       ]}>
-                      <Text style={[styles.primaryActionText, {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor}]}>
+                      <Text
+                        style={[
+                          styles.primaryActionText,
+                          {color: t.scheme === 'dark' ? '#e0e7ff' : brandColor},
+                        ]}>
                         Nominate for this role
                       </Text>
                     </TouchableOpacity>
@@ -1099,7 +1308,7 @@ export function CommunityRolesScreen() {
               </Text>
             </View>
           ) : (
-            badgeSections.map(section => (
+            badgeSections.map((section: BadgeSection) => (
               <View
                 key={section.badge.key}
                 style={[
@@ -1133,59 +1342,61 @@ export function CommunityRolesScreen() {
                 </Text>
 
                 <View style={[a.mt_md, a.gap_sm]}>
-                  {section.holders.map(holder => (
-                    <TouchableOpacity
-                      key={`${section.badge.key}:${holder.author.did}`}
-                      accessibilityRole="button"
-                      onPress={() =>
-                        navigation.navigate('Profile', {
-                          name: holder.author.handle,
-                        })
-                      }
-                      style={[
-                        styles.holderRow,
-                        t.atoms.bg_contrast_25,
-                        t.atoms.border_contrast_low,
-                      ]}>
-                      <PreviewableUserAvatar
-                        size={38}
-                        profile={holder.author}
-                        type={
-                          holder.author.associated?.labeler ? 'labeler' : 'user'
+                  {section.holders.map(
+                    (holder: BadgeSection['holders'][number]) => (
+                      <TouchableOpacity
+                        key={`${section.badge.key}:${holder.author.did}`}
+                        accessibilityRole="button"
+                        onPress={() =>
+                          navigation.navigate('Profile', {
+                            name: holder.author.handle,
+                          })
                         }
-                        moderation={undefined}
-                        disableHoverCard
-                      />
-                      <View style={[a.flex_1, a.ml_md]}>
-                        <Text style={[a.text_md, a.font_bold, t.atoms.text]}>
-                          {holder.author.displayName || holder.author.handle}
-                        </Text>
-                        <Text style={[a.text_sm, t.atoms.text_contrast_medium]}>
-                          @{holder.author.handle}
-                        </Text>
-                      </View>
-                      <View style={[a.align_end]}>
-                        <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                          {holder.count} posts
-                        </Text>
-                        <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
-                          {new Date(
-                            holder.latestIndexedAt,
-                          ).toLocaleDateString()}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                        style={[
+                          styles.holderRow,
+                          t.atoms.bg_contrast_25,
+                          t.atoms.border_contrast_low,
+                        ]}>
+                        <PreviewableUserAvatar
+                          size={38}
+                          profile={holder.author}
+                          type={
+                            holder.author.associated?.labeler
+                              ? 'labeler'
+                              : 'user'
+                          }
+                          moderation={undefined}
+                          disableHoverCard
+                        />
+                        <View style={[a.flex_1, a.ml_md]}>
+                          <Text style={[a.text_md, a.font_bold, t.atoms.text]}>
+                            {holder.author.displayName || holder.author.handle}
+                          </Text>
+                          <Text
+                            style={[a.text_sm, t.atoms.text_contrast_medium]}>
+                            @{holder.author.handle}
+                          </Text>
+                        </View>
+                        <View style={[a.align_end]}>
+                          <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
+                            {holder.count} posts
+                          </Text>
+                          <Text
+                            style={[a.text_xs, t.atoms.text_contrast_medium]}>
+                            {new Date(
+                              holder.latestIndexedAt,
+                            ).toLocaleDateString()}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ),
+                  )}
                 </View>
               </View>
             ))
           )}
 
-          <ListFooter
-            isFetchingNextPage={isFetchingNextPage}
-            error={cleanError(error)}
-            onRetry={() => fetchNextPage()}
-          />
+          <View style={{height: 40}} />
         </ScrollView>
       )}
     </Layout.Screen>

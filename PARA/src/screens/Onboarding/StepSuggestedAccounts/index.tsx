@@ -188,8 +188,8 @@ export function StepSuggestedAccounts() {
       <OnboardingDescriptionText>
         <Trans>
           Follow thoughtful people early so your feed starts with signal:
-          organizers, analysts, neighbors, and communities that help you
-          orient yourself.
+          organizers, analysts, neighbors, and communities that help you orient
+          yourself.
         </Trans>
       </OnboardingDescriptionText>
 

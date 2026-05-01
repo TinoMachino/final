@@ -15,6 +15,8 @@ export interface ParaPost {
   tags: string[] | null
   flairs: string[] | null
   postType: string | null
+  party: string | null
+  community: string | null
   createdAt: string
   indexedAt: string
   sortAt: GeneratedAlways<string>

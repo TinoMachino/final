@@ -250,9 +250,7 @@ function AutocompleteCivicCard({
           <Text
             style={[a.text_sm, t.atoms.text_contrast_medium]}
             numberOfLines={1}>
-            {item.type === 'composerCommand'
-              ? item.description
-              : item.value}
+            {item.type === 'composerCommand' ? item.description : item.value}
           </Text>
         </View>
       </PressableScale>

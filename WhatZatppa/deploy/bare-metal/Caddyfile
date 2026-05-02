@@ -1,0 +1,16 @@
+# Copy to /etc/caddy/Caddyfile and replace the example hostnames.
+#
+# Caddy terminates TLS on :80/:443 and proxies only to private localhost
+# service ports. Keep PDS/AppView bound to localhost on the host.
+
+pds.example.com {
+	reverse_proxy 127.0.0.1:2583
+}
+
+appview.example.com {
+	reverse_proxy 127.0.0.1:2584
+}
+
+web.example.com {
+	reverse_proxy 127.0.0.1:8100
+}

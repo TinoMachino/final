@@ -17,6 +17,7 @@
   "bin": "bin.js",
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "test": "jest",
     "start": "../dev-infra/with-test-redis-and-db.sh node --enable-source-maps dist/bin.js",
     "dev": "../dev-infra/with-test-redis-and-db.sh node --enable-source-maps --watch dist/bin.js"
   },
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
+    "jest": "^28.1.2",
     "typescript": "^5.6.3"
   }
 }

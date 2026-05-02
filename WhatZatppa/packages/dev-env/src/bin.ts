@@ -1,24 +1,9 @@
 import './env'
+import { buildDevEnvRuntimeConfig } from './config'
 import { generateMinimalMockSetup } from './mock/minimal'
 import { TestNetwork } from './network'
 import { mockMailer } from './util'
 import { paraDemoSeed } from './seed'
-
-const envStr = (name: string): string | undefined => {
-  const value = process.env[name]
-  return value === undefined || value === '' ? undefined : value
-}
-
-const envInt = (name: string): number | undefined => {
-  const value = envStr(name)
-  return value === undefined ? undefined : Number.parseInt(value, 10)
-}
-
-const envBool = (name: string, defaultValue: boolean): boolean => {
-  const value = envStr(name)
-  if (value === undefined) return defaultValue
-  return value === '1' || value.toLowerCase() === 'true'
-}
 
 const run = async () => {
   console.log(`
@@ -31,41 +16,8 @@ const run = async () => {
 
 [ created by Bluesky ]`)
 
-  const pdsPort = envInt('DEV_ENV_PDS_PORT') ?? 2583
-  const bskyPort = envInt('DEV_ENV_BSKY_PORT') ?? 2584
-  const plcPort = envInt('DEV_ENV_PLC_PORT') ?? 2582
-  const chatPort = envInt('DEV_ENV_CHAT_PORT') ?? 2590
-  const ozonePort = envInt('DEV_ENV_OZONE_PORT') ?? 2587
-  const introspectPort = envInt('DEV_ENV_INTROSPECT_PORT') ?? 2581
-  const hostname = envStr('DEV_ENV_PDS_HOSTNAME') ?? 'localhost'
-  const bskyPublicUrl =
-    envStr('DEV_ENV_BSKY_PUBLIC_URL') ?? `http://localhost:${bskyPort}`
-  const dbPostgresSchema = envStr('DB_POSTGRES_SCHEMA') ?? 'dev'
-
-  const network = await TestNetwork.create({
-    dbPostgresSchema,
-    pds: {
-      port: pdsPort,
-      hostname,
-      enableDidDocWithSession: envBool(
-        'DEV_ENV_ENABLE_DID_DOC_WITH_SESSION',
-        true,
-      ),
-      dataDirectory: envStr('DEV_ENV_PDS_DATA_DIRECTORY'),
-      blobstoreDiskLocation: envStr('DEV_ENV_PDS_BLOBSTORE_DIRECTORY'),
-    },
-    bsky: {
-      port: bskyPort,
-      publicUrl: bskyPublicUrl,
-    },
-    plc: { port: plcPort },
-    chat: { port: chatPort },
-    ozone: {
-      port: ozonePort,
-      dbMaterializedViewRefreshIntervalMs: 30_000,
-    },
-    introspect: { port: introspectPort },
-  })
+  const runtimeConfig = buildDevEnvRuntimeConfig()
+  const network = await TestNetwork.create(runtimeConfig.networkParams)
   mockMailer(network.pds)
 
   if (network.introspect) {
@@ -89,11 +41,11 @@ const run = async () => {
     console.log(`🤖 Feed Generator (${fg.did}) http://localhost:${fg.port}`)
   }
 
-  if (!envBool('DEV_ENV_SKIP_MOCK_SETUP', false)) {
+  if (!runtimeConfig.skipMockSetup) {
     await generateMinimalMockSetup(network)
   }
 
-  if (!envBool('DEV_ENV_SKIP_PARA_DEMO_SEED', false)) {
+  if (!runtimeConfig.skipParaDemoSeed) {
     const sc = network.getSeedClient()
     await paraDemoSeed(sc)
   }

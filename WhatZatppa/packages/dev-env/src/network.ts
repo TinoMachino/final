@@ -16,6 +16,7 @@ import { LexiconAuthorityProfile } from './service-profile-lexicon'
 import { OzoneServiceProfile } from './service-profile-ozone'
 import { TestServerParams } from './types'
 import { mockNetworkUtilities } from './util'
+import { withoutPersistentPdsStorage } from './config'
 
 const ADMIN_USERNAME = 'admin'
 const ADMIN_PASSWORD = 'admin-pass'
@@ -49,9 +50,7 @@ export class TestNetwork extends TestNetworkNoAppView {
     const pdsPort = params.pds?.port ?? (await getPort())
     const ozonePort = params.ozone?.port ?? (await getPort())
     const chatUrl = `http://localhost:${chatPort}`
-    const thirdPartyPdsParams = { ...(params.pds ?? {}) }
-    delete thirdPartyPdsParams.dataDirectory
-    delete thirdPartyPdsParams.accountDbLocation
+    const thirdPartyPdsParams = withoutPersistentPdsStorage(params.pds)
 
     const thirdPartyPds = await TestPds.create({
       didPlcUrl: plc.url,

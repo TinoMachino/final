@@ -3,6 +3,7 @@ import {
   countCabildeosByPhase,
   filterCabildeos,
   findCabildeoByUri,
+  fromCabildeoRouteParam,
   getCabildeoUri,
   mapCabildeosToView,
   toCabildeoRouteParams,
@@ -107,11 +108,13 @@ describe('cabildeo client helpers', () => {
   })
 
   it('creates route params using cabildeoUri', () => {
+    const uri = 'at://did:plc:test/com.para.civic.cabildeo/1'
     const params = toCabildeoRouteParams({
-      uri: 'at://did:plc:test/com.para.civic.cabildeo/1',
+      uri,
     })
     expect(params).toEqual({
-      cabildeoUri: 'at://did:plc:test/com.para.civic.cabildeo/1',
+      cabildeoUri: encodeURIComponent(uri),
     })
+    expect(fromCabildeoRouteParam(params.cabildeoUri)).toBe(uri)
   })
 })

@@ -849,7 +849,7 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
       <Stack.Screen
         name="DelegateVote"
         getComponent={() => DelegateVoteScreen}
-        options={{title: title(msg`Delegar Voto`), requireAuth: true}}
+        options={{title: title(msg`Ceder mi voto`), requireAuth: true}}
       />
       <Stack.Screen
         name="CreateCabildeo"

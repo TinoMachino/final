@@ -116,7 +116,7 @@ export function getViewerParticipation(
     return {
       label: cabildeo.userContext?.viewerVoteIsDirect
         ? 'You voted'
-        : 'Your delegated vote',
+        : 'Your ceded vote',
       accentColor: '#166534',
       accentBackground: '#DCFCE7',
       optionLabel,
@@ -128,7 +128,7 @@ export function getViewerParticipation(
       cabildeo.options[cabildeo.userContext.delegateVoteEvent.optionIndex]
         ?.label
     return {
-      label: 'Delegate voted',
+      label: 'Receiving voice voted',
       accentColor: '#7C3AED',
       accentBackground: '#EDE9FE',
       optionLabel,
@@ -137,7 +137,7 @@ export function getViewerParticipation(
 
   if (cabildeo.userContext?.hasDelegatedTo) {
     return {
-      label: 'Vote delegated',
+      label: 'Vote ceded',
       accentColor: '#92400E',
       accentBackground: '#FEF3C7',
     }

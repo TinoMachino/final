@@ -1,17 +1,44 @@
 import {View} from 'react-native'
 import {RichText} from '@atproto/api'
+import {msg} from '@lingui/core/macro'
+import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
-import {getPartyFeedProfile} from '#/lib/party-feeds'
+import {useHaptics} from '#/lib/haptics'
+import {
+  getPartyFeedProfile,
+  type PartyFeedProfile,
+} from '#/lib/party-feeds'
 import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
 } from '#/lib/routes/types'
+import {shareUrl} from '#/lib/sharing'
+import {toShareUrl} from '#/lib/strings/url-helpers'
 import {type FeedSourceInfo} from '#/state/queries/feed'
 import {type FeedParams} from '#/state/queries/post-feed'
+import {
+  useAddSavedFeedsMutation,
+  usePreferencesQuery,
+  useRemoveFeedMutation,
+  useUpdateSavedFeedsMutation,
+} from '#/state/queries/preferences'
+import {useSession} from '#/state/session'
 import {FeedPage} from '#/view/com/feeds/FeedPage'
 import {atoms as a, useTheme} from '#/alf'
+import {Button, ButtonIcon} from '#/components/Button'
+import {ArrowOutOfBoxModified_Stroke2_Corner2_Rounded as Share} from '#/components/icons/ArrowOutOfBox'
+import {DotGrid_Stroke2_Corner0_Rounded as Ellipsis} from '#/components/icons/DotGrid'
+import {
+  Pin_Filled_Corner0_Rounded as PinFilled,
+  Pin_Stroke2_Corner0_Rounded as Pin,
+} from '#/components/icons/Pin'
+import {PlusLarge_Stroke2_Corner0_Rounded as Plus} from '#/components/icons/Plus'
+import {TimesLarge_Stroke2_Corner0_Rounded as X} from '#/components/icons/Times'
+import {Trash_Stroke2_Corner0_Rounded as Trash} from '#/components/icons/Trash'
 import * as Layout from '#/components/Layout'
+import * as Menu from '#/components/Menu'
+import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'PartyFeed'>
@@ -42,6 +69,14 @@ export function PartyFeedScreen({route}: Props) {
     )
   }
 
+  return <PartyFeedScreenInner profile={profile} />
+}
+
+function PartyFeedScreenInner({profile}: {profile: PartyFeedProfile}) {
+  const t = useTheme()
+  const {_} = useLingui()
+  const {hasSession} = useSession()
+  const playHaptic = useHaptics()
   const feedInfo: FeedSourceInfo = {
     type: 'feed',
     uri: `para://party-feed/${profile.id}`,
@@ -64,6 +99,80 @@ export function PartyFeedScreen({route}: Props) {
   const feedParams: FeedParams = {
     paraTimelineFilters: {party: profile.filter},
   }
+  const {data: preferences} = usePreferencesQuery()
+  const {mutateAsync: addSavedFeeds, isPending: isAddSavedFeedPending} =
+    useAddSavedFeedsMutation()
+  const {mutateAsync: removeFeed, isPending: isRemovePending} =
+    useRemoveFeedMutation()
+  const {mutateAsync: updateSavedFeeds, isPending: isUpdateFeedPending} =
+    useUpdateSavedFeedsMutation()
+  const isFeedStateChangePending =
+    isAddSavedFeedPending || isRemovePending || isUpdateFeedPending
+  const savedFeedConfig = preferences?.savedFeeds?.find(
+    f => f.value === feedInfo.uri,
+  )
+  const isSaved = Boolean(savedFeedConfig)
+  const isPinned = Boolean(savedFeedConfig?.pinned)
+  const onToggleSaved = async () => {
+    try {
+      playHaptic()
+
+      if (savedFeedConfig) {
+        await removeFeed(savedFeedConfig)
+        Toast.show(_(msg`Removed from your feeds`))
+      } else {
+        await addSavedFeeds([
+          {
+            type: 'feed',
+            value: feedInfo.uri,
+            pinned: false,
+          },
+        ])
+        Toast.show(_(msg`Saved to your feeds`))
+      }
+    } catch {
+      Toast.show(_(msg`There was an issue updating your feeds`), {
+        type: 'error',
+      })
+    }
+  }
+  const onTogglePinned = async () => {
+    try {
+      playHaptic()
+
+      if (savedFeedConfig) {
+        const pinned = !savedFeedConfig.pinned
+        await updateSavedFeeds([
+          {
+            ...savedFeedConfig,
+            pinned,
+          },
+        ])
+        Toast.show(
+          pinned
+            ? _(msg`Pinned ${feedInfo.displayName} to Home`)
+            : _(msg`Unpinned ${feedInfo.displayName} from Home`),
+        )
+      } else {
+        await addSavedFeeds([
+          {
+            type: 'feed',
+            value: feedInfo.uri,
+            pinned: true,
+          },
+        ])
+        Toast.show(_(msg`Pinned ${feedInfo.displayName} to Home`))
+      }
+    } catch {
+      Toast.show(_(msg`There was an issue updating your feeds`), {
+        type: 'error',
+      })
+    }
+  }
+  const onPressShare = () => {
+    playHaptic()
+    void shareUrl(toShareUrl(feedInfo.route.href))
+  }
 
   return (
     <Layout.Screen testID="partyFeedScreen">
@@ -73,6 +182,84 @@ export function PartyFeedScreen({route}: Props) {
           <Layout.Header.Content>
             <Layout.Header.TitleText>{profile.name}</Layout.Header.TitleText>
           </Layout.Header.Content>
+          <Layout.Header.Slot>
+            <View style={[a.flex_row, a.align_center, a.gap_xs]}>
+              <Menu.Root>
+                <Menu.Trigger label={_(msg`Open feed options menu`)}>
+                  {({props}) => (
+                    <Button
+                      {...props}
+                      label={_(msg`Open feed options menu`)}
+                      size="small"
+                      variant="ghost"
+                      shape="square"
+                      color="secondary">
+                      <ButtonIcon icon={Ellipsis} size="lg" />
+                    </Button>
+                  )}
+                </Menu.Trigger>
+                <Menu.Outer>
+                  <Menu.Item
+                    label={_(msg`Share feed`)}
+                    onPress={onPressShare}>
+                    <Menu.ItemText>{_(msg`Share feed`)}</Menu.ItemText>
+                    <Menu.ItemIcon icon={Share} position="right" />
+                  </Menu.Item>
+                  {hasSession && (
+                    <Menu.Item
+                      disabled={isFeedStateChangePending}
+                      label={
+                        isSaved
+                          ? _(msg`Remove from my feeds`)
+                          : _(msg`Save to my feeds`)
+                      }
+                      onPress={() => {
+                        void onToggleSaved()
+                      }}>
+                      <Menu.ItemText>
+                        {isSaved
+                          ? _(msg`Remove from my feeds`)
+                          : _(msg`Save to my feeds`)}
+                      </Menu.ItemText>
+                      <Menu.ItemIcon
+                        icon={isSaved ? Trash : Plus}
+                        position="right"
+                      />
+                    </Menu.Item>
+                  )}
+                  {hasSession && isPinned && (
+                    <Menu.Item
+                      disabled={isFeedStateChangePending}
+                      label={_(msg`Unpin from home`)}
+                      onPress={() => {
+                        void onTogglePinned()
+                      }}>
+                      <Menu.ItemText>{_(msg`Unpin from home`)}</Menu.ItemText>
+                      <Menu.ItemIcon icon={X} position="right" />
+                    </Menu.Item>
+                  )}
+                </Menu.Outer>
+              </Menu.Root>
+              {hasSession && (
+                <Button
+                  disabled={isFeedStateChangePending}
+                  label={isPinned ? _(msg`Unpin feed`) : _(msg`Pin feed`)}
+                  size="small"
+                  variant="ghost"
+                  shape="square"
+                  color="secondary"
+                  onPress={() => {
+                    void onTogglePinned()
+                  }}>
+                  {isPinned ? (
+                    <PinFilled size="lg" fill={t.palette.primary_500} />
+                  ) : (
+                    <ButtonIcon icon={Pin} size="lg" />
+                  )}
+                </Button>
+              )}
+            </View>
+          </Layout.Header.Slot>
         </Layout.Header.Outer>
         <View
           style={[

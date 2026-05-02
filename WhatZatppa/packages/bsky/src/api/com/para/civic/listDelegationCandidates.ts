@@ -61,18 +61,28 @@ const listDelegationCandidates = async ({
     })
 
   return {
-    candidates: res.candidates.map((candidate) => ({
-      did: candidate.did,
-      handle: parseString(candidate.handle),
-      displayName: parseString(candidate.displayName),
-      avatar: parseString(candidate.avatar),
-      description: parseString(candidate.description),
-      roles: candidate.roles.length ? candidate.roles : undefined,
-      activeDelegationCount: candidate.activeDelegationCount,
-      hasVoted: candidate.hasVoted,
-      votedAt: parseString(candidate.votedAt),
-      selectedOption: candidate.selectedOption,
-    })),
+    candidates: res.candidates.map((candidate) => {
+      const handle = parseString(candidate.handle)
+      const displayName = parseString(candidate.displayName)
+      const avatar = parseString(candidate.avatar)
+      const description = parseString(candidate.description)
+      const votedAt = parseString(candidate.votedAt)
+
+      return {
+        did: candidate.did,
+        ...(handle ? { handle } : {}),
+        ...(displayName ? { displayName } : {}),
+        ...(avatar ? { avatar } : {}),
+        ...(description ? { description } : {}),
+        roles: candidate.roles,
+        activeDelegationCount: candidate.activeDelegationCount,
+        hasVoted: candidate.hasVoted,
+        ...(votedAt ? { votedAt } : {}),
+        ...(typeof candidate.selectedOption === 'number'
+          ? { selectedOption: candidate.selectedOption }
+          : {}),
+      }
+    }),
     cursor: parseString(res.cursor),
   }
 }

@@ -1,6 +1,8 @@
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 
 import {
+  type CabildeoDelegationMode,
+  type CabildeoDelegationSignal,
   castCabildeoVote,
   delegateCabildeoVote,
   fetchCabildeo,
@@ -25,6 +27,11 @@ export const cabildeosQueryKey = [RQKEY_ROOT, 'list']
 export const cabildeoDetailQueryKey = (cabildeoUri: string) => [
   RQKEY_ROOT,
   'detail',
+  cabildeoUri,
+]
+export const cabildeoPositionsQueryKey = (cabildeoUri: string) => [
+  RQKEY_ROOT,
+  'positions',
   cabildeoUri,
 ]
 export const delegationCandidatesQueryKey = ({
@@ -86,18 +93,27 @@ export function useCabildeoQuery(cabildeoUri: string | undefined) {
     placeholderData: previous => previous,
     queryFn: async () => {
       if (!cabildeoUri) return null
+      const mock = USE_MOCK_DATA
+        ? MOCK_CABILDEO_VIEWS.find(c => c.uri === cabildeoUri)
+        : undefined
       try {
         const cabildeo = await fetchCabildeo(agent, cabildeoUri)
-        return cabildeo ? mapCabildeoReadViewToView(cabildeo) : null
+        if (cabildeo) {
+          return mapCabildeoReadViewToView(cabildeo)
+        }
+        if (mock) {
+          console.warn(
+            '[useCabildeoQuery] Backend returned NotFound — serving mock cabildeo for dev preview.',
+          )
+          return mock
+        }
+        return null
       } catch (err: unknown) {
-        if (USE_MOCK_DATA) {
-          const mock = MOCK_CABILDEO_VIEWS.find(c => c.uri === cabildeoUri)
-          if (mock) {
-            console.warn(
-              '[useCabildeoQuery] Fetch failed — serving mock cabildeo for dev preview.',
-            )
-            return mock
-          }
+        if (mock) {
+          console.warn(
+            '[useCabildeoQuery] Fetch failed — serving mock cabildeo for dev preview.',
+          )
+          return mock
         }
         throw err
       }
@@ -109,7 +125,7 @@ export function useCabildeoPositionsQuery(cabildeoUri: string | undefined) {
   const agent = useAgent()
   return useQuery({
     staleTime: STALE.SECONDS.THIRTY,
-    queryKey: [RQKEY_ROOT, 'positions', cabildeoUri || ''],
+    queryKey: cabildeoPositionsQueryKey(cabildeoUri || ''),
     enabled: Boolean(cabildeoUri),
     placeholderData: previous => previous,
     queryFn: async () => {
@@ -154,26 +170,62 @@ export function useDelegateCabildeoVoteMutation() {
       delegateTo,
       reason,
       scopeFlairs,
+      mode = 'active',
+      party,
+      community,
+      preferredOption,
+      signal,
     }: {
-      cabildeoUri: string
-      delegateTo: string
+      cabildeoUri?: string
+      delegateTo?: string
+      mode?: CabildeoDelegationMode
       reason?: string
       scopeFlairs?: string[]
+      party?: string
+      community?: string
+      preferredOption?: number
+      signal?: CabildeoDelegationSignal
     }) =>
       delegateCabildeoVote(agent, {
         cabildeo: cabildeoUri,
         delegateTo,
+        mode,
         reason,
         scopeFlairs,
+        party,
+        community,
+        preferredOption,
+        signal,
       }),
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({
-        queryKey: cabildeoDetailQueryKey(variables.cabildeoUri),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: [RQKEY_ROOT, 'delegation-candidates', variables.cabildeoUri],
-      })
+      if (variables.cabildeoUri) {
+        void queryClient.invalidateQueries({
+          queryKey: cabildeoDetailQueryKey(variables.cabildeoUri),
+        })
+        void queryClient.invalidateQueries({
+          queryKey: [
+            RQKEY_ROOT,
+            'delegation-candidates',
+            variables.cabildeoUri,
+          ],
+        })
+      }
       void queryClient.invalidateQueries({queryKey: cabildeosQueryKey})
+      if (variables.cabildeoUri) {
+        queryClient.setQueryData<CabildeoView | null>(
+          cabildeoDetailQueryKey(variables.cabildeoUri),
+          previous =>
+            previous && variables.delegateTo
+              ? {
+                  ...previous,
+                  userContext: {
+                    ...previous.userContext,
+                    hasDelegatedTo: variables.delegateTo,
+                  },
+                }
+              : previous,
+        )
+      }
     },
   })
 }
@@ -209,6 +261,18 @@ export function useVoteMutation() {
         const nextOptionSummary = previous.optionSummary.map(s =>
           s.optionIndex === selectedOption ? {...s, votes: s.votes + 1} : s,
         )
+        const previousOption = previous.userContext?.viewerVoteOption
+        if (
+          typeof previousOption === 'number' &&
+          previousOption !== selectedOption
+        ) {
+          const previousSummary = nextOptionSummary.find(
+            s => s.optionIndex === previousOption,
+          )
+          if (previousSummary) {
+            previousSummary.votes = Math.max(0, previousSummary.votes - 1)
+          }
+        }
         // Add entry if this option hasn't been voted on yet
         if (!nextOptionSummary.find(s => s.optionIndex === selectedOption)) {
           const optionLabel =
@@ -232,8 +296,15 @@ export function useVoteMutation() {
           optionSummary: nextOptionSummary,
           voteTotals: {
             ...previous.voteTotals,
-            total: previous.voteTotals.total + 1,
-            direct: previous.voteTotals.direct + (isDirect ? 1 : 0),
+            total:
+              typeof previousOption === 'number'
+                ? previous.voteTotals.total
+                : previous.voteTotals.total + 1,
+            direct:
+              typeof previousOption === 'number' &&
+              previous.userContext?.viewerVoteIsDirect
+                ? previous.voteTotals.direct
+                : previous.voteTotals.direct + (isDirect ? 1 : 0),
           },
         })
       }
@@ -254,7 +325,7 @@ export function useVoteMutation() {
         queryKey: cabildeoDetailQueryKey(cabildeoUri),
       })
       void queryClient.invalidateQueries({
-        queryKey: [RQKEY_ROOT, 'positions', cabildeoUri],
+        queryKey: cabildeoPositionsQueryKey(cabildeoUri),
       })
       void queryClient.invalidateQueries({queryKey: cabildeosQueryKey})
     },

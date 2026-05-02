@@ -10,8 +10,13 @@ import { recomputeCabildeoAggregates } from './recompute-cabildeo-aggregates'
 
 interface DelegationRecord {
   cabildeo?: string
-  delegateTo: string
+  delegateTo?: string
+  mode?: 'active' | 'passive'
+  party?: string
+  community?: string
   scopeFlairs?: string[]
+  preferredOption?: number
+  signal?: number
   reason?: string
   createdAt: string
 }
@@ -30,15 +35,26 @@ const insertFn = async (
   obj: DelegationRecord,
   timestamp: string,
 ): Promise<IndexedDelegation | null> => {
+  const mode = obj.mode || 'active'
+  if (!isValidCessionRecord(obj, mode)) {
+    return null
+  }
+
   const record = {
     uri: uri.toString(),
     cid: cid.toString(),
     creator: uri.host,
     cabildeo: obj.cabildeo || null,
-    delegateTo: obj.delegateTo,
+    delegateTo: obj.delegateTo || null,
+    mode,
+    party: obj.party || null,
+    community: obj.community || null,
     scopeFlairs: obj.scopeFlairs?.length
       ? sql<string[]>`${JSON.stringify(obj.scopeFlairs)}`
       : null,
+    preferredOption:
+      typeof obj.preferredOption === 'number' ? obj.preferredOption : null,
+    signal: typeof obj.signal === 'number' ? obj.signal : null,
     reason: obj.reason || null,
     createdAt: normalizeDatetimeAlways(obj.createdAt),
     indexedAt: timestamp,
@@ -56,6 +72,26 @@ const insertFn = async (
   }
 
   return { record: inserted }
+}
+
+const isValidCessionRecord = (
+  obj: DelegationRecord,
+  mode: 'active' | 'passive',
+) => {
+  if (mode === 'active') {
+    if (!obj.delegateTo || !obj.cabildeo) return false
+    const criteriaCount =
+      (typeof obj.preferredOption === 'number' ? 1 : 0) +
+      (typeof obj.reason === 'string' && obj.reason.trim().length > 0 ? 1 : 0) +
+      (typeof obj.signal === 'number' ? 1 : 0)
+    return criteriaCount >= 2
+  }
+
+  return Boolean(
+    obj.party?.trim() &&
+      obj.community?.trim() &&
+      obj.scopeFlairs?.some((item) => item.trim().length > 0),
+  )
 }
 
 const findDuplicate = async (): Promise<AtUri | null> => {

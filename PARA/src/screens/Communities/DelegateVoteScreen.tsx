@@ -1,7 +1,17 @@
-import {useCallback, useMemo, useState} from 'react'
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {useMemo, useState} from 'react'
+import {
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 
+import {
+  type CabildeoDelegationMode,
+  type CabildeoDelegationSignal,
+} from '#/lib/api/cabildeo'
 import {fromCabildeoRouteParam} from '#/lib/cabildeo-client'
 import {
   type CommonNavigatorParams,
@@ -18,6 +28,7 @@ import {ListMaybePlaceholder} from '#/components/Lists'
 import {Text} from '#/components/Typography'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'DelegateVote'>
+const SIGNALS: CabildeoDelegationSignal[] = [-3, -2, -1, 0, 1, 2, 3]
 
 /**
  * Calculate quadratic voting power: √(N+1)
@@ -25,6 +36,11 @@ type Props = NativeStackScreenProps<CommonNavigatorParams, 'DelegateVote'>
  */
 function calcQuadraticPower(delegationCount: number): number {
   return Math.sqrt(delegationCount + 1)
+}
+
+function formatPercent(value: number): string {
+  if (!Number.isFinite(value)) return '0%'
+  return `${Math.round(value)}%`
 }
 
 export function DelegateVoteScreen({route, navigation}: Props) {
@@ -48,24 +64,82 @@ export function DelegateVoteScreen({route, navigation}: Props) {
   })
   const delegateMutation = useDelegateCabildeoVoteMutation()
 
+  const [cessionMode, setCessionMode] =
+    useState<CabildeoDelegationMode>('active')
   const [selectedRep, setSelectedRep] = useState<string | null>(null)
+  const [preferredOption, setPreferredOption] = useState<number | null>(null)
+  const [reason, setReason] = useState('')
+  const [signal, setSignal] = useState<CabildeoDelegationSignal | null>(null)
+  const [passiveParty, setPassiveParty] = useState('')
+  const [passiveMatter, setPassiveMatter] = useState('')
+  const [passiveCommunity, setPassiveCommunity] = useState('')
 
-  const handleDelegate = useCallback(async () => {
-    if (!selectedRep || !cabildeoUri) return
+  const activeCriteriaCount =
+    (preferredOption !== null ? 1 : 0) +
+    (reason.trim().length > 0 ? 1 : 0) +
+    (signal !== null ? 1 : 0)
+  const canSubmitActive = Boolean(selectedRep) && activeCriteriaCount >= 2
+  const canSubmitPassive =
+    passiveParty.trim().length > 0 &&
+    passiveMatter.trim().length > 0 &&
+    passiveCommunity.trim().length > 0
+  const canSubmitCession =
+    cessionMode === 'active' ? canSubmitActive : canSubmitPassive
+
+  const handleCede = async () => {
+    if (!canSubmitCession) return
     try {
       await delegateMutation.mutateAsync({
-        cabildeoUri,
-        delegateTo: selectedRep,
+        cabildeoUri: cessionMode === 'active' ? cabildeoUri : undefined,
+        delegateTo:
+          cessionMode === 'active' ? selectedRep || undefined : undefined,
+        mode: cessionMode,
+        preferredOption: preferredOption ?? undefined,
+        reason: reason.trim() || undefined,
+        signal: signal ?? undefined,
+        party: cessionMode === 'passive' ? passiveParty.trim() : undefined,
+        community:
+          cessionMode === 'passive' ? passiveCommunity.trim() : cabildeo?.community,
+        scopeFlairs:
+          cessionMode === 'passive' && passiveMatter.trim()
+            ? [passiveMatter.trim()]
+            : cabildeo?.flairs,
       })
     } catch {
       // Error state is rendered from the mutation below.
     }
-  }, [cabildeoUri, delegateMutation, selectedRep])
+  }
 
   const selectedRepData = useMemo(
     () => candidates.find(r => r.did === selectedRep),
     [candidates, selectedRep],
   )
+  const delegationTotal = useMemo(
+    () =>
+      candidates.reduce(
+        (total, candidate) => total + candidate.activeDelegationCount,
+        0,
+      ),
+    [candidates],
+  )
+  const directVoteTotal = cabildeo?.voteTotals.direct ?? 0
+  const delegatedParticipationPct =
+    delegationTotal + directVoteTotal > 0
+      ? (delegationTotal / (delegationTotal + directVoteTotal)) * 100
+      : 0
+  const suggestedCandidates = useMemo(() => {
+    return [...candidates]
+      .sort((a, b) => {
+        if (a.hasVoted !== b.hasVoted) return a.hasVoted ? -1 : 1
+        const delegationDelta =
+          b.activeDelegationCount - a.activeDelegationCount
+        if (delegationDelta !== 0) return delegationDelta
+        return (a.displayName || a.handle || a.did).localeCompare(
+          b.displayName || b.handle || b.did,
+        )
+      })
+      .slice(0, 3)
+  }, [candidates])
   const hasDelegated =
     Boolean(cabildeo?.userContext?.hasDelegatedTo) || delegateMutation.isSuccess
 
@@ -76,7 +150,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
           <Layout.Header.BackButton />
           <Layout.Header.Content>
             <Layout.Header.TitleText>
-              <Trans>Delegar Voto</Trans>
+              <Trans>Ceder mi voto</Trans>
             </Layout.Header.TitleText>
           </Layout.Header.Content>
         </Layout.Header.Outer>
@@ -85,7 +159,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
           isError={isError}
           onRetry={refetch}
           emptyType="page"
-          emptyMessage="Estamos cargando el cabildeo para delegación."
+          emptyMessage="Estamos cargando el cabildeo para cesión."
         />
       </Layout.Screen>
     )
@@ -98,7 +172,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
           <Layout.Header.BackButton />
           <Layout.Header.Content>
             <Layout.Header.TitleText>
-              <Trans>Delegar Voto</Trans>
+              <Trans>Ceder mi voto</Trans>
             </Layout.Header.TitleText>
           </Layout.Header.Content>
         </Layout.Header.Outer>
@@ -107,7 +181,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
           isError={false}
           emptyType="page"
           emptyTitle="Cabildeo no disponible"
-          emptyMessage="No se puede delegar porque este cabildeo ya no está disponible."
+          emptyMessage="No se puede ceder porque este cabildeo ya no está disponible."
         />
       </Layout.Screen>
     )
@@ -119,7 +193,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
         <Layout.Header.BackButton />
         <Layout.Header.Content>
           <Layout.Header.TitleText>
-            <Trans>Delegar Voto</Trans>
+            <Trans>Ceder mi voto</Trans>
           </Layout.Header.TitleText>
           <Layout.Header.SubtitleText>
             {cabildeo.community}
@@ -146,22 +220,25 @@ export function DelegateVoteScreen({route, navigation}: Props) {
             <Text style={[styles.explainerText, t.atoms.text_contrast_medium]}>
               Tu voto directo vale{' '}
               <Text style={[{fontWeight: '900'}, t.atoms.text]}>1.0</Text>.
-              {'\n'}Al delegar, el poder de tu representante crece como{' '}
+              {'\n'}Cuando muchas personas ceden a la misma voz, su poder crece
+              más lento como{' '}
               <Text style={[{fontWeight: '900'}, t.atoms.text]}>√N</Text> —
-              incentivando la participación personal.
+              esto evita que una sola voz acumule poder ilimitado.
             </Text>
           </View>
 
           {/* Power Comparison Visual */}
           <View style={[styles.powerComparison, t.atoms.bg_contrast_25]}>
             <Text style={[styles.powerTitle, t.atoms.text]}>
-              Comparación de poder efectivo
+              Cesión en este cabildeo
             </Text>
             <View style={styles.powerRow}>
               <View style={styles.powerItem}>
-                <Text style={[styles.powerValue, {color: '#34C759'}]}>1.0</Text>
+                <Text style={[styles.powerValue, {color: '#34C759'}]}>
+                  {delegationTotal}
+                </Text>
                 <Text style={[styles.powerLabel, t.atoms.text_contrast_medium]}>
-                  Tu voto directo
+                  votos cedidos
                 </Text>
               </View>
               <View
@@ -172,14 +249,10 @@ export function DelegateVoteScreen({route, navigation}: Props) {
               />
               <View style={styles.powerItem}>
                 <Text style={[styles.powerValue, {color: '#FF9500'}]}>
-                  {selectedRepData
-                    ? calcQuadraticPower(
-                        selectedRepData.activeDelegationCount,
-                      ).toFixed(1)
-                    : '—'}
+                  {formatPercent(delegatedParticipationPct)}
                 </Text>
                 <Text style={[styles.powerLabel, t.atoms.text_contrast_medium]}>
-                  Poder del delegado
+                  participación cedida
                 </Text>
               </View>
               <View
@@ -247,13 +320,44 @@ export function DelegateVoteScreen({route, navigation}: Props) {
               })}
             </View>
             <Text style={[styles.scaleCaption, t.atoms.text_contrast_medium]}>
-              N delegaciones → √N poder efectivo
+              N cesiones → √N poder efectivo
             </Text>
+          </View>
+
+          <View style={styles.modeTabs}>
+            {[
+              {key: 'active' as const, label: 'Cesión activa'},
+              {key: 'passive' as const, label: 'Cesión pasiva'},
+            ].map(mode => {
+              const selected = cessionMode === mode.key
+              return (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  key={mode.key}
+                  onPress={() => setCessionMode(mode.key)}
+                  style={[
+                    styles.modeTab,
+                    selected
+                      ? {backgroundColor: t.palette.primary_500}
+                      : t.atoms.bg_contrast_25,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.modeTabText,
+                      selected ? {color: '#fff'} : t.atoms.text,
+                    ]}>
+                    {mode.label}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
 
           {/* Representative Selection */}
           <Text style={[styles.sectionTitle, t.atoms.text]}>
-            Elegir representante
+            {cessionMode === 'active'
+              ? 'Elegir voz receptora'
+              : 'Configurar regla pasiva'}
           </Text>
 
           {hasDelegated ? (
@@ -263,14 +367,14 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                 {borderColor: '#34C759' + '40'},
               ]}>
               <Text style={[styles.delegatedTitle, {color: '#34C759'}]}>
-                ✅ Voto delegado exitosamente
+                ✅ Voto cedido exitosamente
               </Text>
               <Text style={[styles.delegatedSub, t.atoms.text_contrast_medium]}>
                 {(selectedRepData?.displayName ||
                   selectedRepData?.handle ||
                   cabildeo.userContext?.hasDelegatedTo) ??
-                  'Tu representante'}{' '}
-                votará por ti.
+                  'Tu voz receptora'}{' '}
+                podrá votar por ti.
               </Text>
               <TouchableOpacity
                 accessibilityRole="button"
@@ -283,24 +387,137 @@ export function DelegateVoteScreen({route, navigation}: Props) {
             </View>
           ) : (
             <>
-              {isCandidatesLoading || isCandidatesError ? (
+              {cessionMode === 'passive' ? (
+                <View
+                  style={[
+                    styles.passiveCard,
+                    t.atoms.bg_contrast_25,
+                    {borderColor: t.palette.primary_200},
+                  ]}>
+                  <Text style={[styles.passiveTitle, t.atoms.text]}>
+                    Ceder automáticamente
+                  </Text>
+                  <Text
+                    style={[styles.passiveSub, t.atoms.text_contrast_medium]}>
+                    Define cuándo tu voto fluye por criterio político. Esta
+                    regla aplica cuando no eliges una persona específica.
+                  </Text>
+                  <TextInput
+                    accessibilityRole="text"
+                    style={[styles.input, t.atoms.bg, t.atoms.text]}
+                    placeholder="Partido o movimiento"
+                    placeholderTextColor={t.palette.contrast_500}
+                    value={passiveParty}
+                    onChangeText={setPassiveParty}
+                  />
+                  <TextInput
+                    accessibilityRole="text"
+                    style={[styles.input, t.atoms.bg, t.atoms.text]}
+                    placeholder="Materia, ej. educación"
+                    placeholderTextColor={t.palette.contrast_500}
+                    value={passiveMatter}
+                    onChangeText={setPassiveMatter}
+                  />
+                  <TextInput
+                    accessibilityRole="text"
+                    style={[styles.input, t.atoms.bg, t.atoms.text]}
+                    placeholder={`Comunidad, ej. ${cabildeo.community}`}
+                    placeholderTextColor={t.palette.contrast_500}
+                    value={passiveCommunity}
+                    onChangeText={setPassiveCommunity}
+                  />
+                  <Text
+                    style={[styles.passiveExample, t.atoms.text_contrast_medium]}>
+                    Ejemplo: En {passiveMatter || 'educación'} dentro de{' '}
+                    {passiveCommunity || cabildeo.community}, cedo mi voto al
+                    criterio de {passiveParty || 'mi partido'}.
+                  </Text>
+                </View>
+              ) : isCandidatesLoading || isCandidatesError ? (
                 <ListMaybePlaceholder
                   isLoading={isCandidatesLoading}
                   isError={isCandidatesError}
                   onRetry={refetchCandidates}
                   emptyType="results"
-                  emptyMessage="Estamos buscando representantes disponibles para este cabildeo."
+                  emptyMessage="Estamos buscando voces receptoras disponibles para este cabildeo."
                 />
               ) : candidates.length === 0 ? (
                 <ListMaybePlaceholder
                   isLoading={false}
                   isError={false}
                   emptyType="results"
-                  emptyTitle="No hay representantes disponibles"
-                  emptyMessage="Esta comunidad todavía no tiene representantes o miembros con roles delegables."
+                  emptyTitle="No hay voces receptoras disponibles"
+                  emptyMessage="Esta comunidad todavía no tiene representantes o miembros con roles para ceder voto."
                 />
               ) : (
                 <View style={styles.repList}>
+                  {suggestedCandidates.length ? (
+                    <View
+                      style={[
+                        styles.suggestions,
+                        t.atoms.bg_contrast_25,
+                        {borderColor: t.palette.primary_200},
+                      ]}>
+                      <Text style={[styles.suggestionsTitle, t.atoms.text]}>
+                        Sugerencias para ceder
+                      </Text>
+                      <Text
+                        style={[
+                          styles.suggestionsSub,
+                          t.atoms.text_contrast_medium,
+                        ]}>
+                        Prioriza representantes que ya votaron y quienes
+                        concentran confianza de la comunidad.
+                      </Text>
+                      <View style={styles.suggestionRow}>
+                        {suggestedCandidates.map((rep, index) => {
+                          const displayName =
+                            rep.displayName || rep.handle || rep.did
+                          const reason = rep.hasVoted
+                            ? 'Ya votó'
+                            : rep.activeDelegationCount > 0
+                              ? `${rep.activeDelegationCount} cesiones`
+                              : rep.roles?.[0] || 'Miembro activo'
+                          return (
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              key={rep.did}
+                              onPress={() => setSelectedRep(rep.did)}
+                              style={[
+                                styles.suggestionChip,
+                                {
+                                  borderColor:
+                                    selectedRep === rep.did
+                                      ? t.palette.primary_500
+                                      : t.palette.contrast_100,
+                                },
+                              ]}>
+                              <Text
+                                style={[
+                                  styles.suggestionRank,
+                                  {color: t.palette.primary_500},
+                                ]}>
+                                #{index + 1}
+                              </Text>
+                              <Text
+                                style={[styles.suggestionName, t.atoms.text]}
+                                numberOfLines={1}>
+                                {displayName}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.suggestionReason,
+                                  t.atoms.text_contrast_medium,
+                                ]}
+                                numberOfLines={1}>
+                                {reason}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                        })}
+                      </View>
+                    </View>
+                  ) : null}
                   {candidates.map(rep => {
                     const isSelected = selectedRep === rep.did
                     const power = calcQuadraticPower(rep.activeDelegationCount)
@@ -367,7 +584,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                                 styles.repStatLabel,
                                 t.atoms.text_contrast_medium,
                               ]}>
-                              delegaciones
+                              cesiones
                             </Text>
                           </View>
 
@@ -386,7 +603,7 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                             </Text>
                           </View>
 
-                          {/* Power if you delegate */}
+                          {/* Power if you cede */}
                           <View style={styles.repStatItem}>
                             <Text
                               style={[styles.repStatValue, {color: '#34C759'}]}>
@@ -442,26 +659,113 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                 </View>
               )}
 
-              {/* Delegate Button */}
+              {cessionMode === 'active' ? (
+                <View style={[styles.criteriaCard, t.atoms.bg_contrast_25]}>
+                  <Text style={[styles.criteriaTitle, t.atoms.text]}>
+                    Tu criterio propio
+                  </Text>
+                  <Text
+                    style={[styles.criteriaSub, t.atoms.text_contrast_medium]}>
+                    Cedes la ejecución, pero dejas tu criterio registrado.
+                    Completa al menos 2 de 3.
+                  </Text>
+                  <View style={styles.optionGrid}>
+                    {cabildeo.options.map((option, index) => (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        key={`${option.label}-${index}`}
+                        onPress={() => setPreferredOption(index)}
+                        style={[
+                          styles.optionChoice,
+                          {
+                            borderColor:
+                              preferredOption === index
+                                ? t.palette.primary_500
+                                : t.palette.contrast_100,
+                          },
+                        ]}>
+                        <Text
+                          style={[styles.optionChoiceText, t.atoms.text]}
+                          numberOfLines={2}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <TextInput
+                    accessibilityRole="text"
+                    style={[styles.reasonInput, t.atoms.bg, t.atoms.text]}
+                    placeholder="Razón o condición de tu cesión"
+                    placeholderTextColor={t.palette.contrast_500}
+                    value={reason}
+                    onChangeText={setReason}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                  <View style={styles.signalRow}>
+                    {SIGNALS.map(item => (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        key={item}
+                        onPress={() => setSignal(item)}
+                        style={[
+                          styles.signalPill,
+                          {
+                            backgroundColor:
+                              signal === item
+                                ? t.palette.primary_500
+                                : t.palette.contrast_50,
+                          },
+                        ]}>
+                        <Text
+                          style={[
+                            styles.signalText,
+                            signal === item ? {color: '#fff'} : t.atoms.text,
+                          ]}>
+                          {item > 0 ? `+${item}` : item}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <Text
+                    style={[
+                      styles.criteriaMeter,
+                      {
+                        color:
+                          activeCriteriaCount >= 2
+                            ? '#34C759'
+                            : t.palette.contrast_500,
+                      },
+                    ]}>
+                    {activeCriteriaCount}/3 elementos completos
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Cede Button */}
               <TouchableOpacity
                 accessibilityRole="button"
-                onPress={handleDelegate}
-                disabled={!selectedRep || delegateMutation.isPending}
+                onPress={() => {
+                  handleCede().catch(() => {})
+                }}
+                disabled={!canSubmitCession || delegateMutation.isPending}
                 style={[
                   styles.delegateBtn,
                   {
                     backgroundColor:
-                      selectedRep && !delegateMutation.isPending
+                      canSubmitCession && !delegateMutation.isPending
                         ? '#FF9500'
                         : t.palette.contrast_200,
                   },
                 ]}>
                 <Text style={styles.delegateBtnText}>
                   {delegateMutation.isPending
-                    ? 'Delegando...'
-                    : '🤝 Delegar mi voto'}
+                    ? 'Cediendo...'
+                    : cessionMode === 'active'
+                      ? '🤝 Ceder mi voto'
+                      : '⚙️ Guardar cesión pasiva'}
                 </Text>
-                {selectedRepData && (
+                {cessionMode === 'active' && selectedRepData && (
                   <Text style={styles.delegateBtnSub}>
                     a{' '}
                     {selectedRepData.displayName ||
@@ -473,10 +777,22 @@ export function DelegateVoteScreen({route, navigation}: Props) {
                     ).toFixed(1)}
                   </Text>
                 )}
+                {cessionMode === 'passive' && canSubmitPassive ? (
+                  <Text style={styles.delegateBtnSub}>
+                    {passiveParty} · {passiveMatter} · {passiveCommunity}
+                  </Text>
+                ) : null}
               </TouchableOpacity>
+              {!canSubmitCession ? (
+                <Text style={[styles.errorText, t.atoms.text_contrast_medium]}>
+                  {cessionMode === 'active'
+                    ? 'Elige una voz receptora y completa al menos 2 piezas de criterio.'
+                    : 'Completa partido, materia y comunidad para guardar la regla.'}
+                </Text>
+              ) : null}
               {delegateMutation.isError ? (
                 <Text style={[styles.errorText, {color: '#FF3B30'}]}>
-                  No se pudo registrar la delegación. Intenta otra vez.
+                  No se pudo registrar la cesión. Intenta otra vez.
                 </Text>
               ) : null}
 
@@ -562,6 +878,18 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     opacity: 0.7,
   },
+  modeTabs: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 18,
+  },
+  modeTab: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modeTabText: {fontSize: 13, fontWeight: '900'},
 
   // Delegated confirmation
   delegatedConfirm: {
@@ -591,9 +919,92 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
+  passiveCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 16,
+  },
+  passiveTitle: {fontSize: 16, fontWeight: '900', marginBottom: 4},
+  passiveSub: {fontSize: 12, lineHeight: 17, marginBottom: 12},
+  input: {
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  passiveExample: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  criteriaCard: {
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+  },
+  criteriaTitle: {fontSize: 16, fontWeight: '900', marginBottom: 4},
+  criteriaSub: {fontSize: 12, lineHeight: 17, marginBottom: 12},
+  optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  optionChoice: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    minWidth: '30%',
+    flex: 1,
+  },
+  optionChoiceText: {fontSize: 12, fontWeight: '800'},
+  reasonInput: {
+    borderRadius: 12,
+    minHeight: 86,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  signalRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 8,
+  },
+  signalPill: {
+    flex: 1,
+    borderRadius: 10,
+    paddingVertical: 9,
+    alignItems: 'center',
+  },
+  signalText: {fontSize: 12, fontWeight: '900'},
+  criteriaMeter: {fontSize: 12, fontWeight: '800', textAlign: 'right'},
 
   // Rep List
   repList: {gap: 12, marginBottom: 16},
+  suggestions: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 4,
+  },
+  suggestionsTitle: {fontSize: 15, fontWeight: '900', marginBottom: 4},
+  suggestionsSub: {fontSize: 12, lineHeight: 17, marginBottom: 12},
+  suggestionRow: {flexDirection: 'row', gap: 8},
+  suggestionChip: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 10,
+    minHeight: 88,
+  },
+  suggestionRank: {fontSize: 11, fontWeight: '900', marginBottom: 4},
+  suggestionName: {fontSize: 13, fontWeight: '900'},
+  suggestionReason: {fontSize: 10, fontWeight: '700', marginTop: 4},
   repCard: {
     borderRadius: 16,
     padding: 14,

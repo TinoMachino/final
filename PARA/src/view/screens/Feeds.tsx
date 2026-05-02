@@ -733,6 +733,7 @@ function PartyFeedCard({party}: {party: PartyFeedProfile}) {
               style={[
                 a.align_center,
                 a.justify_center,
+                styles.partyFeedLogo,
                 {
                   width: 28,
                   height: 28,
@@ -746,19 +747,16 @@ function PartyFeedCard({party}: {party: PartyFeedProfile}) {
                 {party.logo}
               </Text>
             </View>
-            <View style={[a.flex_1, a.gap_2xs]}>
+            <View style={[a.flex_1, styles.partyFeedText]}>
               <Text
                 style={[a.text_md, a.font_semi_bold, a.leading_snug]}
                 numberOfLines={1}>
                 {party.name}
               </Text>
-              <Text
-                style={[a.text_sm, a.leading_snug, t.atoms.text_contrast_medium]}
-                numberOfLines={2}>
-                {party.description}
-              </Text>
             </View>
-            <ChevronRight size="sm" fill={t.atoms.text_contrast_low.color} />
+            <View style={styles.partyFeedChevron}>
+              <ChevronRight size="sm" fill={t.atoms.text_contrast_low.color} />
+            </View>
           </FeedCard.Header>
         </View>
       )}
@@ -891,6 +889,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  partyFeedLogo: {
+    flexShrink: 0,
+  },
+  partyFeedText: {
+    minWidth: 0,
+  },
+  partyFeedChevron: {
+    flexShrink: 0,
   },
   savedFeedMobile: {
     paddingVertical: 10,

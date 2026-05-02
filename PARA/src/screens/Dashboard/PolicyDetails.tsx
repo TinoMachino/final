@@ -4,7 +4,10 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {Trans} from '@lingui/react/macro'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
-import {type CabildeoPositionRecord} from '#/lib/api/para-lexicons'
+import {
+  type CabildeoCommunityBreakdown,
+  type CabildeoPositionRecord,
+} from '#/lib/api/para-lexicons'
 import {type CabildeoView} from '#/lib/cabildeo-client'
 import {
   getCabildeoBadge,
@@ -26,8 +29,8 @@ import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
 import {Button, ButtonIcon, ButtonText} from '#/components/Button'
 import {CompassMini} from '#/components/CompassMini'
 import {ArrowShareRight_Stroke2_Corner2_Rounded as ShareIcon} from '#/components/icons/ArrowShareRight'
-import {LinearGradientBackground} from '#/components/LinearGradientBackground'
 import * as Layout from '#/components/Layout'
+import {LinearGradientBackground} from '#/components/LinearGradientBackground'
 import {ListMaybePlaceholder} from '#/components/Lists'
 import {type PolicyItem} from './types'
 
@@ -769,7 +772,7 @@ function buildLiveDetailModel({
       {label: 'Participants', value: formatCount(participants)},
       {label: 'Votes', value: formatCount(cabildeo.voteTotals.total)},
       {label: 'Positions', value: formatCount(cabildeo.positionCounts.total)},
-      {label: 'Delegated', value: formatCount(cabildeo.voteTotals.delegated)},
+      {label: 'Ceded', value: formatCount(cabildeo.voteTotals.delegated)},
     ],
     communities,
     summaryChips: [

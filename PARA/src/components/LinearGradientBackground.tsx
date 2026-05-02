@@ -7,21 +7,25 @@ import {gradients} from '#/alf/tokens'
 export function LinearGradientBackground({
   style,
   gradient = 'sky',
+  colors: customColors,
   children,
   start,
   end,
 }: {
   style?: StyleProp<ViewStyle>
   gradient?: keyof typeof gradients
+  colors?: [string, string, ...string[]]
   children?: ReactNode
   start?: [number, number]
   end?: [number, number]
 }) {
-  const colors = gradients[gradient].values.map(([_, color]) => {
-    return color
-  }) as [string, string, ...string[]]
+  const colors =
+    customColors ??
+    (gradients[gradient].values.map(([_, color]) => {
+      return color
+    }) as [string, string, ...string[]])
 
-  if (gradient.length < 2) {
+  if (colors.length < 2) {
     throw new Error('Gradient must have at least 2 colors')
   }
 

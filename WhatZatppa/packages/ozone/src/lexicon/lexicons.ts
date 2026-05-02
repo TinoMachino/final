@@ -18435,19 +18435,31 @@ export const schemaDict = {
     defs: {
       main: {
         type: 'record',
-        description: 'Standing delegation of civic voting power.',
+        description: 'Standing liquid-democracy cession of civic voting power.',
         key: 'tid',
         record: {
           type: 'object',
-          required: ['delegateTo', 'createdAt'],
+          required: ['createdAt'],
           properties: {
             cabildeo: {
               type: 'string',
               format: 'at-uri',
             },
+            mode: {
+              type: 'string',
+              knownValues: ['active', 'passive'],
+            },
             delegateTo: {
               type: 'string',
               format: 'did',
+            },
+            party: {
+              type: 'string',
+              maxLength: 100,
+            },
+            community: {
+              type: 'string',
+              maxLength: 100,
             },
             scopeFlairs: {
               type: 'array',
@@ -18456,6 +18468,15 @@ export const schemaDict = {
                 maxLength: 100,
               },
               maxLength: 10,
+            },
+            preferredOption: {
+              type: 'integer',
+              minimum: 0,
+            },
+            signal: {
+              type: 'integer',
+              minimum: -3,
+              maximum: 3,
             },
             reason: {
               type: 'string',

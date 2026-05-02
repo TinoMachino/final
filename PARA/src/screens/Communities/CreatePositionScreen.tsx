@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation, useRoute} from '@react-navigation/native'
+import {useQueryClient} from '@tanstack/react-query'
 
 import {publishCabildeoPosition} from '#/lib/api/cabildeo'
 import {type CabildeoPositionRecord} from '#/lib/api/para-lexicons'
@@ -19,6 +20,11 @@ import {
   type NativeStackScreenProps,
   type NavigationProp,
 } from '#/lib/routes/types'
+import {
+  cabildeoDetailQueryKey,
+  cabildeoPositionsQueryKey,
+  cabildeosQueryKey,
+} from '#/state/queries/cabildeo'
 import {useAgent} from '#/state/session'
 import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
@@ -32,6 +38,7 @@ export function CreatePositionScreen(_props: Props) {
   const navigation = useNavigation<NavigationProp>()
   const route = useRoute<Props['route']>()
   const agent = useAgent()
+  const queryClient = useQueryClient()
 
   const {optionIndex} = route.params
   const cabildeoUri = fromCabildeoRouteParam(route.params.cabildeoUri)
@@ -56,6 +63,13 @@ export function CreatePositionScreen(_props: Props) {
       }
 
       await publishCabildeoPosition(agent, recordData)
+      void queryClient.invalidateQueries({
+        queryKey: cabildeoDetailQueryKey(cabildeoUri),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: cabildeoPositionsQueryKey(cabildeoUri),
+      })
+      void queryClient.invalidateQueries({queryKey: cabildeosQueryKey})
       Toast.show('Posición publicada exitosamente')
       navigation.goBack()
     } catch (e: unknown) {
@@ -67,7 +81,7 @@ export function CreatePositionScreen(_props: Props) {
     } finally {
       setIsSubmitting(false)
     }
-  }, [agent, cabildeoUri, stance, optionIndex, text, navigation])
+  }, [agent, cabildeoUri, stance, optionIndex, text, navigation, queryClient])
 
   const stances: Array<{
     value: typeof stance

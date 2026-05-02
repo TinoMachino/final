@@ -58,8 +58,13 @@ export interface CabildeoDelegation {
   cid: string
   creator: string
   cabildeo: string | null
-  delegateTo: string
+  delegateTo: string | null
+  mode: string | null
+  party: string | null
+  community: string | null
   scopeFlairs: string[] | null
+  preferredOption: number | null
+  signal: number | null
   reason: string | null
   createdAt: string
   indexedAt: string

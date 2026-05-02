@@ -95,7 +95,11 @@ export function Outer({children}: {children: React.ReactNode}) {
 }
 
 export function Header({children}: {children: React.ReactNode}) {
-  return <View style={[a.flex_row, a.align_center, a.gap_sm]}>{children}</View>
+  return (
+    <View style={[a.flex_row, a.align_center, a.gap_sm, styles.header]}>
+      {children}
+    </View>
+  )
 }
 
 export type AvatarProps = {src: string | undefined; size?: number}
@@ -142,7 +146,7 @@ export function TitleAndByline({
   )
 
   return (
-    <View style={[a.flex_1]}>
+    <View style={[a.flex_1, styles.textColumn]}>
       {uri && activeLiveEvents.has(uri) && (
         <View style={[a.flex_row, a.align_center, a.gap_2xs]}>
           <LiveIcon size="xs" fill={liveColor} />
@@ -178,7 +182,7 @@ export function TitleAndBylinePlaceholder({creator}: {creator?: boolean}) {
   const t = useTheme()
 
   return (
-    <View style={[a.flex_1, a.gap_xs]}>
+    <View style={[a.flex_1, a.gap_xs, styles.textColumn]}>
       <View
         style={[
           a.rounded_xs,
@@ -388,4 +392,13 @@ export function createProfileFeedHref({
   const urip = new AtUri(feed.uri)
   const handleOrDid = feed.creator.handle || feed.creator.did
   return `/profile/${handleOrDid}/feed/${urip.rkey}`
+}
+
+const styles = {
+  header: {
+    minWidth: 0,
+  },
+  textColumn: {
+    minWidth: 0,
+  },
 }

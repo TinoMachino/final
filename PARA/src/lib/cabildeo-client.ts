@@ -65,6 +65,7 @@ export function mapCabildeosToView(
 export function mapCabildeoReadViewToView(
   view: CabildeoReadView,
 ): CabildeoView {
+  const positionCounts = normalizePositionCounts(view.positionCounts)
   const outcome = view.outcomeSummary
     ? {
         winningOption: view.outcomeSummary.winningOption ?? -1,
@@ -114,7 +115,7 @@ export function mapCabildeoReadViewToView(
     phase: toKnownPhase(view.phase),
     phaseDeadline: view.phaseDeadline,
     optionSummary: view.optionSummary,
-    positionCounts: view.positionCounts,
+    positionCounts,
     voteTotals: view.voteTotals,
     outcome,
     userContext:
@@ -201,6 +202,24 @@ export function toCabildeoRouteParams(cabildeo: Pick<CabildeoView, 'uri'>) {
 
 export function fromCabildeoRouteParam(encodedUri: string) {
   return decodeURIComponent(encodedUri)
+}
+
+function normalizePositionCounts(
+  counts: CabildeoReadView['positionCounts'],
+): CabildeoPositionCounts {
+  const backendCounts = counts as CabildeoPositionCounts & {
+    forCount?: number
+    againstCount?: number
+    amendmentCount?: number
+  }
+
+  return {
+    total: backendCounts.total,
+    for: backendCounts.for ?? backendCounts.forCount ?? 0,
+    against: backendCounts.against ?? backendCounts.againstCount ?? 0,
+    amendment: backendCounts.amendment ?? backendCounts.amendmentCount ?? 0,
+    byOption: backendCounts.byOption ?? [],
+  }
 }
 
 function isCabildeoReadView(

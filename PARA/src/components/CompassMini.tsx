@@ -70,7 +70,7 @@ export function CompassMini({
   compact = false,
 }: {
   affiliations: PoliticalAffiliation[]
-  onPress: () => void
+  onPress?: () => void
   size?: number
   compact?: boolean
 }) {

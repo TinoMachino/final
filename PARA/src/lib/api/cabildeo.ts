@@ -76,6 +76,7 @@ export async function delegateCabildeoVote(
   record: Omit<CabildeoDelegationRecord, 'createdAt'>,
 ) {
   if (!agent.session) throw new Error('Not logged in')
+  assertValidCession(record)
 
   return await agent.com.atproto.repo.createRecord({
     repo: agent.session.did,
@@ -85,6 +86,30 @@ export async function delegateCabildeoVote(
       createdAt: new Date().toISOString(),
     } as unknown as Record<string, unknown>,
   })
+}
+
+function assertValidCession(record: Omit<CabildeoDelegationRecord, 'createdAt'>) {
+  const mode = record.mode ?? 'active'
+  if (mode === 'active') {
+    const criteriaCount =
+      (typeof record.preferredOption === 'number' ? 1 : 0) +
+      (record.reason?.trim() ? 1 : 0) +
+      (typeof record.signal === 'number' ? 1 : 0)
+    if (!record.delegateTo || !record.cabildeo || criteriaCount < 2) {
+      throw new Error(
+        'La cesión activa requiere voz receptora y al menos 2 piezas de criterio.',
+      )
+    }
+    return
+  }
+
+  if (
+    !record.party?.trim() ||
+    !record.community?.trim() ||
+    !record.scopeFlairs?.some(item => item.trim().length > 0)
+  ) {
+    throw new Error('La cesión pasiva requiere partido, materia y comunidad.')
+  }
 }
 
 // ─── Reads (AppView) ─────────────────────────────────────────────────────────
@@ -193,6 +218,10 @@ export type DelegationCandidateReadView = {
   selectedOption?: number
 }
 
+export type CabildeoDelegationMode = 'active' | 'passive'
+
+export type CabildeoDelegationSignal = -3 | -2 | -1 | 0 | 1 | 2 | 3
+
 type ListDelegationCandidatesResponse = {
   candidates?: DelegationCandidateReadView[]
   cursor?: string
@@ -262,10 +291,14 @@ export async function fetchCabildeo(
     })
     return (res.data as GetCabildeoResponse).cabildeo ?? null
   } catch (err: unknown) {
-    if (err?.error === 'NotFound') {
+    const error =
+      err && typeof err === 'object'
+        ? (err as {error?: string; message?: string})
+        : null
+    if (error?.error === 'NotFound') {
       return null
     }
-    throw new Error(err?.message || 'Unable to fetch cabildeo.')
+    throw new Error(error?.message || 'Unable to fetch cabildeo.')
   }
 }
 

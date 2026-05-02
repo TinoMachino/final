@@ -17,8 +17,13 @@ const id = 'com.para.civic.delegation'
 export interface Main {
   $type: 'com.para.civic.delegation'
   cabildeo?: string
-  delegateTo: string
+  mode?: 'active' | 'passive' | (string & {})
+  delegateTo?: string
+  party?: string
+  community?: string
   scopeFlairs?: string[]
+  preferredOption?: number
+  signal?: number
   reason?: string
   createdAt: string
   [k: string]: unknown

@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
+import {useQueryClient} from '@tanstack/react-query'
 
 import {publishCabildeo} from '#/lib/api/cabildeo'
 import {type CabildeoOption} from '#/lib/api/para-lexicons'
@@ -18,6 +19,7 @@ import {
   type NativeStackScreenProps,
   type NavigationProp,
 } from '#/lib/routes/types'
+import {cabildeosQueryKey} from '#/state/queries/cabildeo'
 import {useAgent} from '#/state/session'
 import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
@@ -30,6 +32,7 @@ export function CreateCabildeoScreen(_props: Props) {
   const t = useTheme()
   const navigation = useNavigation<NavigationProp>()
   const agent = useAgent()
+  const queryClient = useQueryClient()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -89,6 +92,7 @@ export function CreateCabildeoScreen(_props: Props) {
       }
 
       await publishCabildeo(agent, recordData)
+      void queryClient.invalidateQueries({queryKey: cabildeosQueryKey})
       Toast.show('Cabildeo creado exitosamente')
       navigation.goBack()
     } catch (e: unknown) {
@@ -108,6 +112,7 @@ export function CreateCabildeoScreen(_props: Props) {
     geoRestricted,
     options,
     navigation,
+    queryClient,
   ])
 
   return (

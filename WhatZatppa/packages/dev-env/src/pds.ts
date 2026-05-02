@@ -19,6 +19,11 @@ export class TestPds {
   ) {}
 
   static async create(config: PdsConfig): Promise<TestPds> {
+    const {
+      dataDirectory: configuredDataDirectory,
+      blobstoreDiskLocation: configuredBlobstoreDiskLocation,
+      ...restConfig
+    } = config
     const plcRotationKey = await Secp256k1Keypair.create({ exportable: true })
     const plcRotationPriv = ui8.toString(await plcRotationKey.export(), 'hex')
     const recoveryKey = (await Secp256k1Keypair.create()).did()
@@ -33,8 +38,6 @@ export class TestPds {
     const env: pds.ServerEnvironment = {
       devMode: true,
       port,
-      dataDirectory: dataDirectory,
-      blobstoreDiskLocation: blobstoreLoc,
       recoveryDidKey: recoveryKey,
       adminPassword: ADMIN_PASSWORD,
       jwtSecret: JWT_SECRET,
@@ -62,7 +65,9 @@ export class TestPds {
       termsOfServiceUrl: 'https://bsky.social/about/support/tos',
       privacyPolicyUrl: 'https://bsky.social/about/support/privacy-policy',
       supportUrl: 'https://blueskyweb.zendesk.com/hc/en-us',
-      ...config,
+      ...restConfig,
+      dataDirectory: configuredDataDirectory ?? dataDirectory,
+      blobstoreDiskLocation: configuredBlobstoreDiskLocation ?? blobstoreLoc,
     }
     const cfg = pds.envToCfg(env)
     const secrets = pds.envToSecrets(env)

@@ -312,9 +312,14 @@ export interface CabildeoVoteRecord {
 }
 
 export interface CabildeoDelegationRecord {
-  cabildeo: string // at-uri
-  delegateTo: string // DID of representative
+  cabildeo?: string // at-uri
+  delegateTo?: string // DID of representative for active cessions
   createdAt: string
+  mode?: 'active' | 'passive'
+  party?: string
+  community?: string
+  preferredOption?: number
+  signal?: -3 | -2 | -1 | 0 | 1 | 2 | 3
   reason?: string
   scopeFlairs?: string[] // Optional: Only delegate power for cabildeos matching these policy/matter flairs
 }

@@ -816,7 +816,7 @@ export function CabildeoDetailScreen({route}: Props) {
               ]}>
               <View style={styles.gracePeriodHeader}>
                 <Text style={styles.gracePeriodTitle}>
-                  🔔 Tu delegado ha votado
+                  🔔 Tu voz receptora ha votado
                 </Text>
                 <Text
                   style={[
@@ -827,7 +827,7 @@ export function CabildeoDetailScreen({route}: Props) {
                 </Text>
               </View>
               <Text style={[styles.gracePeriodDesc, t.atoms.text]}>
-                Tu delegado (
+                Tu voz receptora (
                 {cabildeo.userContext?.hasDelegatedTo?.split(':').pop()}) votó
                 por:{'\n'}
                 <Text style={{fontWeight: '900'}}>
@@ -964,7 +964,7 @@ export function CabildeoDetailScreen({route}: Props) {
               onPress={() => navigation.navigate('DelegateVote', {cabildeoUri})}
               style={[styles.delegateButton, t.atoms.bg_contrast_25]}>
               <Text style={[styles.delegateText, t.atoms.text]}>
-                🤝 Delegar mi voto
+                🤝 Ceder mi voto
               </Text>
               <Text style={[styles.delegateSub, t.atoms.text_contrast_medium]}>
                 Tu representante votará por ti (√N weighting)

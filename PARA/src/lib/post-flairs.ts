@@ -2,6 +2,7 @@ import {
   parseTag,
   POST_FLAIRS,
   POST_TYPES,
+  TAG_TYPES,
   type PostFlair,
   type PostType,
 } from '#/lib/tags'
@@ -23,6 +24,10 @@ export interface PostBadge {
   bgColor: string
   kind: 'policy' | 'matter' | 'postType'
   isOfficial?: boolean
+  /** Full original tag string, e.g. |#SanidadPrivada or ||#SanidadPrivada. Undefined for postType badges or generic fallbacks. */
+  tag?: string
+  /** The flair's id field (e.g. 'matter_sanidad_privada'). Used to resolve the eje axis in FlairFeed. */
+  flairId?: string
 }
 
 export type PostBadgeRecord = {
@@ -131,6 +136,17 @@ function resolveBadgeFromTag(
     return undefined
   }
 
+  // Skip generic type-only tags (e.g. |#Matter, ||#Policy) — they carry no
+  // specific subject and would display the raw type name as a label.  The
+  // getPostBadges fallback will produce a proper badge when no specific flair
+  // is found.
+  if (
+    !matched &&
+    (parsed.type === TAG_TYPES.MATTER || parsed.type === TAG_TYPES.POLICY)
+  ) {
+    return undefined
+  }
+
   const color =
     matched?.color ||
     (kind === 'policy' ? DEFAULT_POLICY_COLOR : DEFAULT_MATTER_COLOR)
@@ -143,6 +159,8 @@ function resolveBadgeFromTag(
     bgColor: `${color}20`,
     kind,
     isOfficial: parsed.isOfficial,
+    tag,
+    flairId: matched?.id,
   }
 }
 
@@ -192,25 +210,9 @@ export function getPostBadges(record: PostBadgeRecord): PostBadge[] {
     badges.push(badge)
   }
 
-  if (badges.length === 0 && fallbackKind) {
-    const fallbackTag = flairTags[0]
-    const parsed = fallbackTag
-      ? parseTag(fallbackTag)
-      : {isOfficial: false, type: null}
-    const label = `${parsed.isOfficial ? 'Official' : 'Community'} ${
-      fallbackKind === 'policy' ? 'Policy' : 'Matter'
-    }`
-    const color =
-      fallbackKind === 'policy' ? DEFAULT_POLICY_COLOR : DEFAULT_MATTER_COLOR
-    badges.push({
-      key: `${fallbackKind}:generic`,
-      label,
-      color,
-      bgColor: `${color}20`,
-      kind: fallbackKind,
-      isOfficial: parsed.isOfficial,
-    })
-  }
+  // Design requirement: every matter/policy flair must be specific.
+  // A post tagged with only |#Matter or ||#Policy but no specific sub-flair
+  // shows NO flair badge — a generic label like "Asunto" is meaningless.
 
   const postType = findPostTypeById(inferredPostType)
   if (postType) {

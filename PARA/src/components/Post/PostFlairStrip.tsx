@@ -1,6 +1,9 @@
-import {StyleSheet, View} from 'react-native'
+import {useCallback} from 'react'
+import {Pressable, StyleSheet, View} from 'react-native'
+import {useNavigation} from '@react-navigation/native'
 
 import {type PostBadge} from '#/lib/post-flairs'
+import {type NavigationProp} from '#/lib/routes/types'
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 
@@ -20,12 +23,41 @@ function getBadgeDescriptor(badge: PostBadge) {
   }
 }
 
+function isBadgeNavigable(badge: PostBadge): boolean {
+  // postType badges (Meme, RAQ, etc.) are decorative only
+  if (badge.kind === 'postType') return false
+  // Generic fallback badges have no specific tag to filter by
+  if (!badge.tag || badge.key.endsWith(':generic')) return false
+  return true
+}
+
+function useFlairPress() {
+  const navigation = useNavigation<NavigationProp>()
+
+  return useCallback(
+    (badge: PostBadge) => {
+      if (!isBadgeNavigable(badge)) return
+
+      navigation.navigate('FlairFeed', {
+        flairId: badge.flairId ?? badge.key,
+        flairTag: badge.tag!,
+        flairLabel: badge.label,
+        kind: badge.kind as 'matter' | 'policy',
+        color: badge.color,
+        isOfficial: badge.isOfficial,
+      })
+    },
+    [navigation],
+  )
+}
+
 export function PostFlairStrip({
   badges,
   compact = false,
   showHeader = false,
 }: PostFlairStripProps) {
   const t = useTheme()
+  const onPressBadge = useFlairPress()
 
   if (!badges.length) {
     return null
@@ -45,13 +77,22 @@ export function PostFlairStrip({
         ]}>
         {badges.map(badge => {
           const descriptor = getBadgeDescriptor(badge)
+          const isNavigable = isBadgeNavigable(badge)
 
           return (
-            <View
+            <Pressable
               key={badge.key}
-              style={[
+              onPress={() => onPressBadge(badge)}
+              disabled={!isNavigable}
+              accessible={isNavigable}
+              accessibilityRole={isNavigable ? 'button' : undefined}
+              accessibilityLabel={
+                isNavigable ? `Ver posts sobre ${badge.label}` : badge.label
+              }
+              style={({pressed}) => [
                 styles.badgeRow,
                 compact ? styles.badgeRowCompact : styles.badgeRowRegular,
+                isNavigable && pressed && styles.badgeRowPressed,
               ]}>
               {descriptor ? (
                 <View
@@ -76,21 +117,20 @@ export function PostFlairStrip({
                   styles.pill,
                   compact ? styles.pillCompact : styles.pillRegular,
                   {
-                    backgroundColor: badge.bgColor,
-                    borderColor: `${badge.color}40`,
+                    backgroundColor: badge.color,
                   },
                 ]}>
                 <Text
                   style={[
                     compact ? styles.labelCompact : styles.labelRegular,
                     {
-                      color: badge.color,
+                      color: '#FFFFFF',
                     },
                   ]}>
                   {badge.label}
                 </Text>
               </View>
-            </View>
+            </Pressable>
           )
         })}
       </View>
@@ -119,10 +159,12 @@ const styles = StyleSheet.create({
   badgeRowRegular: {
     gap: 6,
   },
+  badgeRowPressed: {
+    opacity: 0.7,
+  },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
     borderRadius: 999,
   },
   pillCompact: {

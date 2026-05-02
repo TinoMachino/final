@@ -11,10 +11,7 @@ import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
 import {useWebMediaQueries} from '#/lib/hooks/useWebMediaQueries'
 import {ComposeIcon2} from '#/lib/icons'
-import {
-  PARTY_FEED_PROFILES,
-  type PartyFeedProfile,
-} from '#/lib/party-feeds'
+import {PARTY_FEED_PROFILES, type PartyFeedProfile} from '#/lib/party-feeds'
 import {
   type CommonNavigatorParams,
   type NativeStackScreenProps,
@@ -86,13 +83,8 @@ type FlatlistSlice =
       key: string
     }
   | {
-      type: 'partyFeedsHeader'
+      type: 'partyFeedsSection'
       key: string
-    }
-  | {
-      type: 'partyFeed'
-      key: string
-      party: PartyFeedProfile
     }
   | {
       type: 'popularFeedsLoading'
@@ -305,16 +297,9 @@ export function FeedsScreen(_props: Props) {
 
     if (!isUserSearching) {
       slices.push({
-        key: 'partyFeedsHeader',
-        type: 'partyFeedsHeader',
+        key: 'partyFeedsSection',
+        type: 'partyFeedsSection',
       })
-      slices = slices.concat(
-        PARTY_FEED_PROFILES.map(party => ({
-          key: `partyFeed:${party.id}`,
-          type: 'partyFeed',
-          party,
-        })),
-      )
     }
 
     if (!hasSession || (hasSession && canShowDiscoverSection)) {
@@ -481,10 +466,8 @@ export function FeedsScreen(_props: Props) {
             </View>
           </>
         )
-      } else if (item.type === 'partyFeedsHeader') {
-        return <PartyFeedsHeader />
-      } else if (item.type === 'partyFeed') {
-        return <PartyFeedCard party={item.party} />
+      } else if (item.type === 'partyFeedsSection') {
+        return <PartyFeedsSection />
       } else if (item.type === 'popularFeedsLoading') {
         return <FeedFeedLoadingPlaceholder />
       } else if (item.type === 'popularFeed') {
@@ -708,7 +691,39 @@ function SavedFeedPlaceholder() {
   )
 }
 
-function PartyFeedCard({party}: {party: PartyFeedProfile}) {
+function PartyFeedsSection() {
+  const t = useTheme()
+
+  return (
+    <View
+      style={[partyStyles.section, a.border_b, t.atoms.border_contrast_low]}>
+      {/* Section header */}
+      <View style={partyStyles.sectionHeader}>
+        <Text style={[partyStyles.eyebrow, {color: t.palette.primary_500}]}>
+          Live Feeds
+        </Text>
+        <Text style={[partyStyles.heading, t.atoms.text]}>
+          <Trans>Party Feeds</Trans>
+        </Text>
+        <Text style={[partyStyles.lead, t.atoms.text_contrast_medium]}>
+          <Trans>
+            Follow each political current as its own timeline, from party
+            machines to the new Migala mycelium.
+          </Trans>
+        </Text>
+      </View>
+
+      {/* 2-column card grid */}
+      <View style={partyStyles.grid}>
+        {PARTY_FEED_PROFILES.map(party => (
+          <PartyCard key={party.id} party={party} />
+        ))}
+      </View>
+    </View>
+  )
+}
+
+function PartyCard({party}: {party: PartyFeedProfile}) {
   const t = useTheme()
 
   return (
@@ -716,90 +731,47 @@ function PartyFeedCard({party}: {party: PartyFeedProfile}) {
       testID={`party-feed-${party.id}`}
       to={`/feeds/party/${party.id}`}
       label={`${party.name} feed`}
-      style={[a.flex_col]}>
+      style={partyStyles.cardLink}>
       {({hovered, pressed}) => (
         <View
           style={[
-            a.w_full,
-            a.flex_1,
-            a.px_lg,
-            a.py_md,
-            a.border_b,
-            t.atoms.border_contrast_low,
-            (hovered || pressed) && t.atoms.bg_contrast_25,
+            partyStyles.card,
+            t.atoms.bg,
+            {borderColor: t.palette.contrast_100},
+            (hovered || pressed) && {opacity: 0.82},
           ]}>
-          <FeedCard.Header>
+          {/* Colored banner */}
+          <View
+            style={[partyStyles.cardBanner, {backgroundColor: party.color}]}>
+            {/* Accent strip at the bottom of the banner */}
             <View
               style={[
-                a.align_center,
-                a.justify_center,
-                styles.partyFeedLogo,
-                {
-                  width: 28,
-                  height: 28,
-                  borderRadius: 4,
-                  backgroundColor: party.color,
-                  borderWidth: 2,
-                  borderColor: party.accentColor,
-                },
-              ]}>
-              <Text style={[a.text_xs, a.font_bold, {color: 'white'}]}>
-                {party.logo}
-              </Text>
+                partyStyles.cardBannerAccent,
+                {backgroundColor: party.accentColor},
+              ]}
+            />
+            {/* Logo circle */}
+            <View style={partyStyles.logoRing}>
+              <Text style={partyStyles.logoText}>{party.logo}</Text>
             </View>
-            <View style={[a.flex_1, styles.partyFeedText]}>
-              <Text
-                style={[a.text_md, a.font_semi_bold, a.leading_snug]}
-                numberOfLines={1}>
-                {party.name}
-              </Text>
-            </View>
-            <View style={styles.partyFeedChevron}>
-              <ChevronRight size="sm" fill={t.atoms.text_contrast_low.color} />
-            </View>
-          </FeedCard.Header>
+          </View>
+
+          {/* Card body */}
+          <View style={partyStyles.cardBody}>
+            <Text
+              style={[partyStyles.cardName, t.atoms.text]}
+              numberOfLines={1}>
+              {party.name}
+            </Text>
+            <Text
+              style={[partyStyles.cardDesc, t.atoms.text_contrast_medium]}
+              numberOfLines={3}>
+              {party.description}
+            </Text>
+          </View>
         </View>
       )}
     </Link>
-  )
-}
-
-function PartyFeedsHeader() {
-  const t = useTheme()
-
-  return (
-    <View
-      style={
-        IS_WEB
-          ? [
-              a.flex_row,
-              a.px_md,
-              a.py_lg,
-              a.gap_md,
-              a.border_b,
-              t.atoms.border_contrast_low,
-            ]
-          : [
-              {flexDirection: 'row-reverse'},
-              a.p_lg,
-              a.gap_md,
-              a.border_b,
-              t.atoms.border_contrast_low,
-            ]
-      }>
-      <IconCircle icon={ListSparkle_Stroke2_Corner0_Rounded} size="lg" />
-      <View style={[a.flex_1, a.gap_xs]}>
-        <Text style={[a.flex_1, a.text_2xl, a.font_bold, t.atoms.text]}>
-          <Trans>Party Feeds</Trans>
-        </Text>
-        <Text style={[t.atoms.text_contrast_high]}>
-          <Trans>
-            Follow each political current as its own timeline, from party
-            machines to the new Migala mycelium.
-          </Trans>
-        </Text>
-      </View>
-    </View>
   )
 }
 
@@ -890,15 +862,6 @@ const styles = StyleSheet.create({
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  partyFeedLogo: {
-    flexShrink: 0,
-  },
-  partyFeedText: {
-    minWidth: 0,
-  },
-  partyFeedChevron: {
-    flexShrink: 0,
-  },
   savedFeedMobile: {
     paddingVertical: 10,
   },
@@ -912,5 +875,88 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 15,
     alignItems: 'center',
+  },
+})
+
+const partyStyles = StyleSheet.create({
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 28,
+    paddingBottom: 24,
+  },
+  sectionHeader: {
+    gap: 6,
+    marginBottom: 20,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+    lineHeight: 34,
+  },
+  lead: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 2,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  cardLink: {
+    width: '47%',
+  },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  cardBanner: {
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBannerAccent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+  },
+  logoRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoText: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  cardBody: {
+    padding: 12,
+    paddingTop: 10,
+    gap: 5,
+  },
+  cardName: {
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    lineHeight: 20,
+  },
+  cardDesc: {
+    fontSize: 12,
+    lineHeight: 17,
   },
 })

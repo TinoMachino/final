@@ -77,6 +77,14 @@ export type CommonNavigatorParams = {
   FindContactsSettings: undefined
   Search: {q?: string; tab?: 'user' | 'profile' | 'feed'}
   Hashtag: {tag: string; author?: string}
+  FlairFeed: {
+    flairId: string
+    flairTag: string
+    flairLabel: string
+    kind: 'matter' | 'policy'
+    color: string
+    isOfficial?: boolean
+  }
   Topic: {topic: string}
   MessagesConversation: {conversation: string; embed?: string; accept?: true}
   MessagesConversationSettings: {conversation: string}

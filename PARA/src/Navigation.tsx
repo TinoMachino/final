@@ -105,6 +105,7 @@ import {VSScreen} from '#/screens/Dashboard/VSScreenV2'
 import {SharedPreferencesTesterScreen} from '#/screens/E2E/SharedPreferencesTesterScreen'
 import {PartyFeedScreen} from '#/screens/Feeds/PartyFeed'
 import {FindContactsFlowScreen} from '#/screens/FindContactsFlowScreen'
+import FlairFeedScreen from '#/screens/FlairFeed'
 import HashtagScreen from '#/screens/Hashtag'
 import {HighlightsScreen} from '#/screens/Highlights/HighlightsScreen'
 import {LogScreen} from '#/screens/Log'
@@ -649,6 +650,11 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         name="Hashtag"
         getComponent={() => HashtagScreen}
         options={{title: title(msg`Hashtag`)}}
+      />
+      <Stack.Screen
+        name="FlairFeed"
+        getComponent={() => FlairFeedScreen}
+        options={{title: title(msg`Flair Feed`)}}
       />
       <Stack.Screen
         name="Topic"

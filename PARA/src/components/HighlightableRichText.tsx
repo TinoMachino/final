@@ -151,7 +151,7 @@ let HighlightableRichText = ({
       await addHighlight(
         pendingSelection.start,
         pendingSelection.end,
-        HIGHLIGHT_COLORS.yellow,
+        HIGHLIGHT_COLORS.centerCenter,
         false, // isPublic default false for quick highlight
         highlightText,
       )
@@ -211,6 +211,13 @@ let HighlightableRichText = ({
   }
 
   // Render text with existing highlights as styled spans
+  // Always force black text so highlighted text stays readable
+  // regardless of how light the compass background color is.
+  const getHighlightBackgroundStyle = (color: HighlightColor) => ({
+    backgroundColor: Array.isArray(color) ? color[0] : color,
+    color: '#000000',
+  })
+
   const renderTextWithHighlights = () => {
     if (highlights.length === 0) {
       return text
@@ -227,24 +234,17 @@ let HighlightableRichText = ({
         parts.push(text.slice(lastEnd, highlight.start))
       }
 
+      const highlightStyle = getHighlightBackgroundStyle(highlight.color)
+
       // The highlighted text (shown as styled text, tappable when not in edit mode)
-      if (!isHighlightMode) {
-        parts.push(
-          <Text
-            key={`hl-${index}`}
-            onPress={() => onTapHighlight(highlight)}
-            style={{backgroundColor: highlight.color}}>
-            {text.slice(highlight.start, highlight.end)}
-          </Text>,
-        )
-      } else {
-        // In highlight mode, just show the background color
-        parts.push(
-          <Text key={`hl-${index}`} style={{backgroundColor: highlight.color}}>
-            {text.slice(highlight.start, highlight.end)}
-          </Text>,
-        )
-      }
+      parts.push(
+        <Text
+          key={`hl-${index}`}
+          onPress={() => !isHighlightMode && onTapHighlight(highlight)}
+          style={highlightStyle}>
+          {text.slice(highlight.start, highlight.end)}
+        </Text>,
+      )
 
       lastEnd = highlight.end
     })

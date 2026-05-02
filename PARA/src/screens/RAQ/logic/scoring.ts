@@ -81,17 +81,9 @@ export const IDEOLOGIES: IdeologyArchetype[] = [
   },
 ]
 
-export const NINTHS_COLORS = {
-  'Auth Left': '#F93A3A',
-  'Lib Left': '#34C759',
-  'Center Left': '#5AC8FA',
-  'Auth Econocenter': '#FF3B30',
-  'Center Econocenter': '#FFCC00',
-  'Lib Econocenter': '#30B0C7',
-  'Center Right': '#007AFF',
-  'Lib Right': '#AF52DE',
-  'Auth Right': '#5856D6',
-}
+// Colors must match the canonical compass palette — import from compassColors
+import {NINTH_NAME_TO_COMPASS_COLOR} from '#/lib/compass/compassColors'
+export const NINTHS_COLORS = NINTH_NAME_TO_COMPASS_COLOR
 
 export function calculateCompassXY(userVector: number[]): {
   x: number
@@ -233,7 +225,7 @@ export const PARTY_PROFILES: PartyProfile[] = [
     id: 'migala',
     name: 'Migala',
     fullName: 'Proyecto Migala',
-    color: '#106B43',
+    color: '#6B21A8',
     // Libertarian-left: commons, direct democracy, civil liberties, ecology
     vector: [90, 92, 88, 86, 20, 95, 92, 90, 78, 82, 90, 88],
   },

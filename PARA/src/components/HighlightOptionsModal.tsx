@@ -8,14 +8,20 @@ import {
   Modal,
   Platform,
   Pressable,
+  StyleSheet,
   Switch,
   TextInput,
   View,
 } from 'react-native'
+import {LinearGradient} from 'expo-linear-gradient'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 
+import {
+  COMPASS_CROSS_GRADIENTS,
+  type CompassPositionId,
+} from '#/lib/compass/compassColors'
 import {
   HIGHLIGHT_COLORS,
   type HighlightColor,
@@ -24,6 +30,41 @@ import {
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {Text} from '#/components/Typography'
+
+// Maps camelCase highlight key → kebab-case compass position ID
+// so we can look up COMPASS_CROSS_GRADIENTS for the 4 edge cells.
+const KEY_TO_COMPASS_ID: Record<HighlightColorKey, CompassPositionId> = {
+  authLeft: 'auth-left',
+  authCenter: 'auth-center',
+  authRight: 'auth-right',
+  centerLeft: 'center-left',
+  centerCenter: 'center',
+  centerRight: 'center-right',
+  libLeft: 'lib-left',
+  libCenter: 'lib-center',
+  libRight: 'lib-right',
+}
+
+// 3 × 3 compass grid — row labels + ordered color keys
+const COMPASS_GRID = [
+  {
+    rowLabel: 'Auth',
+    keys: ['authLeft', 'authCenter', 'authRight'] as HighlightColorKey[],
+  },
+  {
+    rowLabel: 'Ctr',
+    keys: ['centerLeft', 'centerCenter', 'centerRight'] as HighlightColorKey[],
+  },
+  {
+    rowLabel: 'Lib',
+    keys: ['libLeft', 'libCenter', 'libRight'] as HighlightColorKey[],
+  },
+]
+
+// Layout constants
+const LABEL_W = 32 // row-label column width (px)
+const CELL_GAP = 5 // gap between cells (px)
+const CELL_H = 36 // cell height (px) — compact to save screen space
 
 interface HighlightOptionsModalProps {
   visible: boolean
@@ -49,14 +90,14 @@ let HighlightOptionsModal = ({
   const t = useTheme()
   const {_} = useLingui()
   const [selectedColor, setSelectedColor] = useState<HighlightColor>(
-    existingColor ?? HIGHLIGHT_COLORS.yellow,
+    existingColor ?? HIGHLIGHT_COLORS.centerCenter,
   )
   const [tag, setTag] = useState(existingTag ?? '')
   const [isPublic, setIsPublic] = useState(existingIsPublic ?? false)
 
   useEffect(() => {
     if (!visible) return
-    setSelectedColor(existingColor ?? HIGHLIGHT_COLORS.yellow)
+    setSelectedColor(existingColor ?? HIGHLIGHT_COLORS.centerCenter)
     setTag(existingTag ?? '')
     setIsPublic(existingIsPublic ?? false)
   }, [existingColor, existingIsPublic, existingTag, visible])
@@ -64,8 +105,6 @@ let HighlightOptionsModal = ({
   const handleSave = useCallback(() => {
     onSave(selectedColor, isPublic, tag.trim() || undefined)
   }, [onSave, selectedColor, isPublic, tag])
-
-  const colorKeys = Object.keys(HIGHLIGHT_COLORS) as HighlightColorKey[]
 
   return (
     <Modal
@@ -92,43 +131,119 @@ let HighlightOptionsModal = ({
               backgroundColor: t.atoms.bg.backgroundColor,
             },
           ]}>
-
           <Text style={[a.text_lg, a.font_bold, a.mb_md]}>
             <Trans>Highlight Options</Trans>
           </Text>
 
-          {/* Color picker */}
+          {/* ── Color picker: 3 × 3 compass grid ──────────────── */}
           <Text style={[a.text_sm, a.mb_sm, t.atoms.text_contrast_medium]}>
             <Trans>Color</Trans>
           </Text>
-          <View style={[a.flex_row, a.gap_sm, a.mb_lg, a.flex_wrap]}>
-            {colorKeys.map(colorKey => {
-              const color = HIGHLIGHT_COLORS[colorKey]
-              const isSelected = selectedColor === color
-              return (
-                <Pressable
-                  key={colorKey}
-                  onPress={() => setSelectedColor(color)}
-                  accessibilityLabel={_(msg`Select ${colorKey} color`)}
-                  accessibilityHint={_(
-                    msg`Sets the highlight color to ${colorKey}`,
-                  )}
-                  accessibilityRole="button"
+
+          <View style={[a.mb_lg]}>
+            {/* Column headers */}
+            <View
+              style={[
+                a.flex_row,
+                {
+                  marginLeft: LABEL_W + CELL_GAP,
+                  gap: CELL_GAP,
+                  marginBottom: 4,
+                },
+              ]}>
+              {['Left', 'Ctr', 'Right'].map(lbl => (
+                <Text
+                  key={lbl}
                   style={[
-                    a.rounded_full,
+                    a.text_center,
+                    a.font_bold,
                     {
-                      width: 40,
-                      height: 40,
-                      backgroundColor: color,
-                      borderWidth: isSelected ? 3 : 1,
-                      borderColor: isSelected
-                        ? t.palette.primary_500
-                        : t.atoms.border_contrast_low.borderColor,
+                      flex: 1,
+                      fontSize: 10,
+                      color: t.atoms.text_contrast_low.color,
                     },
-                  ]}
-                />
-              )
-            })}
+                  ]}>
+                  {lbl}
+                </Text>
+              ))}
+            </View>
+
+            {/* Grid rows */}
+            {COMPASS_GRID.map(({rowLabel, keys}, rowIdx) => (
+              <View
+                key={rowLabel}
+                style={[
+                  a.flex_row,
+                  a.align_center,
+                  {gap: CELL_GAP, marginTop: rowIdx === 0 ? 0 : CELL_GAP},
+                ]}>
+                {/* Row label */}
+                <Text
+                  style={[
+                    a.font_bold,
+                    {
+                      width: LABEL_W,
+                      textAlign: 'right',
+                      fontSize: 10,
+                      color: t.atoms.text_contrast_low.color,
+                    },
+                  ]}>
+                  {rowLabel}
+                </Text>
+
+                {/* 3 color cells */}
+                {keys.map(colorKey => {
+                  const color = HIGHLIGHT_COLORS[colorKey]
+                  const isSelected = selectedColor === color
+                  const compassId = KEY_TO_COMPASS_ID[colorKey]
+                  const gradient = COMPASS_CROSS_GRADIENTS[compassId]
+                  return (
+                    <Pressable
+                      key={colorKey}
+                      onPress={() => setSelectedColor(color)}
+                      accessibilityLabel={_(msg`Select ${colorKey} color`)}
+                      accessibilityHint={_(
+                        msg`Sets the highlight color to ${colorKey}`,
+                      )}
+                      accessibilityRole="button"
+                      style={[
+                        gridStyles.cell,
+                        {
+                          borderWidth: isSelected ? 3 : 1.5,
+                          borderColor: isSelected
+                            ? t.palette.primary_500
+                            : t.atoms.border_contrast_low.borderColor,
+                          // solid-color cells only; gradient cells fill via LinearGradient
+                          backgroundColor: gradient ? undefined : color,
+                        },
+                      ]}>
+                      {gradient && (
+                        <LinearGradient
+                          colors={
+                            gradient.colors as unknown as readonly [
+                              string,
+                              string,
+                              ...string[],
+                            ]
+                          }
+                          start={gradient.start}
+                          end={gradient.end}
+                          style={StyleSheet.absoluteFill}
+                        />
+                      )}
+                      {isSelected && (
+                        <View
+                          style={[
+                            StyleSheet.absoluteFill,
+                            gridStyles.selectedRing,
+                          ]}
+                        />
+                      )}
+                    </Pressable>
+                  )
+                })}
+              </View>
+            ))}
           </View>
 
           {/* Tag input */}
@@ -237,3 +352,17 @@ let HighlightOptionsModal = ({
 
 HighlightOptionsModal = memo(HighlightOptionsModal)
 export {HighlightOptionsModal}
+
+const gridStyles = StyleSheet.create({
+  cell: {
+    flex: 1,
+    height: CELL_H,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  selectedRing: {
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.65)',
+    borderRadius: 4,
+  },
+})

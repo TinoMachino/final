@@ -2,6 +2,12 @@ import {StyleSheet, TouchableOpacity, View} from 'react-native'
 import {LinearGradient} from 'expo-linear-gradient'
 import {Trans} from '@lingui/react/macro'
 
+import {
+  COMPASS_COLORS,
+  COMPASS_CROSS_GRADIENTS,
+  COMPASS_GRID_ROWS,
+  COMPASS_POSITION_IDS,
+} from '#/lib/compass/compassColors'
 import {getPartyNinthId} from '#/lib/compass/party-distributions'
 import {
   COMPASS_ID_TO_NINTH_NAME,
@@ -11,23 +17,8 @@ import {
 import {atoms as a, useTheme} from '#/alf'
 import {Text} from '#/components/Typography'
 
-const MINI_GRID_COLORS = [
-  ['#efb9bb', ['#efb9bb', '#99d0ea'], '#99d0ea'],
-  [['#efb9bb', '#c7e4c2'], '#efe7d6', ['#99d0ea', '#f6efb3']],
-  ['#c7e4c2', ['#c7e4c2', '#f6efb3'], '#f6efb3'],
-]
-
-const NINTH_COMPASS_IDS = [
-  'auth-left',
-  'auth-center',
-  'auth-right',
-  'center-left',
-  'center',
-  'center-right',
-  'lib-left',
-  'lib-center',
-  'lib-right',
-]
+// Flat list of IDs in grid order (used for index lookups)
+const NINTH_COMPASS_IDS = [...COMPASS_POSITION_IDS]
 
 function getExplicitNinthId(
   affiliations: PoliticalAffiliation[],
@@ -82,11 +73,12 @@ export function CompassMini({
 
   const grid = (
     <View style={[styles.grid, {width: size, height: size}]}>
-      {MINI_GRID_COLORS.map((row, rowIdx) => (
+      {COMPASS_GRID_ROWS.map((row, rowIdx) => (
         <View key={rowIdx} style={styles.row}>
-          {row.map((color, colIdx) => {
-            const id = NINTH_COMPASS_IDS[rowIdx * 3 + colIdx]
-            const isActive = id === displayedNinthId
+          {row.map((positionId, colIdx) => {
+            const isActive = positionId === displayedNinthId
+            const solidColor = COMPASS_COLORS[positionId]
+            const gradient = COMPASS_CROSS_GRADIENTS[positionId]
             return (
               <View
                 key={colIdx}
@@ -95,8 +87,8 @@ export function CompassMini({
                   isActive && {
                     transform: [{scale: 1.15}],
                     borderWidth: 2,
-                    borderColor: Array.isArray(color) ? color[0] : color,
-                    shadowColor: Array.isArray(color) ? color[0] : color,
+                    borderColor: solidColor,
+                    shadowColor: solidColor,
                     shadowOffset: {width: 0, height: 0},
                     shadowOpacity: 0.5,
                     shadowRadius: 6,
@@ -105,16 +97,25 @@ export function CompassMini({
                   },
                   !hasPosition && {opacity: 0.5},
                 ]}>
-                {Array.isArray(color) ? (
+                {gradient ? (
                   <LinearGradient
-                    colors={color as unknown as readonly [string, string, ...string[]]}
-                    start={rowIdx === 0 || rowIdx === 2 ? {x: 0, y: 0.5} : {x: 0.5, y: 0}}
-                    end={rowIdx === 0 || rowIdx === 2 ? {x: 1, y: 0.5} : {x: 0.5, y: 1}}
+                    colors={
+                      gradient.colors as unknown as readonly [
+                        string,
+                        string,
+                        ...string[],
+                      ]
+                    }
+                    start={gradient.start}
+                    end={gradient.end}
                     style={StyleSheet.absoluteFill}
                   />
                 ) : (
                   <View
-                    style={[StyleSheet.absoluteFill, {backgroundColor: color}]}
+                    style={[
+                      StyleSheet.absoluteFill,
+                      {backgroundColor: solidColor},
+                    ]}
                   />
                 )}
                 {isActive && (
@@ -226,7 +227,6 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0,0,0,0.06)',
   },
   grid: {
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.12)',
   },

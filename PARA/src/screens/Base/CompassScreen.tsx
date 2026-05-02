@@ -15,6 +15,7 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
+import {COMPASS_COLORS, COMPASS_LABEL_COLORS} from '#/lib/compass/compassColors'
 import {
   formatNinthPartyBreakdown,
   PARTY_COMPASS_PROFILE_BY_ID,
@@ -79,28 +80,9 @@ const COLOR_PALETTES: Palette[] = [
   {
     id: 'classic',
     name: 'Classic',
-    colors: {
-      'auth-left': '#efb9bb',
-      'auth-center': '#cda7d8',
-      'auth-right': '#99d0ea',
-      'center-left': '#d8d9be',
-      center: '#efe7d6',
-      'center-right': '#bfd7e8',
-      'lib-left': '#c7e4c2',
-      'lib-center': '#dfe498',
-      'lib-right': '#f6efb3',
-    },
-    labelColors: {
-      'auth-left': '#b05e68',
-      'auth-center': '#845596',
-      'auth-right': '#1c87b4',
-      'center-left': '#7f7950',
-      center: '#6f6758',
-      'center-right': '#547d98',
-      'lib-left': '#4faa57',
-      'lib-center': '#8c8a1a',
-      'lib-right': '#c8b600',
-    },
+    // Source of truth lives in src/lib/compass/compassColors.ts
+    colors: COMPASS_COLORS,
+    labelColors: COMPASS_LABEL_COLORS,
   },
   {
     id: 'bold',
@@ -425,9 +407,11 @@ export function CompassScreen({navigation, route}: Props) {
   // 40 = 25% opacity, 80 = 50% opacity
   // Custom glassmorphism background for cards
   const cardBgColor = {
-    backgroundColor: t.name === 'light' ? 'rgba(255,255,255,0.75)' : 'rgba(15,18,24,0.75)',
+    backgroundColor:
+      t.name === 'light' ? 'rgba(255,255,255,0.75)' : 'rgba(15,18,24,0.75)',
     borderWidth: 1,
-    borderColor: t.name === 'light' ? 'rgba(200,200,200,0.3)' : 'rgba(255,255,255,0.1)',
+    borderColor:
+      t.name === 'light' ? 'rgba(200,200,200,0.3)' : 'rgba(255,255,255,0.1)',
   }
 
   const [is25ths, setIs25ths] = useState(false)
@@ -669,813 +653,827 @@ export function CompassScreen({navigation, route}: Props) {
         <View style={[a.flex_1, a.w_full, a.relative, a.overflow_hidden]}>
           <View style={[a.flex_1, a.w_full, a.align_center, a.justify_center]}>
             <View style={[{width: 600}, a.relative, a.align_center]}>
-          {/* Toggle Buttons Area - Centered and Styled */}
-          {!isAffiliateMode && (
-            <View
-              style={[
-                a.absolute,
-                {top: 20, left: 0, right: 0, zIndex: 10, alignItems: 'center'},
-              ]}>
-              <View style={[a.flex_row, a.gap_sm, a.p_xs, a.rounded_full, cardBgColor, a.shadow_sm]}>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setIs25ths(!is25ths)
-                    setShow69ths(false)
-                    setSelectedQuadrant(null)
-                    setSelectedIdeology(null)
-                    ideologyPromptControl.close()
-                    handleRecenter()
-                  }}
-                  style={[
-                    a.px_md,
-                    a.py_sm,
-                    a.rounded_full,
-                    is25ths ? t.atoms.bg_contrast_25 : {backgroundColor: 'transparent'},
-                  ]}>
-                  <Text style={[a.font_bold, t.atoms.text, {opacity: is25ths ? 1 : 0.6}]}>
-                    {is25ths ? <Trans>9ths</Trans> : <Trans>25ths</Trans>}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setShow69ths(current => !current)
-                    setSelectedQuadrant(null)
-                    setSelectedQuadrantStats(null)
-                    setSelectedIdeology(null)
-                    ideologyPromptControl.close()
-                    handleRecenter()
-                  }}
-                  style={[
-                    a.px_md,
-                    a.py_sm,
-                    a.rounded_full,
-                    show69ths ? t.atoms.bg_contrast_25 : {backgroundColor: 'transparent'},
-                  ]}>
-                  <Text style={[a.font_bold, t.atoms.text, {opacity: show69ths ? 1 : 0.6}]}>
-                    69ths:{' '}
-                    {show69ths ? translate(msg`On`) : translate(msg`Off`)}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {!show69ths ? (
-            <>
-              <Text
-                style={[
-                  styles.axisLabel,
-                  t.atoms.text_contrast_medium,
-                  {top: 80, alignSelf: 'center'},
-                ]}>
-                <Trans>Authoritarian</Trans>
-              </Text>
-              <Text
-                style={[
-                  styles.axisLabel,
-                  t.atoms.text_contrast_medium,
-                  {bottom: 20, alignSelf: 'center'},
-                ]}>
-                <Trans>Libertarian</Trans>
-              </Text>
-              {/* Horizontal labels closer to center */}
-              <View
-                pointerEvents="none"
-                style={[
-                  a.absolute,
-                  {
-                    left: 0,
-                    right: 0,
-                    top: '50%',
-                    height: 40,
-                    marginTop: -20,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    paddingHorizontal: 0,
-                  },
-                ]}>
-                <Text
-                  style={[
-                    styles.axisLabel,
-                    t.atoms.text_contrast_medium,
-                    {position: 'relative', top: 0},
-                  ]}>
-                  Left
-                </Text>
-                <Text
-                  style={[
-                    styles.axisLabel,
-                    t.atoms.text_contrast_medium,
-                    {position: 'relative', top: 0},
-                  ]}>
-                  Right
-                </Text>
-              </View>
-            </>
-          ) : null}
-
-          {/* Draggable Grid Container */}
-          <Animated.View
-            {...panResponder.panHandlers}
-            style={[
-              styles.gridContainer,
-              {
-                transform: [
-                  {translateX: pan.x},
-                  {translateY: pan.y},
-                  {scale: scale},
-                ],
-              },
-            ]}>
-            {show69ths ? (
-              <View
-                style={[
-                  styles.sixtyNinthsFrame,
-                  {
-                    width: sixtyNinthsFrameWidth,
-                    height: sixtyNinthsFrameHeight,
-                  },
-                ]}>
-                <Text
-                  style={[
-                    styles.sixtyNinthsAxisLabel,
-                    t.atoms.text_contrast_medium,
-                    {
-                      top: -40,
-                      left: sixtyNinthsBoardSize / 2 - 64,
-                    },
-                  ]}>
-                  <Trans>Authoritarian</Trans>
-                </Text>
-                <Text
-                  style={[
-                    styles.sixtyNinthsAxisLabel,
-                    t.atoms.text_contrast_medium,
-                    {
-                      bottom: -40,
-                      left: sixtyNinthsBoardSize / 2 - 54,
-                    },
-                  ]}>
-                  <Trans>Libertarian</Trans>
-                </Text>
-                <Text
-                  style={[
-                    styles.sixtyNinthsSideLabel,
-                    t.atoms.text_contrast_medium,
-                    {
-                      left: -36,
-                      top: sixtyNinthsBoardSize / 2 - 12,
-                    },
-                  ]}>
-                  Left
-                </Text>
-                <Text
-                  style={[
-                    styles.sixtyNinthsSideLabel,
-                    t.atoms.text_contrast_medium,
-                    {
-                      left: sixtyNinthsBoardSize + 10,
-                      top: sixtyNinthsBoardSize / 2 - 12,
-                    },
-                  ]}>
-                  Right
-                </Text>
-
+              {/* Toggle Buttons Area - Centered and Styled */}
+              {!isAffiliateMode && (
                 <View
                   style={[
-                    styles.sixtyNinthsBoard,
+                    a.absolute,
                     {
-                      width: sixtyNinthsBoardSize,
-                      height: sixtyNinthsBoardSize,
+                      top: 20,
+                      left: 0,
+                      right: 0,
+                      zIndex: 10,
+                      alignItems: 'center',
                     },
                   ]}>
-                  {sixtyNinthsMainCells.map(quadrant => (
-                    <TouchableOpacity
-                      key={quadrant.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={quadrant.label.replaceAll('\n', ' ')}
-                      accessibilityHint={translate(
-                        msg`Opens a brief ideology introduction.`,
-                      )}
-                      onPress={() => handleSixtyNinthsPress(quadrant.id)}
-                      style={[
-                        styles.sixtyNinthsCell,
-                        {
-                          left: quadrant.col * sixtyNinthsCellSize,
-                          top: quadrant.row * sixtyNinthsCellSize,
-                          width: sixtyNinthsCellSize,
-                          height: sixtyNinthsCellSize,
-                          backgroundColor: quadrant.color,
-                        },
-                      ]}>
-                      <Text style={styles.sixtyNinthsCellLabel}>
-                        {quadrant.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-
                   <View
-                    pointerEvents="none"
                     style={[
-                      styles.centerAxisVertical,
-                      {
-                        left: sixtyNinthsBoardSize / 2 - 1.5,
-                        top: 0,
-                        bottom: 0,
-                      },
-                    ]}
-                  />
-                  <View
-                    pointerEvents="none"
-                    style={[
-                      styles.centerAxisHorizontal,
-                      {
-                        top: sixtyNinthsBoardSize / 2 - 1.5,
-                        left: 0,
-                        right: 0,
-                      },
-                    ]}
-                  />
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel={radicalCenter.title}
-                    accessibilityHint={translate(
-                      msg`Opens a brief ideology introduction.`,
-                    )}
-                    onPress={() => handleSixtyNinthsPress(radicalCenter.id)}
-                    style={[
-                      styles.radicalCenterWrap,
-                      {
-                        left:
-                          sixtyNinthsBoardSize / 2 - sixtyNinthsCellSize * 0.55,
-                        top:
-                          sixtyNinthsBoardSize / 2 - sixtyNinthsCellSize * 0.55,
-                        width: sixtyNinthsCellSize * 1.1,
-                        height: sixtyNinthsCellSize * 1.1,
-                      },
+                      a.flex_row,
+                      a.gap_sm,
+                      a.p_xs,
+                      a.rounded_full,
+                      cardBgColor,
+                      a.shadow_sm,
                     ]}>
-                    <View style={styles.radicalCenterBox}>
-                      <Text style={styles.radicalCenterText}>
-                        Radical{'\n'}Centrism
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-
-                {sixtyNinthsExtraCells.map(quadrant => (
-                  <TouchableOpacity
-                    key={quadrant.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={quadrant.label.replaceAll('\n', ' ')}
-                    accessibilityHint={translate(
-                      msg`Opens a brief ideology introduction.`,
-                    )}
-                    onPress={() => handleSixtyNinthsPress(quadrant.id)}
-                    style={[
-                      styles.sixtyNinthsExtraCell,
-                      {
-                        left: quadrant.col * sixtyNinthsCellSize,
-                        top: quadrant.row * sixtyNinthsCellSize,
-                        width: sixtyNinthsCellSize,
-                        height: sixtyNinthsCellSize,
-                      },
-                    ]}>
-                    <Text style={styles.sixtyNinthsCellLabel}>
-                      {quadrant.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <View style={[styles.grid, {width: gridSize, height: gridSize}]}>
-                {currentQuadrants.map(quadrant => (
-                  <TouchableOpacity
-                    key={quadrant.id}
-                    accessibilityRole="button"
-                    style={[
-                      styles.cell,
-                      {
-                        width: cellSize,
-                        height: cellSize,
-                        borderWidth: 1,
-                        borderColor: 'rgba(0,0,0,0.2)',
-                      },
-                    ]}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      if (isAffiliateMode) {
-                        setPendingNinthId(quadrant.id)
-                        setSelectedQuadrant(quadrant)
-                        setSelectedQuadrantStats(buildQuadrantStats(quadrant))
-                      } else {
-                        handleQuadrantPress(quadrant)
-                      }
-                    }}>
-                    {quadrant.gradientColors ? (
-                      <LinearGradient
-                        colors={
-                          quadrant.gradientColors as unknown as readonly [
-                            string,
-                            string,
-                            ...string[],
-                          ]
-                        }
-                        start={quadrant.gradientStart}
-                        end={quadrant.gradientEnd}
-                        style={styles.cellFill}>
-                        {quadrant.label ? (
-                          <Text
-                            style={[
-                              styles.cellLabel,
-                              {
-                                color: quadrant.labelColor,
-                                fontSize: is25ths ? 9 : 12,
-                              },
-                            ]}>
-                            {quadrant.label}
-                          </Text>
-                        ) : null}
-                      </LinearGradient>
-                    ) : (
-                      <View
-                        style={[
-                          styles.cellFill,
-                          {
-                            backgroundColor: quadrant.color,
-                          },
-                        ]}>
-                        {quadrant.label ? (
-                          <Text
-                            style={[
-                              styles.cellLabel,
-                              {
-                                color: quadrant.labelColor,
-                                fontSize: is25ths ? 9 : 12,
-                              },
-                            ]}>
-                            {quadrant.label}
-                          </Text>
-                        ) : null}
-                      </View>
-                    )}
-                    {/* Party heatmap overlay in affiliate mode */}
-                    {isAffiliateMode && previewPartyId && (
-                      <View
-                        pointerEvents="none"
-                        style={[
-                          styles.cellFill,
-                          {
-                            backgroundColor: '#000',
-                            opacity:
-                              ((PARTY_COMPASS_PROFILE_BY_ID[previewPartyId]
-                                ?.ninthDistribution[quadrant.id] || 0) /
-                                100) *
-                              0.65,
-                          },
-                        ]}
-                      />  
-                    )}
-                    {/* Pending selection ring in affiliate mode - Clean Solid Highlight */}
-                    {isAffiliateMode && pendingNinthId === quadrant.id && (
-                      <View
-                        pointerEvents="none"
-                        style={[
-                          styles.cellFill,
-                          {
-                            borderWidth: 4,
-                            borderColor: t.palette.primary_500,
-                            shadowColor: t.palette.primary_500,
-                            shadowOffset: {width: 0, height: 0},
-                            shadowOpacity: 0.8,
-                            shadowRadius: 10,
-                            elevation: 8,
-                          },
-                        ]}>
-                        <View
-                          style={[
-                            StyleSheet.absoluteFill,
-                            {
-                              backgroundColor: t.palette.primary_500,
-                              opacity: 0.15,
-                            },
-                          ]}
-                        />
-                      </View>
-                    )}
-                     {/* Subtle highlight on selected quadrant - Solid Clean State */}
-                    {!isAffiliateMode &&
-                      selectedQuadrant?.id === quadrant.id && (
-                        <View
-                          pointerEvents="none"
-                          style={[
-                            styles.cellFill,
-                            {
-                              borderWidth: 3,
-                              borderColor: selectedQuadrant.color,
-                              backgroundColor: withAlpha(selectedQuadrant.color, 0.1),
-                              shadowColor: selectedQuadrant.color,
-                              shadowOffset: {width: 0, height: 0},
-                              shadowOpacity: 0.4,
-                              shadowRadius: 8,
-                              elevation: 4,
-                            },
-                          ]}
-                        />
-                      )}
-                  </TouchableOpacity>
-                ))}
-
-                <View pointerEvents="none" style={styles.axisOverlay}>
-                  <View
-                    style={[
-                      styles.gridAxisVertical,
-                      {
-                        left: gridSize / 2 - 1,
-                      },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.gridAxisHorizontal,
-                      {
-                        top: gridSize / 2 - 1,
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
-            )}
-          </Animated.View>
-        </View>
-      </View>
-    </View>
-
-          {/* Absolute Overlays at edges */}
-          <View
-              style={[
-                a.absolute,
-                {right: 20, bottom: 60 + insets.bottom},
-                a.gap_md,
-                {zIndex: 20},
-              ]}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => handleZoom(1.5)}
-                style={[
-                  cardBgColor,
-                  web({backdropFilter: 'blur(10px)'}),
-                  a.rounded_full,
-                  a.shadow_md,
-                  a.border,
-                  t.atoms.border_contrast_low,
-                  a.align_center,
-                  a.justify_center,
-                  {width: 44, height: 44},
-                ]}>
-                <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => handleZoom(0.67)}
-                style={[
-                  cardBgColor,
-                  web({backdropFilter: 'blur(10px)'}),
-                  a.rounded_full,
-                  a.shadow_md,
-                  a.align_center,
-                  a.justify_center,
-                  {width: 44, height: 44},
-                ]}>
-                <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>-</Text>
-              </TouchableOpacity>
-            </View>
-
-          {/* Recenter & Palette Buttons */}
-          <View
-            style={[a.absolute, {right: 20, top: 20}, {zIndex: 20}]}>
-            <View style={[a.gap_sm]}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={handleRecenter}
-                style={[
-                  cardBgColor,
-                  a.align_center,
-                  a.justify_center,
-                  a.shadow_sm,
-                  {width: 44, height: 44, borderRadius: 22},
-                ]}>
-                <Text style={[a.text_md, a.font_bold, t.atoms.text]}>⌖</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Party selection panel (affiliate mode only) */}
-          {isAffiliateMode && (
-            <View
-              style={[
-                a.absolute,
-                {
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  zIndex: 20,
-                },
-              ]}>
-              {/* Hint text */}
-              {!previewPartyId && !pendingNinthId && (
-                <View
-                  style={[
-                    a.align_center,
-                    a.py_sm,
-                    {backgroundColor: t.palette.primary_500 + 'e0'},
-                  ]}>
-                  <Text style={[a.text_sm, a.font_bold, {color: '#fff'}]}>
-                    <Trans>
-                      Tap a party to see where its members cluster, or tap a
-                      cell to select your position
-                    </Trans>
-                  </Text>
-                </View>
-              )}
-              {/* Party list */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[
-                  a.gap_sm,
-                  a.px_md,
-                  a.py_md,
-                  t.atoms.bg,
-                  {
-                    borderTopWidth: 1,
-                    borderTopColor: t.palette.contrast_100,
-                  },
-                ]}>
-                {PARTY_COMPASS_PROFILES.map(party => {
-                  const isActive = previewPartyId === party.id
-                  return (
                     <TouchableOpacity
-                      key={party.id}
                       accessibilityRole="button"
-                      onPress={() =>
-                        setPreviewPartyId(isActive ? null : party.id)
-                      }
+                      onPress={() => {
+                        setIs25ths(!is25ths)
+                        setShow69ths(false)
+                        setSelectedQuadrant(null)
+                        setSelectedIdeology(null)
+                        ideologyPromptControl.close()
+                        handleRecenter()
+                      }}
                       style={[
                         a.px_md,
                         a.py_sm,
-                        a.rounded_md,
-                        a.gap_xs,
-                        {
-                          backgroundColor: isActive
-                            ? party.color + '25'
-                            : t.palette.contrast_50,
-                          borderWidth: isActive ? 2 : 0,
-                          borderColor: party.color,
-                          minWidth: 110,
-                        },
+                        a.rounded_full,
+                        is25ths
+                          ? t.atoms.bg_contrast_25
+                          : {backgroundColor: 'transparent'},
                       ]}>
-                      <View style={[a.flex_row, a.align_center, a.gap_sm]}>
-                        <View
-                          style={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: 5,
-                            backgroundColor: party.color,
-                          }}
-                        />
-                        <Text style={[a.font_bold, a.text_sm, t.atoms.text]}>
-                          {party.name}
-                        </Text>
-                      </View>
-                      <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
-                        {party.totalMembers.toLocaleString()} members
+                      <Text
+                        style={[
+                          a.font_bold,
+                          t.atoms.text,
+                          {opacity: is25ths ? 1 : 0.6},
+                        ]}>
+                        {is25ths ? <Trans>9ths</Trans> : <Trans>25ths</Trans>}
                       </Text>
-                      {isActive && (
-                        <Text
-                          style={[
-                            a.text_xs,
-                            {color: party.color},
-                            a.font_bold,
-                          ]}>
-                          {party.descriptors.slice(0, 2).join(' • ')}
-                        </Text>
-                      )}
                     </TouchableOpacity>
-                  )
-                })}
-              </ScrollView>
-            </View>
-          )}
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setShow69ths(current => !current)
+                        setSelectedQuadrant(null)
+                        setSelectedQuadrantStats(null)
+                        setSelectedIdeology(null)
+                        ideologyPromptControl.close()
+                        handleRecenter()
+                      }}
+                      style={[
+                        a.px_md,
+                        a.py_sm,
+                        a.rounded_full,
+                        show69ths
+                          ? t.atoms.bg_contrast_25
+                          : {backgroundColor: 'transparent'},
+                      ]}>
+                      <Text
+                        style={[
+                          a.font_bold,
+                          t.atoms.text,
+                          {opacity: show69ths ? 1 : 0.6},
+                        ]}>
+                        69ths:{' '}
+                        {show69ths ? translate(msg`On`) : translate(msg`Off`)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
 
-          {/* Selected Quadrant Overlay */}
-          {selectedQuadrant && !show69ths && (
-            <View
-              style={[
-                a.absolute,
-                {
-                  bottom: isAffiliateMode
-                    ? 140 + insets.bottom
-                    : gtMobile
-                      ? 40
-                      : 60 + insets.bottom,
-                },
-                gtMobile && {right: 40, width: 350},
-                !gtMobile && {left: 20, right: 20},
-                a.p_lg,
-                a.rounded_xl,
-                cardBgColor,
-                web({backdropFilter: 'blur(12px)'}),
-                a.shadow_lg,
-              ]}>
-              <View
+              {!show69ths ? (
+                <>
+                  <Text
+                    style={[
+                      styles.axisLabel,
+                      t.atoms.text_contrast_medium,
+                      {top: 80, alignSelf: 'center'},
+                    ]}>
+                    <Trans>Authoritarian</Trans>
+                  </Text>
+                  <Text
+                    style={[
+                      styles.axisLabel,
+                      t.atoms.text_contrast_medium,
+                      {bottom: 20, alignSelf: 'center'},
+                    ]}>
+                    <Trans>Libertarian</Trans>
+                  </Text>
+                  {/* Horizontal labels closer to center */}
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      a.absolute,
+                      {
+                        left: 0,
+                        right: 0,
+                        top: '50%',
+                        height: 40,
+                        marginTop: -20,
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        paddingHorizontal: 0,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.axisLabel,
+                        t.atoms.text_contrast_medium,
+                        {position: 'relative', top: 0},
+                      ]}>
+                      Left
+                    </Text>
+                    <Text
+                      style={[
+                        styles.axisLabel,
+                        t.atoms.text_contrast_medium,
+                        {position: 'relative', top: 0},
+                      ]}>
+                      Right
+                    </Text>
+                  </View>
+                </>
+              ) : null}
+
+              {/* Draggable Grid Container */}
+              <Animated.View
+                {...panResponder.panHandlers}
                 style={[
-                  a.flex_row,
-                  a.justify_between,
-                  a.align_center,
-                  a.mb_md,
+                  styles.gridContainer,
+                  {
+                    transform: [
+                      {translateX: pan.x},
+                      {translateY: pan.y},
+                      {scale: scale},
+                    ],
+                  },
                 ]}>
-                <View style={[a.flex_row, a.align_center, a.gap_sm]}>
+                {show69ths ? (
                   <View
                     style={[
+                      styles.sixtyNinthsFrame,
                       {
-                        width: 24,
-                        height: 24,
-                        borderRadius: 4,
-                        backgroundColor: selectedQuadrant.color,
+                        width: sixtyNinthsFrameWidth,
+                        height: sixtyNinthsFrameHeight,
                       },
-                    ]}
-                  />
-                  <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>
-                    {selectedQuadrant.label ||
-                      `Position ${selectedQuadrant.row}-${selectedQuadrant.col}`}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={() => setSelectedQuadrant(null)}
-                  style={[
-                    a.p_xs,
-                    a.rounded_full,
-                    t.atoms.bg_contrast_25,
-                    {width: 28, height: 28, alignItems: 'center', justifyContent: 'center'},
-                  ]}>
-                  <Text style={[a.text_sm, t.atoms.text_contrast_medium, {lineHeight: 14}]}>
-                    ✕
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                    ]}>
+                    <Text
+                      style={[
+                        styles.sixtyNinthsAxisLabel,
+                        t.atoms.text_contrast_medium,
+                        {
+                          top: -40,
+                          left: sixtyNinthsBoardSize / 2 - 64,
+                        },
+                      ]}>
+                      <Trans>Authoritarian</Trans>
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sixtyNinthsAxisLabel,
+                        t.atoms.text_contrast_medium,
+                        {
+                          bottom: -40,
+                          left: sixtyNinthsBoardSize / 2 - 54,
+                        },
+                      ]}>
+                      <Trans>Libertarian</Trans>
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sixtyNinthsSideLabel,
+                        t.atoms.text_contrast_medium,
+                        {
+                          left: -36,
+                          top: sixtyNinthsBoardSize / 2 - 12,
+                        },
+                      ]}>
+                      Left
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sixtyNinthsSideLabel,
+                        t.atoms.text_contrast_medium,
+                        {
+                          left: sixtyNinthsBoardSize + 10,
+                          top: sixtyNinthsBoardSize / 2 - 12,
+                        },
+                      ]}>
+                      Right
+                    </Text>
 
-              {isAffiliateMode ? (
-                <>
-                  {/* Party breakdown for this quadrant */}
-                  <View style={[a.gap_sm, a.mb_md]}>
-                    {formatNinthPartyBreakdown(selectedQuadrant.id)
-                      .slice(0, 4)
-                      .map(
-                        ({
-                          party,
-                          share,
-                        }: {
-                          party: PartyCompassProfile
-                          share: number
-                        }) => (
-                          <View
-                            key={party.id}
-                            style={[a.flex_row, a.align_center, a.gap_md, a.mb_sm]}>
-                            <View style={[a.flex_1]}>
-                              <View style={[a.flex_row, a.justify_between, a.mb_xs]}>
-                                <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                                  {party.name}
-                                </Text>
-                                <Text
-                                  style={[
-                                    a.text_xs,
-                                    a.font_bold,
-                                    t.atoms.text_contrast_medium,
-                                  ]}>
-                                  {share}%
-                                </Text>
-                              </View>
-                              <View
+                    <View
+                      style={[
+                        styles.sixtyNinthsBoard,
+                        {
+                          width: sixtyNinthsBoardSize,
+                          height: sixtyNinthsBoardSize,
+                        },
+                      ]}>
+                      {sixtyNinthsMainCells.map(quadrant => (
+                        <TouchableOpacity
+                          key={quadrant.id}
+                          accessibilityRole="button"
+                          accessibilityLabel={quadrant.label.replaceAll(
+                            '\n',
+                            ' ',
+                          )}
+                          accessibilityHint={translate(
+                            msg`Opens a brief ideology introduction.`,
+                          )}
+                          onPress={() => handleSixtyNinthsPress(quadrant.id)}
+                          style={[
+                            styles.sixtyNinthsCell,
+                            {
+                              left: quadrant.col * sixtyNinthsCellSize,
+                              top: quadrant.row * sixtyNinthsCellSize,
+                              width: sixtyNinthsCellSize,
+                              height: sixtyNinthsCellSize,
+                              backgroundColor: quadrant.color,
+                            },
+                          ]}>
+                          <Text style={styles.sixtyNinthsCellLabel}>
+                            {quadrant.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.centerAxisVertical,
+                          {
+                            left: sixtyNinthsBoardSize / 2 - 1.5,
+                            top: 0,
+                            bottom: 0,
+                          },
+                        ]}
+                      />
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.centerAxisHorizontal,
+                          {
+                            top: sixtyNinthsBoardSize / 2 - 1.5,
+                            left: 0,
+                            right: 0,
+                          },
+                        ]}
+                      />
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={radicalCenter.title}
+                        accessibilityHint={translate(
+                          msg`Opens a brief ideology introduction.`,
+                        )}
+                        onPress={() => handleSixtyNinthsPress(radicalCenter.id)}
+                        style={[
+                          styles.radicalCenterWrap,
+                          {
+                            left:
+                              sixtyNinthsBoardSize / 2 -
+                              sixtyNinthsCellSize * 0.55,
+                            top:
+                              sixtyNinthsBoardSize / 2 -
+                              sixtyNinthsCellSize * 0.55,
+                            width: sixtyNinthsCellSize * 1.1,
+                            height: sixtyNinthsCellSize * 1.1,
+                          },
+                        ]}>
+                        <View style={styles.radicalCenterBox}>
+                          <Text style={styles.radicalCenterText}>
+                            Radical{'\n'}Centrism
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+
+                    {sixtyNinthsExtraCells.map(quadrant => (
+                      <TouchableOpacity
+                        key={quadrant.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={quadrant.label.replaceAll(
+                          '\n',
+                          ' ',
+                        )}
+                        accessibilityHint={translate(
+                          msg`Opens a brief ideology introduction.`,
+                        )}
+                        onPress={() => handleSixtyNinthsPress(quadrant.id)}
+                        style={[
+                          styles.sixtyNinthsExtraCell,
+                          {
+                            left: quadrant.col * sixtyNinthsCellSize,
+                            top: quadrant.row * sixtyNinthsCellSize,
+                            width: sixtyNinthsCellSize,
+                            height: sixtyNinthsCellSize,
+                          },
+                        ]}>
+                        <Text style={styles.sixtyNinthsCellLabel}>
+                          {quadrant.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
+                  <View
+                    style={[styles.grid, {width: gridSize, height: gridSize}]}>
+                    {currentQuadrants.map(quadrant => (
+                      <TouchableOpacity
+                        key={quadrant.id}
+                        accessibilityRole="button"
+                        style={[
+                          styles.cell,
+                          {
+                            width: cellSize,
+                            height: cellSize,
+                            borderWidth: 1,
+                            borderColor: 'rgba(0,0,0,0.2)',
+                          },
+                        ]}
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          if (isAffiliateMode) {
+                            setPendingNinthId(quadrant.id)
+                            setSelectedQuadrant(quadrant)
+                            setSelectedQuadrantStats(
+                              buildQuadrantStats(quadrant),
+                            )
+                          } else {
+                            handleQuadrantPress(quadrant)
+                          }
+                        }}>
+                        {quadrant.gradientColors ? (
+                          <LinearGradient
+                            colors={
+                              quadrant.gradientColors as unknown as readonly [
+                                string,
+                                string,
+                                ...string[],
+                              ]
+                            }
+                            start={quadrant.gradientStart}
+                            end={quadrant.gradientEnd}
+                            style={styles.cellFill}>
+                            {quadrant.label ? (
+                              <Text
                                 style={[
+                                  styles.cellLabel,
                                   {
-                                    height: 6,
-                                    backgroundColor: t.palette.contrast_100,
-                                    borderRadius: 3,
-                                    overflow: 'hidden',
+                                    color: quadrant.labelColor,
+                                    fontSize: is25ths ? 9 : 12,
                                   },
                                 ]}>
-                                <View
-                                  style={{
-                                    width: `${share}%`,
-                                    height: '100%',
-                                    backgroundColor: party.color,
-                                    borderRadius: 3,
-                                  }}
-                                />
-                              </View>
+                                {quadrant.label}
+                              </Text>
+                            ) : null}
+                          </LinearGradient>
+                        ) : (
+                          <View
+                            style={[
+                              styles.cellFill,
+                              {
+                                backgroundColor: quadrant.color,
+                              },
+                            ]}>
+                            {quadrant.label ? (
+                              <Text
+                                style={[
+                                  styles.cellLabel,
+                                  {
+                                    color: quadrant.labelColor,
+                                    fontSize: is25ths ? 9 : 12,
+                                  },
+                                ]}>
+                                {quadrant.label}
+                              </Text>
+                            ) : null}
+                          </View>
+                        )}
+                        {/* Party heatmap overlay in affiliate mode */}
+                        {isAffiliateMode && previewPartyId && (
+                          <View
+                            pointerEvents="none"
+                            style={[
+                              styles.cellFill,
+                              {
+                                backgroundColor: '#000',
+                                opacity:
+                                  ((PARTY_COMPASS_PROFILE_BY_ID[previewPartyId]
+                                    ?.ninthDistribution[quadrant.id] || 0) /
+                                    100) *
+                                  0.65,
+                              },
+                            ]}
+                          />
+                        )}
+                        {/* Pending selection ring in affiliate mode - Clean Solid Highlight */}
+                        {isAffiliateMode && pendingNinthId === quadrant.id && (
+                          <View
+                            pointerEvents="none"
+                            style={[
+                              styles.cellFill,
+                              {
+                                borderWidth: 4,
+                                borderColor: t.palette.primary_500,
+                                shadowColor: t.palette.primary_500,
+                                shadowOffset: {width: 0, height: 0},
+                                shadowOpacity: 0.8,
+                                shadowRadius: 10,
+                                elevation: 8,
+                              },
+                            ]}>
+                            <View
+                              style={[
+                                StyleSheet.absoluteFill,
+                                {
+                                  backgroundColor: t.palette.primary_500,
+                                  opacity: 0.15,
+                                },
+                              ]}
+                            />
+                          </View>
+                        )}
+                        {/* Subtle highlight on selected quadrant - Solid Clean State */}
+                        {!isAffiliateMode &&
+                          selectedQuadrant?.id === quadrant.id && (
+                            <View
+                              pointerEvents="none"
+                              style={[
+                                styles.cellFill,
+                                {
+                                  borderWidth: 3,
+                                  borderColor: selectedQuadrant.color,
+                                  backgroundColor: withAlpha(
+                                    selectedQuadrant.color,
+                                    0.1,
+                                  ),
+                                  shadowColor: selectedQuadrant.color,
+                                  shadowOffset: {width: 0, height: 0},
+                                  shadowOpacity: 0.4,
+                                  shadowRadius: 8,
+                                  elevation: 4,
+                                },
+                              ]}
+                            />
+                          )}
+                      </TouchableOpacity>
+                    ))}
+
+                    <View pointerEvents="none" style={styles.axisOverlay}>
+                      <View
+                        style={[
+                          styles.gridAxisVertical,
+                          {
+                            left: gridSize / 2 - 1,
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.gridAxisHorizontal,
+                          {
+                            top: gridSize / 2 - 1,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                )}
+              </Animated.View>
+            </View>
+          </View>
+        </View>
+
+        {/* Absolute Overlays at edges */}
+        <View
+          style={[
+            a.absolute,
+            {right: 20, bottom: 60 + insets.bottom},
+            a.gap_md,
+            {zIndex: 20},
+          ]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => handleZoom(1.5)}
+            style={[
+              cardBgColor,
+              web({backdropFilter: 'blur(10px)'}),
+              a.rounded_full,
+              a.shadow_md,
+              a.border,
+              t.atoms.border_contrast_low,
+              a.align_center,
+              a.justify_center,
+              {width: 44, height: 44},
+            ]}>
+            <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => handleZoom(0.67)}
+            style={[
+              cardBgColor,
+              web({backdropFilter: 'blur(10px)'}),
+              a.rounded_full,
+              a.shadow_md,
+              a.align_center,
+              a.justify_center,
+              {width: 44, height: 44},
+            ]}>
+            <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>-</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Recenter & Palette Buttons */}
+        <View style={[a.absolute, {right: 20, top: 20}, {zIndex: 20}]}>
+          <View style={[a.gap_sm]}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={handleRecenter}
+              style={[
+                cardBgColor,
+                a.align_center,
+                a.justify_center,
+                a.shadow_sm,
+                {width: 44, height: 44, borderRadius: 22},
+              ]}>
+              <Text style={[a.text_md, a.font_bold, t.atoms.text]}>⌖</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Party selection panel (affiliate mode only) */}
+        {isAffiliateMode && (
+          <View
+            style={[
+              a.absolute,
+              {
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 20,
+              },
+            ]}>
+            {/* Hint text */}
+            {!previewPartyId && !pendingNinthId && (
+              <View
+                style={[
+                  a.align_center,
+                  a.py_sm,
+                  {backgroundColor: t.palette.primary_500 + 'e0'},
+                ]}>
+                <Text style={[a.text_sm, a.font_bold, {color: '#fff'}]}>
+                  <Trans>
+                    Tap a party to see where its members cluster, or tap a cell
+                    to select your position
+                  </Trans>
+                </Text>
+              </View>
+            )}
+            {/* Party list */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                a.gap_sm,
+                a.px_md,
+                a.py_md,
+                t.atoms.bg,
+                {
+                  borderTopWidth: 1,
+                  borderTopColor: t.palette.contrast_100,
+                },
+              ]}>
+              {PARTY_COMPASS_PROFILES.map(party => {
+                const isActive = previewPartyId === party.id
+                return (
+                  <TouchableOpacity
+                    key={party.id}
+                    accessibilityRole="button"
+                    onPress={() =>
+                      setPreviewPartyId(isActive ? null : party.id)
+                    }
+                    style={[
+                      a.px_md,
+                      a.py_sm,
+                      a.rounded_md,
+                      a.gap_xs,
+                      {
+                        backgroundColor: isActive
+                          ? party.color + '25'
+                          : t.palette.contrast_50,
+                        borderWidth: isActive ? 2 : 0,
+                        borderColor: party.color,
+                        minWidth: 110,
+                      },
+                    ]}>
+                    <View style={[a.flex_row, a.align_center, a.gap_sm]}>
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: party.color,
+                        }}
+                      />
+                      <Text style={[a.font_bold, a.text_sm, t.atoms.text]}>
+                        {party.name}
+                      </Text>
+                    </View>
+                    <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
+                      {party.totalMembers.toLocaleString()} members
+                    </Text>
+                    {isActive && (
+                      <Text
+                        style={[a.text_xs, {color: party.color}, a.font_bold]}>
+                        {party.descriptors.slice(0, 2).join(' • ')}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Selected Quadrant Overlay */}
+        {selectedQuadrant && !show69ths && (
+          <View
+            style={[
+              a.absolute,
+              {
+                bottom: isAffiliateMode
+                  ? 140 + insets.bottom
+                  : gtMobile
+                    ? 40
+                    : 60 + insets.bottom,
+              },
+              gtMobile && {right: 40, width: 350},
+              !gtMobile && {left: 20, right: 20},
+              a.p_lg,
+              a.rounded_xl,
+              cardBgColor,
+              web({backdropFilter: 'blur(12px)'}),
+              a.shadow_lg,
+            ]}>
+            <View
+              style={[a.flex_row, a.justify_between, a.align_center, a.mb_md]}>
+              <View style={[a.flex_row, a.align_center, a.gap_sm]}>
+                <View
+                  style={[
+                    {
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      backgroundColor: selectedQuadrant.color,
+                    },
+                  ]}
+                />
+                <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>
+                  {selectedQuadrant.label ||
+                    `Position ${selectedQuadrant.row}-${selectedQuadrant.col}`}
+                </Text>
+              </View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => setSelectedQuadrant(null)}
+                style={[
+                  a.p_xs,
+                  a.rounded_full,
+                  t.atoms.bg_contrast_25,
+                  {
+                    width: 28,
+                    height: 28,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                ]}>
+                <Text
+                  style={[
+                    a.text_sm,
+                    t.atoms.text_contrast_medium,
+                    {lineHeight: 14},
+                  ]}>
+                  ✕
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {isAffiliateMode ? (
+              <>
+                {/* Party breakdown for this quadrant */}
+                <View style={[a.gap_sm, a.mb_md]}>
+                  {formatNinthPartyBreakdown(selectedQuadrant.id)
+                    .slice(0, 4)
+                    .map(
+                      ({
+                        party,
+                        share,
+                      }: {
+                        party: PartyCompassProfile
+                        share: number
+                      }) => (
+                        <View
+                          key={party.id}
+                          style={[
+                            a.flex_row,
+                            a.align_center,
+                            a.gap_md,
+                            a.mb_sm,
+                          ]}>
+                          <View style={[a.flex_1]}>
+                            <View
+                              style={[a.flex_row, a.justify_between, a.mb_xs]}>
+                              <Text
+                                style={[a.text_sm, a.font_bold, t.atoms.text]}>
+                                {party.name}
+                              </Text>
+                              <Text
+                                style={[
+                                  a.text_xs,
+                                  a.font_bold,
+                                  t.atoms.text_contrast_medium,
+                                ]}>
+                                {share}%
+                              </Text>
+                            </View>
+                            <View
+                              style={[
+                                {
+                                  height: 6,
+                                  backgroundColor: t.palette.contrast_100,
+                                  borderRadius: 3,
+                                  overflow: 'hidden',
+                                },
+                              ]}>
+                              <View
+                                style={{
+                                  width: `${share}%`,
+                                  height: '100%',
+                                  backgroundColor: party.color,
+                                  borderRadius: 3,
+                                }}
+                              />
                             </View>
                           </View>
-                        ),
-                      )}
-                  </View>
-                  <Button
-                    label={translate(msg`Set as my position`)}
-                    onPress={() => {
-                      setPendingNinthId(selectedQuadrant.id)
-                    }}
-                    variant={pendingNinthId === selectedQuadrant.id ? 'solid' : 'outline'}
-                    color={pendingNinthId === selectedQuadrant.id ? 'primary' : 'secondary'}
-                    size="large"
-                    shape="round"
-                    style={[a.mt_md]}>
-                    <ButtonText style={[a.font_bold]}>
-                      {pendingNinthId === selectedQuadrant.id ? (
-                        <Trans>✓ Posición confirmada</Trans>
-                      ) : (
-                        <Trans>Fijar como mi posición</Trans>
-                      )}
-                    </ButtonText>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Text
-                    style={[
-                      a.text_xs,
-                      a.font_bold,
-                      t.atoms.text_contrast_medium,
-                      a.mb_sm,
-                    ]}>
-                    <Trans>Estimated party distribution</Trans>
-                  </Text>
-                  <View style={[a.gap_xs, a.mb_md]}>
-                    {formatNinthPartyBreakdown(selectedQuadrant.id)
-                      .slice(0, 4)
-                      .map(
-                        ({
-                          party,
-                          share,
-                        }: {
-                          party: PartyCompassProfile
-                          share: number
-                        }) => (
-                          <View
-                            key={party.id}
-                            style={[a.flex_row, a.align_center, a.gap_sm]}>
-                            <View
-                              style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: 4,
-                                backgroundColor: party.color,
-                              }}
-                            />
-                            <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
-                              {party.name}
-                            </Text>
-                            <Text
-                              style={[
-                                a.text_sm,
-                                a.font_bold,
-                                t.atoms.text_contrast_medium,
-                              ]}>
-                              {share}%
-                            </Text>
-                          </View>
-                        ),
-                      )}
-                  </View>
-
-                  {/* Policy domain breakdown */}
-                  <Text
-                    style={[
-                      a.text_xs,
-                      a.font_bold,
-                      t.atoms.text_contrast_medium,
-                      a.mb_sm,
-                      a.mt_sm,
-                    ]}>
-                    <Trans>Policy priorities</Trans>
-                  </Text>
-                  <View style={[a.gap_xs, a.mb_sm]}>
-                    {buildPolicyBreakdown(selectedQuadrant.id).map(
-                      ({id, label, share}) => (
+                        </View>
+                      ),
+                    )}
+                </View>
+                <Button
+                  label={translate(msg`Set as my position`)}
+                  onPress={() => {
+                    setPendingNinthId(selectedQuadrant.id)
+                  }}
+                  variant={
+                    pendingNinthId === selectedQuadrant.id ? 'solid' : 'outline'
+                  }
+                  color={
+                    pendingNinthId === selectedQuadrant.id
+                      ? 'primary'
+                      : 'secondary'
+                  }
+                  size="large"
+                  shape="round"
+                  style={[a.mt_md]}>
+                  <ButtonText style={[a.font_bold]}>
+                    {pendingNinthId === selectedQuadrant.id ? (
+                      <Trans>✓ Posición confirmada</Trans>
+                    ) : (
+                      <Trans>Fijar como mi posición</Trans>
+                    )}
+                  </ButtonText>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={[
+                    a.text_xs,
+                    a.font_bold,
+                    t.atoms.text_contrast_medium,
+                    a.mb_sm,
+                  ]}>
+                  <Trans>Estimated party distribution</Trans>
+                </Text>
+                <View style={[a.gap_xs, a.mb_md]}>
+                  {formatNinthPartyBreakdown(selectedQuadrant.id)
+                    .slice(0, 4)
+                    .map(
+                      ({
+                        party,
+                        share,
+                      }: {
+                        party: PartyCompassProfile
+                        share: number
+                      }) => (
                         <View
-                          key={id}
+                          key={party.id}
                           style={[a.flex_row, a.align_center, a.gap_sm]}>
                           <View
                             style={{
                               width: 8,
                               height: 8,
-                              borderRadius: 2,
-                              backgroundColor: selectedQuadrant.color + 'cc',
+                              borderRadius: 4,
+                              backgroundColor: party.color,
                             }}
                           />
                           <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
-                            {label}
+                            {party.name}
                           </Text>
                           <Text
                             style={[
@@ -1488,44 +1486,85 @@ export function CompassScreen({navigation, route}: Props) {
                         </View>
                       ),
                     )}
-                  </View>
-                </>
-              )}
-            </View>
-          )}
+                </View>
 
-          <Prompt.Outer
-            control={ideologyPromptControl}
-            nativeOptions={{preventExpansion: true}}>
-            <Prompt.Content>
-              {selectedIdeology ? (
-                <>
-                  <Prompt.TitleText>{selectedIdeology.title}</Prompt.TitleText>
-                  <Prompt.DescriptionText>
-                    {selectedIdeology.shortIntro}
-                  </Prompt.DescriptionText>
-                  {selectedIdeology.related?.length ? (
-                    <View style={[a.gap_sm]}>
-                      <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                        <Trans>Related positions</Trans>
-                      </Text>
-                      <Text
-                        style={[
-                          a.text_sm,
-                          a.leading_snug,
-                          t.atoms.text_contrast_medium,
-                        ]}>
-                        {selectedIdeology.related
-                          .map(id => SIXTY_NINTHS_BY_ID[id]?.title ?? id)
-                          .join(', ')}
-                      </Text>
-                    </View>
-                  ) : null}
-                </>
-              ) : null}
-            </Prompt.Content>
-          </Prompt.Outer>
-        </View>
+                {/* Policy domain breakdown */}
+                <Text
+                  style={[
+                    a.text_xs,
+                    a.font_bold,
+                    t.atoms.text_contrast_medium,
+                    a.mb_sm,
+                    a.mt_sm,
+                  ]}>
+                  <Trans>Policy priorities</Trans>
+                </Text>
+                <View style={[a.gap_xs, a.mb_sm]}>
+                  {buildPolicyBreakdown(selectedQuadrant.id).map(
+                    ({id, label, share}) => (
+                      <View
+                        key={id}
+                        style={[a.flex_row, a.align_center, a.gap_sm]}>
+                        <View
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 2,
+                            backgroundColor: selectedQuadrant.color + 'cc',
+                          }}
+                        />
+                        <Text style={[a.text_sm, t.atoms.text, a.flex_1]}>
+                          {label}
+                        </Text>
+                        <Text
+                          style={[
+                            a.text_sm,
+                            a.font_bold,
+                            t.atoms.text_contrast_medium,
+                          ]}>
+                          {share}%
+                        </Text>
+                      </View>
+                    ),
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+        )}
+
+        <Prompt.Outer
+          control={ideologyPromptControl}
+          nativeOptions={{preventExpansion: true}}>
+          <Prompt.Content>
+            {selectedIdeology ? (
+              <>
+                <Prompt.TitleText>{selectedIdeology.title}</Prompt.TitleText>
+                <Prompt.DescriptionText>
+                  {selectedIdeology.shortIntro}
+                </Prompt.DescriptionText>
+                {selectedIdeology.related?.length ? (
+                  <View style={[a.gap_sm]}>
+                    <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
+                      <Trans>Related positions</Trans>
+                    </Text>
+                    <Text
+                      style={[
+                        a.text_sm,
+                        a.leading_snug,
+                        t.atoms.text_contrast_medium,
+                      ]}>
+                      {selectedIdeology.related
+                        .map(id => SIXTY_NINTHS_BY_ID[id]?.title ?? id)
+                        .join(', ')}
+                    </Text>
+                  </View>
+                ) : null}
+              </>
+            ) : null}
+          </Prompt.Content>
+        </Prompt.Outer>
+      </View>
     </Screen>
   )
 }

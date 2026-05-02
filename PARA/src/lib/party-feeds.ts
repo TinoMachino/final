@@ -109,7 +109,7 @@ export const PARTY_FEED_PROFILES: PartyFeedProfile[] = [
     name: 'Migala',
     shortName: 'Migala',
     filter: 'p/Migala',
-    color: '#106B43',
+    color: '#6B21A8',
     accentColor: '#F0D35A',
     logo: 'MI',
     ninthId: 'lib-left',

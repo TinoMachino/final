@@ -150,7 +150,7 @@ let HighlightableRichText = ({
       await addHighlight(
         pendingSelection.start,
         pendingSelection.end,
-        HIGHLIGHT_COLORS.yellow,
+        HIGHLIGHT_COLORS.centerCenter,
         false, // isPublic default false
         highlightText,
       )
@@ -226,13 +226,23 @@ let HighlightableRichText = ({
         )
       }
 
+      const highlightStyle = Array.isArray(highlight.color)
+        ? {
+            backgroundColor: highlight.color[0],
+            backgroundImage: `linear-gradient(90deg, ${highlight.color[0]}, ${highlight.color[1]})`,
+          }
+        : {backgroundColor: highlight.color}
+
       // Add highlighted text
+      // Always force black text so it stays readable on any
+      // light compass background color.
       parts.push(
         <span
           key={`highlight-${index}`}
           onClick={() => handleHighlightClick(highlight)}
           style={{
-            backgroundColor: highlight.color,
+            ...highlightStyle,
+            color: '#000000',
             cursor: 'pointer',
             borderRadius: 2,
             padding: '0 2px',

@@ -366,6 +366,7 @@ export function MyAffiliationsScreen() {
               affiliations={pendingAffiliations}
               onPress={handleExploreCompass}
               size={140}
+              compact
             />
           </View>
           <Button
@@ -485,7 +486,7 @@ export function MyAffiliationsScreen() {
                       backgroundColor: isSelected
                         ? party.color + '15'
                         : t.atoms.bg_contrast_25.backgroundColor,
-                      borderWidth: isSelected ? 2 : 1,
+                      borderWidth: 2,
                       borderColor: isSelected
                         ? party.color
                         : t.palette.contrast_100,
@@ -526,46 +527,65 @@ export function MyAffiliationsScreen() {
           </View>
         </View>
 
-        {/* 9th Position Section */}
+        {/* 9th Position Section — 3×3 grid matching the compass layout */}
         <View>
           <Text style={[a.text_md, a.font_bold, t.atoms.text, a.mb_md]}>
             <Trans>Compass Position (9ths)</Trans>
           </Text>
-          <View style={[styles.ninthGrid]}>
-            {POLITICAL_AFFILIATION_OPTIONS.ninth.map(ninth => {
-              const isSelected = pendingAffiliations.some(
-                a => a.id === ninth.id,
-              )
-              return (
-                <TouchableOpacity
-                  key={ninth.id}
-                  accessibilityRole="button"
-                  accessibilityState={{selected: isSelected}}
-                  onPress={() => handleSetNinth(ninth)}
-                  style={[
-                    styles.ninthPill,
-                    {
-                      backgroundColor: isSelected
-                        ? ninth.color + '25'
-                        : t.atoms.bg_contrast_25.backgroundColor,
-                      borderColor: isSelected
-                        ? ninth.color
-                        : t.palette.contrast_100,
-                      borderWidth: isSelected ? 2 : 1,
-                    },
-                  ]}>
-                  <View
-                    style={[styles.ninthDot, {backgroundColor: ninth.color}]}
-                  />
-                  <Text style={[a.text_sm, a.font_bold, t.atoms.text]}>
-                    {ninth.name}
-                  </Text>
-                  {isSelected && (
-                    <Text style={{color: ninth.color, fontSize: 10}}> ✓</Text>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
+          <View style={[a.gap_sm]}>
+            {[0, 1, 2].map(rowIdx => (
+              <View key={rowIdx} style={[a.flex_row, a.gap_sm]}>
+                {POLITICAL_AFFILIATION_OPTIONS.ninth
+                  .slice(rowIdx * 3, rowIdx * 3 + 3)
+                  .map(ninth => {
+                    const isSelected = pendingAffiliations.some(
+                      a => a.id === ninth.id,
+                    )
+                    return (
+                      <TouchableOpacity
+                        key={ninth.id}
+                        accessibilityRole="button"
+                        accessibilityState={{selected: isSelected}}
+                        onPress={() => handleSetNinth(ninth)}
+                        style={[
+                          styles.ninthPill,
+                          a.flex_1,
+                          {
+                            backgroundColor: isSelected
+                              ? ninth.color + '25'
+                              : t.atoms.bg_contrast_25.backgroundColor,
+                            borderColor: isSelected
+                              ? ninth.color
+                              : t.palette.contrast_100,
+                            borderWidth: 2,
+                          },
+                        ]}>
+                        <View
+                          style={[
+                            styles.ninthDot,
+                            {backgroundColor: ninth.color},
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            a.text_xs,
+                            a.font_bold,
+                            t.atoms.text,
+                            a.flex_1,
+                          ]}
+                          numberOfLines={2}>
+                          {ninth.name}
+                        </Text>
+                        {isSelected && (
+                          <Text style={{color: ninth.color, fontSize: 10}}>
+                            ✓
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    )
+                  })}
+              </View>
+            ))}
           </View>
         </View>
 
@@ -592,22 +612,17 @@ export function MyAffiliationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  ninthGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
   ninthPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   ninthDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 })

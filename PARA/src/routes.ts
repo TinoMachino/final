@@ -80,6 +80,7 @@ export const router = new Router<AllNavigatableRoutes>({
   CopyrightPolicy: '/support/copyright',
   // hashtags
   Hashtag: '/hashtag/:tag',
+  FlairFeed: '/flair/:flairId',
   Topic: '/topic/:topic',
   // DMs
   Messages: '/messages',

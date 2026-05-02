@@ -144,7 +144,7 @@ export const PARTY_COMPASS_PROFILES: PartyCompassProfile[] = [
   {
     id: 'party-migala',
     name: 'Migala',
-    color: '#106B43',
+    color: '#6B21A8',
     totalMembers: 369,
     ninthDistribution: {
       'lib-left': 58,

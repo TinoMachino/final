@@ -11,7 +11,7 @@ import {
 import {Trans} from '@lingui/react/macro'
 import {useQueryClient} from '@tanstack/react-query'
 
-import {makeProfileLink} from '#/lib/routes/links'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
 import {unstableCacheProfileView} from '#/state/queries/profile'
 import {useSession} from '#/state/session'
@@ -248,7 +248,11 @@ export function QuoteEmbed({
   const t = useTheme()
   const queryClient = useQueryClient()
   const itemUrip = new AtUri(quote.uri)
-  const itemHref = makeProfileLink(quote.author, 'post', itemUrip.rkey)
+  const itemHref = makePostThreadLink(
+    quote.author,
+    itemUrip.rkey,
+    itemUrip.collection,
+  )
   const itemTitle = `Post by ${quote.author.handle}`
 
   const richText = useMemo(() => {

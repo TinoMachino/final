@@ -22,7 +22,12 @@
           },
           "cursor": { "type": "string" },
           "party": { "type": "string", "maxLength": 128 },
-          "community": { "type": "string", "maxLength": 128 }
+          "community": { "type": "string", "maxLength": 128 },
+          "flairTag": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Filter by an exact Para flair tag, e.g. |#Sanidad or ||#TransportePublico."
+          }
         }
       },
       "output": {

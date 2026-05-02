@@ -21,7 +21,7 @@ export type CommonNavigatorParams = {
   ProfileKnownFollowers: {name: string}
   ProfileSearch: {name: string; q?: string}
   ProfileList: {name: string; rkey: string}
-  PostThread: {name: string; rkey: string}
+  PostThread: {name: string; rkey: string; collection?: string}
   PostLikedBy: {name: string; rkey: string}
   PostRepostedBy: {name: string; rkey: string}
   PostHighlights: {name: string; rkey: string}

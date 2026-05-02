@@ -228,12 +228,16 @@ export function postUriToRelativePath(
   options?: {handle?: string},
 ): string | undefined {
   try {
-    const {hostname, rkey} = new AtUri(uri)
+    const {collection, hostname, rkey} = new AtUri(uri)
     const handleOrDid =
       options?.handle && !isInvalidHandle(options.handle)
         ? options.handle
         : hostname
-    return `/profile/${handleOrDid}/post/${rkey}`
+    const path = `/profile/${handleOrDid}/post/${rkey}`
+    if (collection && collection !== 'app.bsky.feed.post') {
+      return `${path}?collection=${encodeURIComponent(collection)}`
+    }
+    return path
   } catch {
     return undefined
   }

@@ -16,6 +16,21 @@ export function makeProfileLink(
   return [`/profile`, handleSegment, ...segments].join('/')
 }
 
+export function makePostThreadLink(
+  info: {
+    did: string
+    handle: string
+  },
+  rkey: string,
+  collection?: string,
+) {
+  const href = makeProfileLink(info, 'post', rkey)
+  if (!collection || collection === 'app.bsky.feed.post') {
+    return href
+  }
+  return `${href}?collection=${encodeURIComponent(collection)}`
+}
+
 export function makeCustomFeedLink(
   did: string,
   rkey: string,

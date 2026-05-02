@@ -11199,6 +11199,7 @@ export class GetParaAuthorFeedRequest extends Message<GetParaAuthorFeedRequest> 
   community = "";
   limit = 0;
   cursor = "";
+  flairTag = "";
 
   constructor(data?: PartialMessage<GetParaAuthorFeedRequest>) {
     super();
@@ -11213,6 +11214,7 @@ export class GetParaAuthorFeedRequest extends Message<GetParaAuthorFeedRequest> 
     { no: 3, name: "community", kind: "scalar", T: 9 },
     { no: 4, name: "limit", kind: "scalar", T: 5 },
     { no: 5, name: "cursor", kind: "scalar", T: 9 },
+    { no: 6, name: "flair_tag", kind: "scalar", T: 9 },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaAuthorFeedRequest {
@@ -11265,6 +11267,7 @@ export class GetParaTimelineRequest extends Message<GetParaTimelineRequest> {
   community = "";
   limit = 0;
   cursor = "";
+  flairTag = "";
 
   constructor(data?: PartialMessage<GetParaTimelineRequest>) {
     super();
@@ -11279,6 +11282,7 @@ export class GetParaTimelineRequest extends Message<GetParaTimelineRequest> {
     { no: 3, name: "community", kind: "scalar", T: 9 },
     { no: 4, name: "limit", kind: "scalar", T: 5 },
     { no: 5, name: "cursor", kind: "scalar", T: 9 },
+    { no: 6, name: "flair_tag", kind: "scalar", T: 9 },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaTimelineRequest {

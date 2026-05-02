@@ -1399,6 +1399,7 @@ message GetParaAuthorFeedRequest {
   string community = 3;
   int32 limit = 4;
   string cursor = 5;
+  string flair_tag = 6;
 }
 message GetParaAuthorFeedResponse {
   repeated ParaAuthorFeedItem items = 1;
@@ -1411,6 +1412,7 @@ message GetParaTimelineRequest {
   string community = 3;
   int32 limit = 4;
   string cursor = 5;
+  string flair_tag = 6;
 }
 message GetParaTimelineResponse {
   repeated ParaAuthorFeedItem items = 1;

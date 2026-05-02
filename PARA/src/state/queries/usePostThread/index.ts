@@ -12,6 +12,11 @@ import {
 } from '#/state/queries/usePostThread/const'
 import {type PostThreadContextType} from '#/state/queries/usePostThread/context'
 import {
+  adaptParaPostThread,
+  getParaThreadAuthors,
+  isParaPostUri,
+} from '#/state/queries/usePostThread/para'
+import {
   createCacheMutator,
   getThreadPlaceholder,
 } from '#/state/queries/usePostThread/queryCache'
@@ -71,6 +76,10 @@ export function usePostThread({anchor}: {anchor?: string}) {
     enabled: isThreadPreferencesLoaded && !!anchor && !!moderationOpts,
     queryKey: postThreadQueryKey,
     async queryFn(ctx) {
+      if (isParaPostUri(anchor!)) {
+        return getParaPostThread(agent, anchor!, below)
+      }
+
       const {data} = await agent.app.bsky.unspecced.getPostThreadV2({
         anchor: anchor!,
         branchingFactor: view === 'linear' ? LINEAR_VIEW_BF : TREE_VIEW_BF,
@@ -326,4 +335,33 @@ export function usePostThread({anchor}: {anchor?: string}) {
     postThreadQueryKey,
     postThreadOtherQueryKey,
   ])
+}
+
+async function getParaPostThread(
+  agent: ReturnType<typeof useAgent>,
+  anchor: string,
+  below: number,
+): Promise<UsePostThreadQueryResult> {
+  const {data} = await agent.call('com.para.feed.getPostThread', {
+    uri: anchor,
+    depth: below,
+    parentHeight: LINEAR_VIEW_BELOW,
+  })
+  const profiles = new Map(
+    await Promise.all(
+      getParaThreadAuthors(data).map(async author => {
+        try {
+          const res = await agent.getProfile({actor: author})
+          return [author, res.data] as const
+        } catch {
+          return undefined
+        }
+      }),
+    ).then(entries =>
+      entries.filter(
+        (entry): entry is Exclude<typeof entry, undefined> => !!entry,
+      ),
+    ),
+  )
+  return adaptParaPostThread(data, profiles)
 }

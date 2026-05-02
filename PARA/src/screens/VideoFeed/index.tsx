@@ -895,12 +895,16 @@ function Overlay({
                     feedContext={feedContext}
                     logContext="FeedItem"
                     forceGoogleTranslate={true}
-                    onPressReply={() =>
+                    onPressReply={() => {
+                      const postUri = new AtUri(post.uri)
                       navigation.navigate('PostThread', {
                         name: post.author.did,
                         rkey,
+                        ...(postUri.collection !== 'app.bsky.feed.post'
+                          ? {collection: postUri.collection}
+                          : {}),
                       })
-                    }
+                    }}
                     big
                   />
                 </View>

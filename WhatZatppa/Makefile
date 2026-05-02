@@ -18,6 +18,10 @@ build: codegen ## Compile all modules
 test: ## Run all tests
 	pnpm test
 
+.PHONY: restart-dev-env
+restart-dev-env: ## Kill any stale dev-env process, ensure db_test/redis_test are healthy, and relaunch with pretty logs
+	bash ./scripts/restart-dev.sh
+
 .PHONY: run-dev-env
 run-dev-env: ## Run a "development environment" shell
 	cd packages/dev-env; NODE_ENV=development pnpm run start

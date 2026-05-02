@@ -26,7 +26,7 @@ import {
   isPolicyPostRecord,
   type PostBadgeRecord,
 } from '#/lib/post-flairs'
-import {makeProfileLink} from '#/lib/routes/links'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {countLines} from '#/lib/strings/helpers'
 import {logger} from '#/logger'
 import {
@@ -35,7 +35,6 @@ import {
   updatePostShadow,
   usePostShadow,
 } from '#/state/cache/post-shadow'
-
 import {useFeedFeedbackContext} from '#/state/feed-feedback'
 import {useShowAuthorInsignias, useShowPartyShields} from '#/state/preferences'
 import {unstableCacheProfileView} from '#/state/queries/profile'
@@ -193,7 +192,10 @@ let FeedItemInner = ({
 
   const [href] = useMemo(() => {
     const urip = new AtUri(post.uri)
-    return [makeProfileLink(post.author, 'post', urip.rkey), urip.rkey]
+    return [
+      makePostThreadLink(post.author, urip.rkey, urip.collection),
+      urip.rkey,
+    ]
   }, [post.uri, post.author])
   const postBadges = useMemo(
     () => getPostBadges(record as PostBadgeRecord),
@@ -377,7 +379,7 @@ let FeedItemInner = ({
 
             {isPolicyPostRecord(record as PostBadgeRecord) && (
               <VotingButton
-                initialVote={(post as any).voteCount || 0}
+                initialVote={(post as {voteCount?: number}).voteCount || 0}
                 onVoteChange={onVoteChange}
               />
             )}

@@ -25,6 +25,7 @@ export type ParaPostView = {
 export type ParaTimelineFilters = {
   party?: string
   community?: string
+  flairTag?: string
 }
 
 export class ParaFeedAPI implements FeedAPI {
@@ -269,6 +270,7 @@ export function buildParaTimelineFilterParams(filters: ParaTimelineFilters) {
   return {
     ...(filters.party ? {party: filters.party} : {}),
     ...(filters.community ? {community: filters.community} : {}),
+    ...(filters.flairTag ? {flairTag: filters.flairTag} : {}),
   }
 }
 
@@ -290,6 +292,14 @@ export function hydrateParaPostView(
     $type: 'app.bsky.feed.post',
     text: paraPost.text,
     createdAt: paraPost.createdAt,
+    ...(paraPost.replyRoot && paraPost.replyParent
+      ? {
+          reply: {
+            root: {uri: paraPost.replyRoot, cid: ''},
+            parent: {uri: paraPost.replyParent, cid: ''},
+          },
+        }
+      : {}),
     langs: paraPost.langs?.length ? paraPost.langs : ['en'],
     tags: paraPost.tags ?? [],
     flairs: paraPost.flairs ?? [],

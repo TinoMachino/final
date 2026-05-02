@@ -48,6 +48,7 @@ const getTimeline = async (inputs: { ctx: Context; params: Params }) => {
     cursor: params.cursor,
     party: params.party,
     community: params.community,
+    flairTag: params.flairTag,
   })
 
   const authors = [...new Set(res.items.map((item) => item.author))]

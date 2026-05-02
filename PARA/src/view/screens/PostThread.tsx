@@ -12,6 +12,8 @@ import {PostThread} from '#/screens/PostThread'
 import * as Layout from '#/components/Layout'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'PostThread'>
+const POST_COLLECTIONS = new Set(['app.bsky.feed.post', 'com.para.post'])
+
 export function PostThreadScreen({route}: Props) {
   const {headerMode} = useMinimalShellMode()
   const showHeader = useCallback(() => {
@@ -20,7 +22,10 @@ export function PostThreadScreen({route}: Props) {
   }, [headerMode])
 
   const {name, rkey} = route.params
-  const uri = makeRecordUri(name, 'app.bsky.feed.post', rkey)
+  const collection = POST_COLLECTIONS.has(route.params.collection || '')
+    ? route.params.collection!
+    : 'app.bsky.feed.post'
+  const uri = makeRecordUri(name, collection, rkey)
 
   useFocusEffect(
     useCallback(() => {

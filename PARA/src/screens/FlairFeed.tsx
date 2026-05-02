@@ -1,19 +1,28 @@
 import {useCallback, useMemo, useState} from 'react'
 import {type ListRenderItemInfo, View} from 'react-native'
-import {type AppBskyFeedDefs} from '@atproto/api'
+import {
+  type AppBskyActorDefs,
+  type AppBskyFeedDefs,
+  type BskyAgent,
+} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {useFocusEffect} from '@react-navigation/native'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
+import {useInfiniteQuery} from '@tanstack/react-query'
 
+import {
+  hydrateParaPostView,
+  isParaPostView,
+  type ParaPostView,
+} from '#/lib/api/feed/para'
 import {useInitialNumToRender} from '#/lib/hooks/useInitialNumToRender'
 import {usePostViewTracking} from '#/lib/hooks/usePostViewTracking'
 import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {cleanError} from '#/lib/strings/errors'
 import {FLAIR_GROUPS} from '#/lib/tags'
-import {useSearchPostsQuery} from '#/state/queries/search-posts'
-import {useSession} from '#/state/session'
+import {useAgent, useSession} from '#/state/session'
 import {useSetMinimalShellMode} from '#/state/shell'
 import {useLoggedOutViewControls} from '#/state/shell/logged-out'
 import {useCloseAllActiveElements} from '#/state/util'
@@ -38,8 +47,11 @@ function getFlairAxis(
   kind: 'matter' | 'policy',
 ): string | undefined {
   const groups = FLAIR_GROUPS[kind === 'matter' ? 'MATTER' : 'POLICY']
-  for (const [axisName, flairs] of Object.entries(groups)) {
-    if (flairs.some((f: {id: string}) => f.id === flairId)) {
+  const entries = Object.entries(groups) as Array<
+    [string, Array<{id: string}>]
+  >
+  for (const [axisName, flairs] of entries) {
+    if (flairs.some(f => f.id === flairId)) {
       return axisName
     }
   }
@@ -170,16 +182,8 @@ function FlairFeedTab({
   const initialNumToRender = useInitialNumToRender()
   const [isPTR, setIsPTR] = useState(false)
   const {hasSession} = useSession()
+  const agent = useAgent()
   const trackPostView = usePostViewTracking('FlairFeed')
-
-  /**
-   * The ATProto `tag` filter expects the tag value without the `#` character.
-   * e.g. "|#SanidadPrivada" → "|SanidadPrivada"
-   *
-   * We also pass the full flairTag as the free-text `query` so the search
-   * falls back gracefully if the server doesn't support the `tag` filter.
-   */
-  const tagParam = useMemo(() => flairTag.replace('#', ''), [flairTag])
 
   const {
     data,
@@ -191,11 +195,25 @@ function FlairFeedTab({
     refetch,
     fetchNextPage,
     hasNextPage,
-  } = useSearchPostsQuery({
-    query: flairTag,
-    sort,
-    enabled: active,
-    tag: [tagParam],
+  } = useInfiniteQuery({
+    queryKey: ['para-flair-feed', flairTag, sort],
+    queryFn: async ({pageParam}: {pageParam?: string}) => {
+      const res = await agent.call('com.para.feed.getTimeline', {
+        limit: 25,
+        cursor: pageParam,
+        flairTag,
+      })
+      const payload = res.data as {cursor?: string; feed?: unknown[]}
+      const feed = (payload.feed ?? []).filter(isParaPostView)
+      const posts = await hydrateParaPosts(agent, feed)
+      return {
+        cursor: payload.cursor,
+        posts,
+      }
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: lastPage => lastPage.cursor,
+    enabled: active && hasSession,
   })
 
   const posts = useMemo(() => {
@@ -210,7 +228,7 @@ function FlairFeedTab({
 
   const onEndReached = useCallback(() => {
     if (isFetchingNextPage || !hasNextPage || error) return
-    fetchNextPage()
+    void fetchNextPage()
   }, [isFetchingNextPage, hasNextPage, error, fetchNextPage])
 
   const closeAllActiveElements = useCloseAllActiveElements()
@@ -271,7 +289,9 @@ function FlairFeedTab({
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           refreshing={isPTR}
-          onRefresh={onRefresh}
+          onRefresh={() => {
+            void onRefresh()
+          }}
           onEndReached={onEndReached}
           onEndReachedThreshold={4}
           onItemSeen={trackPostView}
@@ -290,4 +310,24 @@ function FlairFeedTab({
       )}
     </>
   )
+}
+
+async function hydrateParaPosts(
+  agent: BskyAgent,
+  feed: ParaPostView[],
+): Promise<AppBskyFeedDefs.PostView[]> {
+  const profiles = new Map<string, AppBskyActorDefs.ProfileViewDetailed>()
+  const posts: AppBskyFeedDefs.PostView[] = []
+
+  for (const item of feed) {
+    let profile = profiles.get(item.author)
+    if (!profile) {
+      const res = await agent.getProfile({actor: item.author})
+      profile = res.data
+      profiles.set(item.author, profile)
+    }
+    posts.push(hydrateParaPostView(item, profile).post)
+  }
+
+  return posts
 }

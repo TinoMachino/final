@@ -835,6 +835,9 @@ export function MyBaseScreen() {
         navigation.push('PostThread', {
           name: urip.host,
           rkey: urip.rkey,
+          ...(urip.collection !== 'app.bsky.feed.post'
+            ? {collection: urip.collection}
+            : {}),
         })
       } catch (e) {
         navigation.navigate('Topic', {topic: item.displayName})

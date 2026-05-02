@@ -46,6 +46,9 @@ export default function OpenQuestionsListScreen() {
       navigation.navigate('PostThread', {
         name: routeParams.name,
         rkey: routeParams.rkey,
+        ...(routeParams.collection
+          ? {collection: routeParams.collection}
+          : {}),
       })
     }
   }

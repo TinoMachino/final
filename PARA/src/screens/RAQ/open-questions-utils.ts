@@ -33,7 +33,13 @@ export function mapOpenQuestionPosts(
 export function toPostThreadParamsFromUri(uri: string) {
   try {
     const parsed = new AtUri(uri)
-    return {name: parsed.host, rkey: parsed.rkey}
+    return {
+      name: parsed.host,
+      rkey: parsed.rkey,
+      ...(parsed.collection !== 'app.bsky.feed.post'
+        ? {collection: parsed.collection}
+        : {}),
+    }
   } catch {
     return null
   }

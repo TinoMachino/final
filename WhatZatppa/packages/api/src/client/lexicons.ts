@@ -20721,6 +20721,12 @@ export const schemaDict = {
               type: 'string',
               maxLength: 128,
             },
+            flairTag: {
+              type: 'string',
+              maxLength: 128,
+              description:
+                'Filter by an exact Para flair tag, e.g. |#Sanidad or ||#TransportePublico.',
+            },
           },
         },
         output: {
@@ -20955,6 +20961,12 @@ export const schemaDict = {
             community: {
               type: 'string',
               maxLength: 128,
+            },
+            flairTag: {
+              type: 'string',
+              maxLength: 128,
+              description:
+                'Filter by an exact Para flair tag, e.g. |#Sanidad or ||#TransportePublico.',
             },
           },
         },

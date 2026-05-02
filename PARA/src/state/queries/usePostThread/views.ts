@@ -9,7 +9,7 @@ import {
   type ModerationOpts,
 } from '@atproto/api'
 
-import {makeProfileLink} from '#/lib/routes/links'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {
   type ApiThreadItem,
   type ThreadItem,
@@ -109,13 +109,13 @@ export function readMore({
   postData,
 }: TraversalMetadata): Extract<ThreadItem, {type: 'readMore'}> {
   const urip = new AtUri(postData.uri)
-  const href = makeProfileLink(
+  const href = makePostThreadLink(
     {
       did: urip.host,
       handle: postData.authorHandle,
     },
-    'post',
     urip.rkey,
+    urip.collection,
   )
   return {
     type: 'readMore' as const,
@@ -131,13 +131,13 @@ export function readMoreUp({
   postData,
 }: TraversalMetadata): Extract<ThreadItem, {type: 'readMoreUp'}> {
   const urip = new AtUri(postData.uri)
-  const href = makeProfileLink(
+  const href = makePostThreadLink(
     {
       did: urip.host,
       handle: postData.authorHandle,
     },
-    'post',
     urip.rkey,
+    urip.collection,
   )
   return {
     type: 'readMoreUp' as const,

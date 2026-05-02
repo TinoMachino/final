@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useState} from 'react'
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {StyleSheet, TouchableOpacity, View} from 'react-native'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
@@ -22,7 +22,7 @@ import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
 import {CompassMini} from '#/components/CompassMini'
 import {TimesLarge_Stroke2_Corner0_Rounded as XIcon} from '#/components/icons/Times'
-import {Header, Screen} from '#/components/Layout'
+import {Content, Header, Screen} from '#/components/Layout'
 import {PieChart} from '#/components/PieChart'
 import {Text} from '#/components/Typography'
 
@@ -342,8 +342,7 @@ export function MyAffiliationsScreen() {
         </Header.Slot>
       </Header.Outer>
 
-      <ScrollView
-        style={[a.flex_1]}
+      <Content
         contentContainerStyle={[
           a.gap_lg,
           a.px_lg,
@@ -606,7 +605,7 @@ export function MyAffiliationsScreen() {
             </Trans>
           </Text>
         </View>
-      </ScrollView>
+      </Content>
     </Screen>
   )
 }

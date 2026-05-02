@@ -11,7 +11,7 @@ import {Trans} from '@lingui/react/macro'
 import {MAX_POST_LINES} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {getPostBadges, type PostBadgeRecord} from '#/lib/post-flairs'
-import {makeProfileLink} from '#/lib/routes/links'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {countLines} from '#/lib/strings/helpers'
 import {
   POST_TOMBSTONE,
@@ -274,7 +274,7 @@ const ThreadItemTreePostInner = memo(function ThreadItemTreePostInner({
   const threadRootUri = record.reply?.root?.uri || post.uri
   const postHref = useMemo(() => {
     const urip = new AtUri(post.uri)
-    return makeProfileLink(post.author, 'post', urip.rkey)
+    return makePostThreadLink(post.author, urip.rkey, urip.collection)
   }, [post.uri, post.author])
   const threadgateHiddenReplies = useMergedThreadgateHiddenReplies({
     threadgateRecord,

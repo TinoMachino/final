@@ -245,6 +245,9 @@ let PostControls = ({
       navigation.push('PostThread', {
         name: post.author.handle,
         rkey: urip.rkey,
+        ...(urip.collection !== 'app.bsky.feed.post'
+          ? {collection: urip.collection}
+          : {}),
       })
     }
   }

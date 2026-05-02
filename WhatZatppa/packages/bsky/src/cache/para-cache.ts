@@ -116,8 +116,9 @@ export class ParaCacheService {
     cursor: string
     party: string
     community: string
+    flairTag?: string
   }): string {
-    return `${params.actorDid}:${params.limit}:${params.cursor}:${params.party}:${params.community}`
+    return `${params.actorDid}:${params.limit}:${params.cursor}:${params.party}:${params.community}:${params.flairTag ?? ''}`
   }
 
   communityFeedKey(params: {

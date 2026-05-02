@@ -61,7 +61,7 @@ export async function fetchRepresentatives(
     }
 
     // Apply category filter
-    if (params?.category) {
+    if (params?.category && params.category !== 'All') {
       data = data.filter(r => r.category === params.category)
     }
 

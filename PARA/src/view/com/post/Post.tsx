@@ -13,7 +13,8 @@ import {useQueryClient} from '@tanstack/react-query'
 import {MAX_POST_LINES} from '#/lib/constants'
 import {useOpenComposer} from '#/lib/hooks/useOpenComposer'
 import {usePalette} from '#/lib/hooks/usePalette'
-import {makeProfileLink} from '#/lib/routes/links'
+import {getPostBadges, type PostBadgeRecord} from '#/lib/post-flairs'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {countLines} from '#/lib/strings/helpers'
 import {colors} from '#/lib/styles'
 import {
@@ -124,7 +125,15 @@ function PostInner({
     () => countLines(richText?.text) >= MAX_POST_LINES,
   )
   const itemUrip = new AtUri(post.uri)
-  const itemHref = makeProfileLink(post.author, 'post', itemUrip.rkey)
+  const itemHref = makePostThreadLink(
+    post.author,
+    itemUrip.rkey,
+    itemUrip.collection,
+  )
+  const postBadges = useMemo(
+    () => getPostBadges(record as PostBadgeRecord),
+    [record],
+  )
   let replyAuthorDid = ''
   if (record.reply) {
     const urip = new AtUri(record.reply.parent?.uri || record.reply.root.uri)
@@ -188,6 +197,8 @@ function PostInner({
             moderation={moderation}
             timestamp={post.indexedAt}
             postHref={itemHref}
+            postFlairs={postBadges.length ? postBadges : undefined}
+            postFlairsBelow
           />
           {replyAuthorDid !== '' && (
             <PostRepliedTo parentAuthor={replyAuthorDid} />

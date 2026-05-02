@@ -6,7 +6,7 @@ import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
 import {usePalette} from '#/lib/hooks/usePalette'
-import {makeProfileLink} from '#/lib/routes/links'
+import {makePostThreadLink} from '#/lib/routes/links'
 import {useInteractionState} from '#/components/hooks/useInteractionState'
 import {SubtleHover} from '#/components/SubtleHover'
 import {Link} from '../util/Link'
@@ -21,7 +21,11 @@ export function ViewFullThread({uri}: {uri: string}) {
   const pal = usePalette('default')
   const itemHref = useMemo(() => {
     const urip = new AtUri(uri)
-    return makeProfileLink({did: urip.hostname, handle: ''}, 'post', urip.rkey)
+    return makePostThreadLink(
+      {did: urip.hostname, handle: ''},
+      urip.rkey,
+      urip.collection,
+    )
   }, [uri])
   const {_} = useLingui()
 

@@ -92,6 +92,7 @@ const getAuthorFeed = async (inputs: { ctx: Context; params: Params }) => {
     cursor: params.cursor ?? '',
     party: params.party ?? '',
     community: params.community ?? '',
+    flairTag: params.flairTag ?? '',
   })
   if (cache && cacheKey) {
     const cached = await cache.get(cacheKey, 'authorFeed')
@@ -104,6 +105,7 @@ const getAuthorFeed = async (inputs: { ctx: Context; params: Params }) => {
     cursor: params.cursor,
     party: params.party,
     community: params.community,
+    flairTag: params.flairTag,
   })
 
   const result = {

@@ -91,11 +91,10 @@ export function CommunityProfileScreen() {
   const governanceCommunity = fetchedGovernance?.community
   const resolvedCommunityName =
     governanceCommunity || board?.name || communityName
+  const canonicalCommunityPostsKey =
+    board?.communityId || board?.slug || fetchedGovernance?.slug
   const communityPostsKey =
-    board?.communityId ||
-    board?.slug ||
-    fetchedGovernance?.slug ||
-    resolvedCommunityName
+    canonicalCommunityPostsKey || resolvedCommunityName
   const isGeographicGroup = isGeographicGroupCommunity({
     communityId,
     communityName: resolvedCommunityName,

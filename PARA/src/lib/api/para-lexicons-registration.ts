@@ -691,6 +691,9 @@ const getAuthorFeed = {
             default: 30,
           },
           cursor: {type: 'string' as const},
+          party: {type: 'string' as const, maxLength: 128},
+          community: {type: 'string' as const, maxLength: 128},
+          flairTag: {type: 'string' as const, maxLength: 128},
         },
       },
       output: {
@@ -781,6 +784,7 @@ const getTimeline = {
           cursor: {type: 'string' as const},
           party: {type: 'string' as const, maxLength: 128},
           community: {type: 'string' as const, maxLength: 128},
+          flairTag: {type: 'string' as const, maxLength: 128},
         },
       },
       output: {

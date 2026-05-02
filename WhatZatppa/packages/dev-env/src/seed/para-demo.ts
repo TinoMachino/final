@@ -2310,7 +2310,7 @@ export default async (sc: SeedClient) => {
       text: 'Celebramos la jornada laboral de 40 horas aprobada. Pero seguimos luchando por salarios dignos, prestaciones reales y seguridad social universal. No bajamos la guardia.',
       postType: 'matter',
       bskyTags: ['matter', 'trabajo', '1demayo'],
-      paraFlairs: ['||#DerechosLaborales', '|#Matter'],
+      paraFlairs: ['||#DerechosLaborales', '|#Salarios'],
     },
     {
       agent: 'eva',
@@ -2330,7 +2330,7 @@ export default async (sc: SeedClient) => {
       text: 'Como maestra rural, esta es mi primera experiencia en cabildeo digital. Estoy aprendiendo que la política no es solo votar cada 3 años, es participar todos los días desde donde estamos.',
       postType: 'matter',
       bskyTags: ['matter', 'juventud', 'democracia'],
-      paraFlairs: ['|#Matter', '||#EducacionLaica'],
+      paraFlairs: ['|#Democracia', '||#EducacionLaica'],
     },
 
     // Pablo (Morena — Estudiante)
@@ -2341,7 +2341,7 @@ export default async (sc: SeedClient) => {
       text: '19 años y descubriendo que mi voto en un cabildeo puede decidir si hay transporte gratuito para estudiantes. Eso es poder real, no abstracto.',
       postType: 'matter',
       bskyTags: ['matter', 'juventud', 'democracia'],
-      paraFlairs: ['|#Matter', '||#EducacionLaica'],
+      paraFlairs: ['|#Educacion', '||#EducacionLaica'],
     },
 
     // Rodrigo (PT — Taxista)
@@ -2352,7 +2352,7 @@ export default async (sc: SeedClient) => {
       text: 'Ganamos. La tarifa diferenciada para transportistas organizados es justicia. Ahora toca cuidar que la implementación llegue a todos, no solo a los de siempre.',
       postType: 'matter',
       bskyTags: ['matter', 'taxistas', 'transporte'],
-      paraFlairs: ['||#TransportePublico', '|#Matter'],
+      paraFlairs: ['||#TransportePublico', '|#TransportePublico'],
     },
     {
       agent: 'rodrigo',
@@ -2392,7 +2392,7 @@ export default async (sc: SeedClient) => {
       text: 'Plan de inversión para garantizar abasto de agua en comunidades rurales del centro del país. El agua es derecho, no privilegio.',
       postType: 'matter',
       bskyTags: ['matter', 'agua', 'infraestructura'],
-      paraFlairs: ['|#Matter'],
+      paraFlairs: ['|#IndustriaHidrica'],
     },
     {
       agent: 'bob',
@@ -2490,7 +2490,7 @@ export default async (sc: SeedClient) => {
       text: 'Niveles críticos de PM2.5 en 8 zonas metropolitanas. Se requieren acciones urgentes, no promesas de campaña. La salud respiratoria de millones está en juego.',
       postType: 'matter',
       bskyTags: ['matter', 'aire', 'salud'],
-      paraFlairs: ['|#Matter', '||#ServiciosPublicosDeSalud'],
+      paraFlairs: ['|#DemandaPorSalud', '||#ServiciosPublicosDeSalud'],
     },
     {
       agent: 'eva',
@@ -2499,7 +2499,7 @@ export default async (sc: SeedClient) => {
       text: 'Puntos de acopio digitales y recompensas por kilo de material reciclado. El cuidado ambiental debe ser económicamente viable para todas las familias.',
       postType: 'matter',
       bskyTags: ['matter', 'reciclaje', 'medioambiente'],
-      paraFlairs: ['|#Matter'],
+      paraFlairs: ['|#EmisionesCO2'],
     },
 
     // Luis (PT — Médico comunitario)
@@ -2510,7 +2510,7 @@ export default async (sc: SeedClient) => {
       text: 'Como médico comunitario, veo cómo la prevención salva vidas y dinero. Cada peso invertido en salud preventiva ahorra 7 en tratamiento curativo. La evidencia es clara.',
       postType: 'matter',
       bskyTags: ['matter', 'salud', 'prevencion'],
-      paraFlairs: ['||#SaludPublica', '|#Matter'],
+      paraFlairs: ['||#SaludPublica', '|#Sanidad'],
     },
 
     // Fernando (MC — Emprendedor social)
@@ -2568,7 +2568,7 @@ export default async (sc: SeedClient) => {
       text: 'Semáforos inteligentes, basureros con sensores, alumbrado LED conectado. Guadalajara puede ser el laboratorio de ciudades inteligentes de Latinoamérica.',
       postType: 'matter',
       bskyTags: ['matter', 'smartcity', 'tecnologia'],
-      paraFlairs: ['||#Innovacion', '|#Matter'],
+      paraFlairs: ['||#Innovacion', '|#Tecnologia'],
     },
     {
       agent: 'jorge',
@@ -2577,7 +2577,7 @@ export default async (sc: SeedClient) => {
       text: 'El 78% apoya ampliación de transporte público. La ciudadanía habla con datos. Nos toca escuchar y actuar, no solo sonreír en fotos.',
       postType: 'matter',
       bskyTags: ['matter', 'movilidad', 'urbana'],
-      paraFlairs: ['|#Matter', '||#TransportePublico'],
+      paraFlairs: ['|#UsoDelAutobus', '||#TransportePublico'],
     },
 
     // Mariana (PRD — Abogada DDHH)
@@ -2617,7 +2617,7 @@ export default async (sc: SeedClient) => {
       text: '124 defensores ambientales asesinados en 4 años. Exigimos mecanismo de protección federal con presupuesto propio y protocolo de emergencia. No más lágrimas, más acción.',
       postType: 'matter',
       bskyTags: ['matter', 'ambiental', 'ddhh'],
-      paraFlairs: ['||#DerechosHumanos', '|#Matter'],
+      paraFlairs: ['||#DerechosHumanos', '|#DelitosConViolencia'],
     },
 
     // Olivia (PRD — Artista urbana)
@@ -2648,7 +2648,7 @@ export default async (sc: SeedClient) => {
       text: 'Analicé 12 estudios independientes sobre la reforma energética. Los resultados son mixtos. Abro hilo con la evidencia que no te contaron.',
       postType: 'matter',
       bskyTags: ['periodismo', 'datos', 'energia', 'verificacion'],
-      paraFlairs: ['||#PeriodismoDeDatos', '|#Matter'],
+      paraFlairs: ['||#PeriodismoDeDatos', '|#IndustriaEnergetica'],
     },
     {
       agent: 'gabriela',
@@ -2677,7 +2677,7 @@ export default async (sc: SeedClient) => {
       text: 'Modelo econométrico: con devolución a hogares, es progresivo en quintil 1-3, neutro en 4, ligeramente regresivo en 5. Los detalles importan más que los titulares.',
       postType: 'matter',
       bskyTags: ['economia', 'carbono', 'impuestos', 'analisis'],
-      paraFlairs: ['||#Economia', '|#Matter'],
+      paraFlairs: ['||#Economia', '|#Inflacion'],
     },
     {
       agent: 'hector',
@@ -2686,7 +2686,7 @@ export default async (sc: SeedClient) => {
       text: 'Estudio longitudinal: estudiantes bilingües tienen 23% más ingresos a los 30 años y mayor participación cívica. La inversión se recupera en 8 años. Datos, no opiniones.',
       postType: 'matter',
       bskyTags: ['educacion', 'bilingue', 'economia', 'estudio'],
-      paraFlairs: ['||#EducacionIndigena', '|#Matter'],
+      paraFlairs: ['||#EducacionIndigena', '|#Educacion'],
     },
 
     // Quetzali (Independiente — Comunidad zapoteca)
@@ -2697,7 +2697,7 @@ export default async (sc: SeedClient) => {
       text: 'En mi comunidad, la milpa de maíz criollo alimenta 12 familias por hectárea. La soja transnacional alimenta accionistas en Europa. ¿Cuál es el desarrollo que queremos?',
       postType: 'matter',
       bskyTags: ['milpa', 'soberania', 'indigena', 'agricultura'],
-      paraFlairs: ['||#SoberaniaAlimentaria', '|#Matter'],
+      paraFlairs: ['||#SoberaniaAlimentaria', '|#ComercioInternacional'],
     },
 
     // Pablo (meme)

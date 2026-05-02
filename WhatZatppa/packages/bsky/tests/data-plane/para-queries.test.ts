@@ -31,8 +31,12 @@ describe('para dataplane queries', () => {
 
   it('queries para timeline and author feed', async () => {
     await sc.follow(alice, bob)
-    const alicePost = await createParaPost(sc, alice, 'alice timeline para post')
-    const bobPost = await createParaPost(sc, bob, 'bob timeline para post')
+    const alicePost = await createParaPost(sc, alice, 'alice timeline para post', {
+      flairs: ['|#Sanidad'],
+    })
+    const bobPost = await createParaPost(sc, bob, 'bob timeline para post', {
+      flairs: ['|#TransportePublico'],
+    })
     const carolPost = await createParaPost(sc, carol, 'carol timeline para post')
     await network.processAll()
 
@@ -45,12 +49,28 @@ describe('para dataplane queries', () => {
     expect(timelineUris).toContain(bobPost.uri)
     expect(timelineUris).not.toContain(carolPost.uri)
 
+    const flairTimeline = await network.bsky.ctx.dataplane.getParaTimeline({
+      actorDid: alice,
+      limit: 50,
+      flairTag: '|#Sanidad',
+    })
+    const flairTimelineUris = flairTimeline.items.map((item) => item.uri)
+    expect(flairTimelineUris).toContain(alicePost.uri)
+    expect(flairTimelineUris).not.toContain(bobPost.uri)
+
     const authorFeed = await network.bsky.ctx.dataplane.getParaAuthorFeed({
       actorDid: bob,
       limit: 50,
     })
     expect(authorFeed.items.some((item) => item.uri === bobPost.uri)).toBe(true)
     expect(authorFeed.items.every((item) => item.author === bob)).toBe(true)
+
+    const flairAuthorFeed = await network.bsky.ctx.dataplane.getParaAuthorFeed({
+      actorDid: bob,
+      limit: 50,
+      flairTag: '|#TransportePublico',
+    })
+    expect(flairAuthorFeed.items.map((item) => item.uri)).toContain(bobPost.uri)
   })
 
   it('queries para posts by uri list order', async () => {
@@ -63,6 +83,55 @@ describe('para dataplane queries', () => {
       uris: [second.uri, missing, first.uri],
     })
     expect(got.items.map((item) => item.uri)).toEqual([second.uri, first.uri])
+  })
+
+  it('queries community posts by board name, normalized name, and slug', async () => {
+    const board = await createParaCommunityBoard(sc, alice, 'Morena')
+    const post = await createParaPost(sc, alice, 'morena community slug post', {
+      postType: 'policy',
+    })
+    await createParaPostMeta(sc, alice, post.uri, {
+      postType: 'policy',
+      voteScore: 1,
+      party: 'p/Morena',
+      community: board.slug,
+    })
+    await network.processAll()
+    await network.bsky.db.db
+      .updateTable('para_post')
+      .set({ party: 'p/Morena' })
+      .where('uri', '=', post.uri)
+      .execute()
+    const indexedBoard = await network.bsky.db.db
+      .selectFrom('para_community_board')
+      .select(['name', 'slug'])
+      .where('slug', '=', board.slug)
+      .executeTakeFirst()
+    const indexedMeta = await network.bsky.db.db
+      .selectFrom('para_post_meta')
+      .select(['postUri', 'community'])
+      .where('postUri', '=', post.uri)
+      .executeTakeFirst()
+    expect(indexedBoard).toMatchObject({ name: 'Morena', slug: board.slug })
+    expect(indexedMeta).toMatchObject({
+      postUri: post.uri,
+      community: board.slug,
+    })
+
+    for (const community of ['Morena', 'morena', board.slug]) {
+      const res = await network.bsky.ctx.dataplane.getParaCommunityPosts({
+        community,
+        limit: 50,
+      })
+      expect(res.items.map((item) => item.uri)).toContain(post.uri)
+    }
+
+    const partyTimeline = await network.bsky.ctx.dataplane.getParaTimeline({
+      actorDid: alice,
+      limit: 50,
+      party: 'p/Morena',
+    })
+    expect(partyTimeline.items.map((item) => item.uri)).toContain(post.uri)
   })
 
   it('queries para thread with parents and replies', async () => {
@@ -218,6 +287,49 @@ const createParaPost = async (
     cid: data.cid,
   }
 }
+
+const createParaCommunityBoard = async (
+  sc: SeedClient,
+  by: string,
+  name: string,
+): Promise<ParaStrongRef & { slug: string }> => {
+  const { data } = await sc.agent.api.com.atproto.repo.createRecord(
+    {
+      repo: by,
+      collection: ids.ComParaCommunityBoard,
+      record: {
+        $type: ids.ComParaCommunityBoard,
+        name,
+        description: `${name} community`,
+        quadrant: 'political',
+        status: 'active',
+        delegatesChatId: '',
+        subdelegatesChatId: '',
+        createdAt: new Date().toISOString(),
+      },
+    },
+    {
+      encoding: 'application/json',
+      headers: sc.getHeaders(by),
+    },
+  )
+
+  const rkey = data.uri.split('/').pop()!
+  return {
+    uri: data.uri,
+    cid: data.cid,
+    slug: `${normalizeBoardSlug(name)}-${rkey}`,
+  }
+}
+
+const normalizeBoardSlug = (value: string) =>
+  value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 
 const createParaPostMeta = async (
   sc: SeedClient,

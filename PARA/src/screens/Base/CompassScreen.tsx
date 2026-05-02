@@ -35,7 +35,8 @@ import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {usePoliticalAffiliation} from '#/state/shell/political-affiliation'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
-import {ColorPalette_Stroke2_Corner0_Rounded as PaletteIcon} from '#/components/icons/ColorPalette'
+import {ArrowRotateCounterClockwise_Stroke2_Corner0_Rounded as RecenterIcon} from '#/components/icons/ArrowRotate'
+import {PlusLarge_Stroke2_Corner0_Rounded as PlusIcon} from '#/components/icons/Plus'
 import {Header, Screen} from '#/components/Layout'
 import * as Prompt from '#/components/Prompt'
 import {Text} from '#/components/Typography'
@@ -394,7 +395,7 @@ export function CompassScreen({navigation, route}: Props) {
   const {gtMobile} = useBreakpoints()
   const ideologyPromptControl = Prompt.usePromptControl()
   const {affiliations, setAffiliations} = usePoliticalAffiliation()
-  const [paletteIndex, setPaletteIndex] = useState(0)
+  const [paletteIndex, _setPaletteIndex] = useState(0)
   const [show69ths, setShow69ths] = useState(false)
 
   // Affiliation mode: when accessed from MyBase to help user find their position
@@ -459,17 +460,6 @@ export function CompassScreen({navigation, route}: Props) {
   // Animated values stay stable for the lifetime of the screen.
   const pan = useMemo(() => new Animated.ValueXY(), [])
   const scale = useMemo(() => new Animated.Value(INITIAL_SCALE), [])
-  const highlightPulse = useMemo(() => new Animated.Value(0), [])
-
-  // Subtle light pulse for selected cell highlight
-  // Simplified selection: No more pulsing animation
-  useEffect(() => {
-    if (!selectedQuadrant) {
-      highlightPulse.setValue(0)
-      return
-    }
-  }, [selectedQuadrant, highlightPulse])
-
   // Track current scale for gesture calculations
   const currentScale = useRef(INITIAL_SCALE)
   useEffect(() => {
@@ -1048,7 +1038,7 @@ export function CompassScreen({navigation, route}: Props) {
                           <View
                             pointerEvents="none"
                             style={[
-                              styles.cellFill,
+                              styles.cellOverlay,
                               {
                                 backgroundColor: '#000',
                                 opacity:
@@ -1065,50 +1055,53 @@ export function CompassScreen({navigation, route}: Props) {
                           <View
                             pointerEvents="none"
                             style={[
-                              styles.cellFill,
+                              styles.selectedCellOverlay,
                               {
-                                borderWidth: 4,
                                 borderColor: t.palette.primary_500,
-                                shadowColor: t.palette.primary_500,
-                                shadowOffset: {width: 0, height: 0},
-                                shadowOpacity: 0.8,
-                                shadowRadius: 10,
-                                elevation: 8,
+                                backgroundColor: withAlpha(
+                                  t.palette.primary_500,
+                                  0.14,
+                                ),
                               },
                             ]}>
+                            <View style={styles.selectedCellInset} />
                             <View
                               style={[
-                                StyleSheet.absoluteFill,
-                                {
-                                  backgroundColor: t.palette.primary_500,
-                                  opacity: 0.15,
-                                },
-                              ]}
-                            />
+                                styles.selectedCellBadge,
+                                {backgroundColor: t.palette.primary_500},
+                              ]}>
+                              <Text style={styles.selectedCellBadgeText}>
+                                ✓
+                              </Text>
+                            </View>
                           </View>
                         )}
-                        {/* Subtle highlight on selected quadrant - Solid Clean State */}
+                        {/* Selected state stays absolute so the sector never moves. */}
                         {!isAffiliateMode &&
                           selectedQuadrant?.id === quadrant.id && (
                             <View
                               pointerEvents="none"
                               style={[
-                                styles.cellFill,
+                                styles.selectedCellOverlay,
                                 {
-                                  borderWidth: 3,
-                                  borderColor: selectedQuadrant.color,
+                                  borderColor: t.palette.primary_500,
                                   backgroundColor: withAlpha(
-                                    selectedQuadrant.color,
-                                    0.1,
+                                    t.palette.primary_500,
+                                    0.12,
                                   ),
-                                  shadowColor: selectedQuadrant.color,
-                                  shadowOffset: {width: 0, height: 0},
-                                  shadowOpacity: 0.4,
-                                  shadowRadius: 8,
-                                  elevation: 4,
                                 },
-                              ]}
-                            />
+                              ]}>
+                              <View style={styles.selectedCellInset} />
+                              <View
+                                style={[
+                                  styles.selectedCellBadge,
+                                  {backgroundColor: t.palette.primary_500},
+                                ]}>
+                                <Text style={styles.selectedCellBadgeText}>
+                                  ✓
+                                </Text>
+                              </View>
+                            </View>
                           )}
                       </TouchableOpacity>
                     ))}
@@ -1138,47 +1131,56 @@ export function CompassScreen({navigation, route}: Props) {
           </View>
         </View>
 
-        {/* Absolute Overlays at edges */}
-        <View
-          style={[
-            a.absolute,
-            {right: 20, bottom: 60 + insets.bottom},
-            a.gap_md,
-            {zIndex: 20},
-          ]}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={() => handleZoom(1.5)}
+        {/* Zoom controls – desktop only (bottom-right); on mobile they live in the top-right group below */}
+        {gtMobile && (
+          <View
             style={[
-              cardBgColor,
-              web({backdropFilter: 'blur(10px)'}),
-              a.rounded_full,
-              a.shadow_md,
-              a.border,
-              t.atoms.border_contrast_low,
-              a.align_center,
-              a.justify_center,
-              {width: 44, height: 44},
+              a.absolute,
+              {right: 20, bottom: 60 + insets.bottom},
+              {zIndex: 20},
             ]}>
-            <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>+</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            onPress={() => handleZoom(0.67)}
-            style={[
-              cardBgColor,
-              web({backdropFilter: 'blur(10px)'}),
-              a.rounded_full,
-              a.shadow_md,
-              a.align_center,
-              a.justify_center,
-              {width: 44, height: 44},
-            ]}>
-            <Text style={[a.text_2xl, a.font_bold, t.atoms.text]}>-</Text>
-          </TouchableOpacity>
-        </View>
+            <View
+              style={[
+                styles.zoomControlGroup,
+                cardBgColor,
+                web({backdropFilter: 'blur(10px)'}),
+                a.shadow_md,
+                a.border,
+                t.atoms.border_contrast_low,
+              ]}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={translate(msg`Zoom in`)}
+                accessibilityHint={translate(msg`Makes the compass larger.`)}
+                onPress={() => handleZoom(1.5)}
+                style={styles.zoomControlButton}>
+                <PlusIcon width={18} height={18} style={t.atoms.text} />
+              </TouchableOpacity>
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.zoomControlDivider,
+                  {backgroundColor: t.palette.contrast_100},
+                ]}
+              />
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={translate(msg`Zoom out`)}
+                accessibilityHint={translate(msg`Makes the compass smaller.`)}
+                onPress={() => handleZoom(0.67)}
+                style={styles.zoomControlButton}>
+                <View
+                  style={[
+                    styles.minusIcon,
+                    {backgroundColor: t.atoms.text.color},
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
-        {/* Recenter & Palette Buttons */}
+        {/* Recenter & Palette Buttons (+ zoom controls on mobile) */}
         <View style={[a.absolute, {right: 20, top: 20}, {zIndex: 20}]}>
           <View style={[a.gap_sm]}>
             <TouchableOpacity
@@ -1189,10 +1191,50 @@ export function CompassScreen({navigation, route}: Props) {
                 a.align_center,
                 a.justify_center,
                 a.shadow_sm,
-                {width: 44, height: 44, borderRadius: 22},
+                styles.recenterButton,
               ]}>
-              <Text style={[a.text_md, a.font_bold, t.atoms.text]}>⌖</Text>
+              <RecenterIcon width={18} height={18} style={t.atoms.text} />
             </TouchableOpacity>
+            {!gtMobile && (
+              <View
+                style={[
+                  styles.zoomControlGroup,
+                  cardBgColor,
+                  web({backdropFilter: 'blur(10px)'}),
+                  a.shadow_md,
+                  a.border,
+                  t.atoms.border_contrast_low,
+                ]}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={translate(msg`Zoom in`)}
+                  accessibilityHint={translate(msg`Makes the compass larger.`)}
+                  onPress={() => handleZoom(1.5)}
+                  style={styles.zoomControlButton}>
+                  <PlusIcon width={18} height={18} style={t.atoms.text} />
+                </TouchableOpacity>
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.zoomControlDivider,
+                    {backgroundColor: t.palette.contrast_100},
+                  ]}
+                />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={translate(msg`Zoom out`)}
+                  accessibilityHint={translate(msg`Makes the compass smaller.`)}
+                  onPress={() => handleZoom(0.67)}
+                  style={styles.zoomControlButton}>
+                  <View
+                    style={[
+                      styles.minusIcon,
+                      {backgroundColor: t.atoms.text.color},
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
@@ -1645,6 +1687,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cellOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  selectedCellOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  selectedCellInset: {
+    ...StyleSheet.absoluteFillObject,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+  },
+  selectedCellBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  selectedCellBadgeText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 16,
+  },
   axisOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
@@ -1725,5 +1807,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 4,
     lineHeight: 12,
+  },
+  zoomControlGroup: {
+    width: 52,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  zoomControlButton: {
+    width: 52,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomControlDivider: {
+    height: 1,
+    width: '100%',
+  },
+  minusIcon: {
+    width: 18,
+    height: 2.5,
+    borderRadius: 2,
+  },
+  recenterButton: {
+    width: 48,
+    height: 40,
+    borderRadius: 12,
   },
 })

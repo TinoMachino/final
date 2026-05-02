@@ -239,13 +239,24 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
 
   async getParaCommunityPosts(req) {
     const { ref } = db.db.dynamic
+    const board = await selectBoardPostIdentity(db, req.community)
     let builder = db.db
       .selectFrom('para_post')
       .selectAll('para_post')
-      .where(paraCommunityMetaMatches(req.community))
+      .where(paraCommunityMetaMatches(req.community, board))
 
     if (req.postType) {
-      builder = builder.where('para_post.postType', '=', req.postType)
+      builder = builder.where(
+        sql<boolean>`(
+          "para_post"."postType" = ${req.postType}
+          or exists (
+            select 1
+            from "para_post_meta"
+            where "para_post_meta"."postUri" = "para_post"."uri"
+              and "para_post_meta"."postType" = ${req.postType}
+          )
+        )`,
+      )
     }
 
     const keyset = new TimeCidKeyset(
@@ -307,6 +318,27 @@ const selectBoard = async (
   }
 
   return (await builder.executeTakeFirst()) as BoardRow | undefined
+}
+
+const selectBoardPostIdentity = async (
+  db: Database,
+  communityId?: string,
+): Promise<Pick<BoardRow, 'name' | 'slug'> | undefined> => {
+  if (!communityId) return undefined
+  const normalizedCommunity = normalizeCommunitySlug(communityId)
+
+  return db.db
+    .selectFrom('para_community_board as board')
+    .where(
+      sql<boolean>`(
+        "board"."uri" = ${communityId}
+        or "board"."slug" = ${communityId}
+        or "board"."slug" = ${normalizedCommunity}
+        or regexp_replace(lower(coalesce("board"."name", '')), '[^a-z0-9]+', '-', 'g') = ${normalizedCommunity}
+      )`,
+    )
+    .select(['board.name', 'board.slug'])
+    .executeTakeFirst()
 }
 
 const MAX_OFFSET = 1000
@@ -952,16 +984,69 @@ const normalizeCommunitySlug = (value?: string | null) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
-const paraCommunityMetaMatches = (value: string) => {
-  return sql<boolean>`lower(coalesce("para_post"."community", '')) in (${sql.join(
-    paraCommunityMetaCandidates(value),
-  )})`
+const paraCommunityMetaMatches = (
+  value: string,
+  board?: Pick<BoardRow, 'name' | 'slug'>,
+) => {
+  const exactCandidates = paraCommunityMetaCandidates(value, board)
+  const normalizedCandidates = [
+    ...new Set(exactCandidates.map(normalizeCommunitySlug).filter(Boolean)),
+  ]
+  const normalizedPrefix = normalizeCommunitySlug(value)
+
+  if (normalizedCandidates.length < 1) {
+    return sql<boolean>`(
+      lower(coalesce("para_post"."community", '')) in (${sql.join(exactCandidates)})
+      or exists (
+        select 1
+        from "para_post_meta"
+        where "para_post_meta"."postUri" = "para_post"."uri"
+          and lower(coalesce("para_post_meta"."community", '')) in (${sql.join(exactCandidates)})
+      )
+    )`
+  }
+
+  return sql<boolean>`(
+    lower(coalesce("para_post"."community", '')) in (${sql.join(exactCandidates)})
+    or regexp_replace(lower(coalesce("para_post"."community", '')), '[^a-z0-9]+', '-', 'g') in (${sql.join(normalizedCandidates)})
+    or regexp_replace(lower(coalesce("para_post"."community", '')), '[^a-z0-9]+', '-', 'g') like ${`${normalizedPrefix}-%`}
+    or exists (
+      select 1
+      from "para_post_meta"
+      where "para_post_meta"."postUri" = "para_post"."uri"
+        and (
+          lower(coalesce("para_post_meta"."community", '')) in (${sql.join(exactCandidates)})
+          or regexp_replace(lower(coalesce("para_post_meta"."community", '')), '[^a-z0-9]+', '-', 'g') in (${sql.join(normalizedCandidates)})
+          or regexp_replace(lower(coalesce("para_post_meta"."community", '')), '[^a-z0-9]+', '-', 'g') like ${`${normalizedPrefix}-%`}
+        )
+    )
+  )`
 }
 
-const paraCommunityMetaCandidates = (value: string) => {
-  const raw = value.trim().toLowerCase()
-  const withoutPrefix = raw.replace(/^p\//, '')
-  return [...new Set([raw, withoutPrefix, `p/${withoutPrefix}`])]
+const paraCommunityMetaCandidates = (
+  value: string,
+  board?: Pick<BoardRow, 'name' | 'slug'>,
+) => {
+  const values = [
+    value,
+    normalizeCommunitySlug(value),
+    board?.slug,
+    board?.name,
+    board?.slug ? normalizeCommunitySlug(board.slug) : undefined,
+    board?.name ? normalizeCommunitySlug(board.name) : undefined,
+  ]
+  const candidates = new Set<string>()
+
+  for (const candidate of values) {
+    const raw = candidate?.trim().toLowerCase()
+    if (!raw) continue
+    const withoutPrefix = raw.replace(/^p\//, '')
+    candidates.add(raw)
+    candidates.add(withoutPrefix)
+    candidates.add(`p/${withoutPrefix}`)
+  }
+
+  return [...candidates]
 }
 
 const normalizeLimit = (limit: number) => {

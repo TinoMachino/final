@@ -22,6 +22,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     if (req.community) {
       builder = builder.where(paraMetaMatches('community', req.community))
     }
+    if (req.flairTag) {
+      builder = builder.where(paraFlairMatches(req.flairTag))
+    }
 
     const keyset = new TimeCidKeyset(
       ref('para_post.sortAt'),
@@ -64,6 +67,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     if (req.community) {
       followQb = followQb.where(paraMetaMatches('community', req.community))
     }
+    if (req.flairTag) {
+      followQb = followQb.where(paraFlairMatches(req.flairTag))
+    }
 
     followQb = paginate(followQb, {
       limit,
@@ -82,6 +88,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     }
     if (req.community) {
       selfQb = selfQb.where(paraMetaMatches('community', req.community))
+    }
+    if (req.flairTag) {
+      selfQb = selfQb.where(paraFlairMatches(req.flairTag))
     }
 
     selfQb = paginate(selfQb, {
@@ -342,6 +351,33 @@ const paraMetaCandidates = (value: string) => {
   const raw = value.trim().toLowerCase()
   const withoutPrefix = raw.replace(/^p\//, '')
   return [...new Set([raw, withoutPrefix, `p/${withoutPrefix}`])]
+}
+
+const paraFlairMatches = (flairTag: string) => {
+  const candidates = paraFlairCandidates(flairTag)
+  return sql<boolean>`exists (
+    select 1
+    from unnest(coalesce("para_post"."flairs", array[]::text[])) as flair(tag)
+    where lower(flair.tag) in (${sql.join(candidates)})
+  )`
+}
+
+const paraFlairCandidates = (flairTag: string) => {
+  const raw = flairTag.trim().toLowerCase()
+  if (!raw) return ['']
+  const withoutHash = raw.replace('#', '')
+  const withoutBars = raw.replace(/^\|+\#?/, '')
+  const officialized = raw.startsWith('||#')
+    ? raw
+    : raw.startsWith('|#')
+      ? `||#${raw.slice(2)}`
+      : `||#${withoutBars}`
+  const standardized = raw.startsWith('|#')
+    ? raw
+    : raw.startsWith('||#')
+      ? `|#${raw.slice(3)}`
+      : `|#${withoutBars}`
+  return [...new Set([raw, withoutHash, standardized, officialized])]
 }
 
 const paraFeedItemFromRow = (row: {

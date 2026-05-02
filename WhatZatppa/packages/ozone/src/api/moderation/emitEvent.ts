@@ -102,10 +102,10 @@ const handleModerationEvent = async ({
       throw new InvalidRequestError('PDS not configured')
     }
 
-    await ctx.pdsAgent.com.atproto.temp.revokeAccountCredentials(
-      { account: subject.did },
-      await ctx.pdsAuth(ids.ComAtprotoTempRevokeAccountCredentials),
-    )
+//    await ctx.pdsAgent.com.atproto.temp.revokeAccountCredentials(
+//      { account: subject.did },
+//      await ctx.pdsAuth(ids.ComAtprotoTempRevokeAccountCredentials),
+//    )
   }
 
   // if less than moderator access then can only take ack and escalation actions

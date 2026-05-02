@@ -81,5 +81,26 @@ Most API routes are under /xrpc/
     }
   })
 
+  // PARA: Mock gate/signup to bypass captcha
+  router.get('/gate/signup', function (req, res) {
+    const handle = req.query.handle
+    const state = req.query.state
+    const redirectUrl = `/?code=test-captcha&state=${state}&handle=${handle}`
+
+    res.type('text/html')
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>PARA Gate</title>
+          <meta http-equiv="refresh" content="0; url=${redirectUrl}">
+        </head>
+        <body>
+          <p>Verifying... <a href="${redirectUrl}">Click here if not redirected</a></p>
+        </body>
+      </html>
+    `)
+  })
+
   return router
 }

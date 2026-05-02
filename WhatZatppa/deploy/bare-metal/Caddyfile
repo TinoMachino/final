@@ -1,16 +1,62 @@
-# Copy to /etc/caddy/Caddyfile and replace the example hostnames.
+# /etc/caddy/Caddyfile
 #
-# Caddy terminates TLS on :80/:443 and proxies only to private localhost
-# service ports. Keep PDS/AppView bound to localhost on the host.
+# Deploy:
+#   sudo cp deploy/bare-metal/Caddyfile /etc/caddy/Caddyfile
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Caddy obtains and auto-renews TLS certificates via ACME (Let's Encrypt).
+# All three services bind to localhost only; Caddy is the sole internet-facing
+# process on ports 80/443.
 
-pds.example.com {
-	reverse_proxy 127.0.0.1:2583
+{
+    # Email used for Let's Encrypt account and expiry notices.
+    email ops@paramx.social
+
+    # Disable the Caddy admin API on internet-facing hosts (it's localhost-only
+    # by default, but being explicit is better).
+    admin off
 }
 
-appview.example.com {
-	reverse_proxy 127.0.0.1:2584
+# -------------------------------------------------------------------
+# PDS — atproto Personal Data Server
+# -------------------------------------------------------------------
+pds.paramx.social {
+    reverse_proxy 127.0.0.1:2583 {
+        # Allow WebSocket upgrades (firehose/subscribeRepos)
+        header_up Host {upstream_hostport}
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 120s
+        }
+    }
 }
 
-web.example.com {
-	reverse_proxy 127.0.0.1:8100
+# -------------------------------------------------------------------
+# AppView — bsky query & indexing service
+# -------------------------------------------------------------------
+appview.paramx.social {
+    reverse_proxy 127.0.0.1:2584 {
+        header_up Host {upstream_hostport}
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 120s
+        }
+    }
+}
+
+# -------------------------------------------------------------------
+# Web frontend — bskyweb (Go / Echo)
+# -------------------------------------------------------------------
+web.paramx.social {
+    reverse_proxy 127.0.0.1:8100
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Remove server identification
+        -Server
+    }
 }

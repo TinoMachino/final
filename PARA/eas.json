@@ -6,7 +6,7 @@
   },
   "build": {
     "base": {
-      "node": "20.19.4"
+      "node": "22.14.0"
     },
     "development": {
       "extends": "base",
@@ -59,7 +59,11 @@
       },
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_ENV": "production"
+        "EXPO_PUBLIC_ENV": "production",
+        "EXPO_PUBLIC_DEFAULT_SERVICE": "https://pds.para.social",
+        "EXPO_PUBLIC_RELEASE_VERSION": "1.0.0",
+        "GOOGLE_MAPS_ANDROID_API_KEY": "AI_GENERATED_PLACEHOLDER_MAPS_KEY",
+        "SENTRY_AUTH_TOKEN": "AI_GENERATED_PLACEHOLDER_SENTRY_TOKEN"
       }
     },
     "testflight": {

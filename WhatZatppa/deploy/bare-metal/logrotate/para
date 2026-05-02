@@ -1,0 +1,12 @@
+# /etc/logrotate.d/para
+# Install: sudo cp deploy/bare-metal/logrotate/para /etc/logrotate.d/para
+
+# Node backend (journald handles rotation, but keep this for any file logs)
+/srv/para/backups/backup.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    copytruncate
+}

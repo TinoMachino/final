@@ -1,0 +1,41 @@
+# Caddy config for local Mac deployment
+# Listens on localhost:8080 (no root needed)
+# Cloudflare Tunnel points to http://localhost:8080
+#
+# With temp tunnel (no domain):
+#   cloudflared tunnel --url http://localhost:8080
+#   All traffic hits Caddy here; use Host header routing below.
+#
+# With a real domain + named tunnel:
+#   Update hostnames and run: cloudflared tunnel run para
+#   Caddy can then also listen on :80/:443 directly.
+
+:8080 {
+    # Route by path prefix when using a single temp tunnel URL.
+    # When you have real subdomains, replace with per-vhost blocks below.
+
+    @pds     path /xrpc/* /did-doc
+    @web     path /
+
+    handle @pds {
+        reverse_proxy 127.0.0.1:2583
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:8100
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Uncomment when you have a real domain + named Cloudflare tunnel
+# (or if running behind router port-forward with Caddy on 80/443):
+# ---------------------------------------------------------------------------
+# pds.paramx.social {
+#     reverse_proxy 127.0.0.1:2583
+# }
+# appview.paramx.social {
+#     reverse_proxy 127.0.0.1:2584
+# }
+# web.paramx.social {
+#     reverse_proxy 127.0.0.1:8100
+# }

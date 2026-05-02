@@ -1,0 +1,45 @@
+[Unit]
+Description=PARA web frontend (bskyweb — Go/Echo)
+Documentation=https://github.com/bluesky-social/social-app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=para
+Group=para
+
+# Binary built by scripts/rollback.sh or during initial deploy:
+#   cd /opt/para/final/PARA/bskyweb
+#   go build -o /opt/para/bin/bskyweb ./cmd/bskyweb
+ExecStart=/opt/para/bin/bskyweb serve
+
+WorkingDirectory=/opt/para/final/PARA/bskyweb
+
+EnvironmentFile=/etc/para/bskyweb.env
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Signal & shutdown
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=para-bskyweb
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# bskyweb only needs to write session DB to its working directory.
+ReadWritePaths=/opt/para/final/PARA/bskyweb
+
+[Install]
+WantedBy=multi-user.target

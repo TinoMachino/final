@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Install:
+    cp com.para.bskyweb.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.para.bskyweb.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.para.bskyweb</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- Update YOURUSERNAME -->
+    <string>/Users/YOURUSERNAME/para/bin/bskyweb</string>
+    <string>serve</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/YOURUSERNAME/Documents/final/PARA/bskyweb</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>BSKYWEB_HTTP_ADDRESS</key>
+    <string>:8100</string>
+    <key>ATP_APPVIEW_HOST</key>
+    <string>http://127.0.0.1:2584</string>
+    <key>GOLOG_LOG_LEVEL</key>
+    <string>info</string>
+  </dict>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOURUSERNAME/para/logs/bskyweb.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/YOURUSERNAME/para/logs/bskyweb.err</string>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>

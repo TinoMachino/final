@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Install:
+    cp com.para.dev-env.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.para.dev-env.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.para.dev-env</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/npx</string>
+    <string>@dotenvx/dotenvx</string>
+    <string>run</string>
+    <string>-f</string>
+    <string>/Users/juandiaz/para/para-backend.env</string>
+    <string>--</string>
+    <string>/opt/homebrew/bin/node</string>
+    <string>--enable-source-maps</string>
+    <string>/Users/juandiaz/Documents/final/WhatZatppa/packages/dev-env/dist/bin.js</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <!-- Update YOURUSERNAME -->
+  <string>/Users/YOURUSERNAME/Documents/final/WhatZatppa/packages/dev-env</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <!-- Env file loaded via KeepAlive + EnvFile workaround: source it in a wrapper -->
+  <!-- See scripts/start-dev-env.sh -->
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOURUSERNAME/para/logs/dev-env.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/YOURUSERNAME/para/logs/dev-env.err</string>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>

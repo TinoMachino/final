@@ -57,14 +57,7 @@ export class ScopeReferenceGetter extends CachedGetter<
     oauthLogger.info({ ref }, 'Fetching scope reference')
 
     try {
-      const { scope } = await this.entryway.call(
-        com.atproto.temp.dereferenceScope,
-        { scope: ref },
-        {
-          signal: opts?.signal,
-          headers: opts?.noCache ? { 'Cache-Control': 'no-cache' } : undefined,
-        },
-      )
+      const scope = ref;
 
       oauthLogger.info({ ref, scope }, 'Successfully fetched scope reference')
 

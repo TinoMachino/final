@@ -286,13 +286,6 @@ import * as ComAtprotoSyncListReposByCollection from './types/com/atproto/sync/l
 import * as ComAtprotoSyncNotifyOfUpdate from './types/com/atproto/sync/notifyOfUpdate.js'
 import * as ComAtprotoSyncRequestCrawl from './types/com/atproto/sync/requestCrawl.js'
 import * as ComAtprotoSyncSubscribeRepos from './types/com/atproto/sync/subscribeRepos.js'
-import * as ComAtprotoTempAddReservedHandle from './types/com/atproto/temp/addReservedHandle.js'
-import * as ComAtprotoTempCheckHandleAvailability from './types/com/atproto/temp/checkHandleAvailability.js'
-import * as ComAtprotoTempCheckSignupQueue from './types/com/atproto/temp/checkSignupQueue.js'
-import * as ComAtprotoTempDereferenceScope from './types/com/atproto/temp/dereferenceScope.js'
-import * as ComAtprotoTempFetchLabels from './types/com/atproto/temp/fetchLabels.js'
-import * as ComAtprotoTempRequestPhoneVerification from './types/com/atproto/temp/requestPhoneVerification.js'
-import * as ComAtprotoTempRevokeAccountCredentials from './types/com/atproto/temp/revokeAccountCredentials.js'
 import * as ComGermnetworkDeclaration from './types/com/germnetwork/declaration.js'
 import * as ComParaActorDefs from './types/com/para/actor/defs.js'
 import * as ComParaActorGetProfileStats from './types/com/para/actor/getProfileStats.js'
@@ -674,13 +667,6 @@ export * as ComAtprotoSyncListReposByCollection from './types/com/atproto/sync/l
 export * as ComAtprotoSyncNotifyOfUpdate from './types/com/atproto/sync/notifyOfUpdate.js'
 export * as ComAtprotoSyncRequestCrawl from './types/com/atproto/sync/requestCrawl.js'
 export * as ComAtprotoSyncSubscribeRepos from './types/com/atproto/sync/subscribeRepos.js'
-export * as ComAtprotoTempAddReservedHandle from './types/com/atproto/temp/addReservedHandle.js'
-export * as ComAtprotoTempCheckHandleAvailability from './types/com/atproto/temp/checkHandleAvailability.js'
-export * as ComAtprotoTempCheckSignupQueue from './types/com/atproto/temp/checkSignupQueue.js'
-export * as ComAtprotoTempDereferenceScope from './types/com/atproto/temp/dereferenceScope.js'
-export * as ComAtprotoTempFetchLabels from './types/com/atproto/temp/fetchLabels.js'
-export * as ComAtprotoTempRequestPhoneVerification from './types/com/atproto/temp/requestPhoneVerification.js'
-export * as ComAtprotoTempRevokeAccountCredentials from './types/com/atproto/temp/revokeAccountCredentials.js'
 export * as ComGermnetworkDeclaration from './types/com/germnetwork/declaration.js'
 export * as ComParaActorDefs from './types/com/para/actor/defs.js'
 export * as ComParaActorGetProfileStats from './types/com/para/actor/getProfileStats.js'
@@ -4330,7 +4316,6 @@ export class ComAtprotoNS {
   repo: ComAtprotoRepoNS
   server: ComAtprotoServerNS
   sync: ComAtprotoSyncNS
-  temp: ComAtprotoTempNS
 
   constructor(client: XrpcClient) {
     this._client = client
@@ -4342,7 +4327,6 @@ export class ComAtprotoNS {
     this.repo = new ComAtprotoRepoNS(client)
     this.server = new ComAtprotoServerNS(client)
     this.sync = new ComAtprotoSyncNS(client)
-    this.temp = new ComAtprotoTempNS(client)
   }
 }
 
@@ -5384,96 +5368,6 @@ export class ComAtprotoSyncNS {
       .catch((e) => {
         throw ComAtprotoSyncRequestCrawl.toKnownErr(e)
       })
-  }
-}
-
-export class ComAtprotoTempNS {
-  _client: XrpcClient
-
-  constructor(client: XrpcClient) {
-    this._client = client
-  }
-
-  addReservedHandle(
-    data?: ComAtprotoTempAddReservedHandle.InputSchema,
-    opts?: ComAtprotoTempAddReservedHandle.CallOptions,
-  ): Promise<ComAtprotoTempAddReservedHandle.Response> {
-    return this._client.call(
-      'com.atproto.temp.addReservedHandle',
-      opts?.qp,
-      data,
-      opts,
-    )
-  }
-
-  checkHandleAvailability(
-    params?: ComAtprotoTempCheckHandleAvailability.QueryParams,
-    opts?: ComAtprotoTempCheckHandleAvailability.CallOptions,
-  ): Promise<ComAtprotoTempCheckHandleAvailability.Response> {
-    return this._client
-      .call('com.atproto.temp.checkHandleAvailability', params, undefined, opts)
-      .catch((e) => {
-        throw ComAtprotoTempCheckHandleAvailability.toKnownErr(e)
-      })
-  }
-
-  checkSignupQueue(
-    params?: ComAtprotoTempCheckSignupQueue.QueryParams,
-    opts?: ComAtprotoTempCheckSignupQueue.CallOptions,
-  ): Promise<ComAtprotoTempCheckSignupQueue.Response> {
-    return this._client.call(
-      'com.atproto.temp.checkSignupQueue',
-      params,
-      undefined,
-      opts,
-    )
-  }
-
-  dereferenceScope(
-    params?: ComAtprotoTempDereferenceScope.QueryParams,
-    opts?: ComAtprotoTempDereferenceScope.CallOptions,
-  ): Promise<ComAtprotoTempDereferenceScope.Response> {
-    return this._client
-      .call('com.atproto.temp.dereferenceScope', params, undefined, opts)
-      .catch((e) => {
-        throw ComAtprotoTempDereferenceScope.toKnownErr(e)
-      })
-  }
-
-  fetchLabels(
-    params?: ComAtprotoTempFetchLabels.QueryParams,
-    opts?: ComAtprotoTempFetchLabels.CallOptions,
-  ): Promise<ComAtprotoTempFetchLabels.Response> {
-    return this._client.call(
-      'com.atproto.temp.fetchLabels',
-      params,
-      undefined,
-      opts,
-    )
-  }
-
-  requestPhoneVerification(
-    data?: ComAtprotoTempRequestPhoneVerification.InputSchema,
-    opts?: ComAtprotoTempRequestPhoneVerification.CallOptions,
-  ): Promise<ComAtprotoTempRequestPhoneVerification.Response> {
-    return this._client.call(
-      'com.atproto.temp.requestPhoneVerification',
-      opts?.qp,
-      data,
-      opts,
-    )
-  }
-
-  revokeAccountCredentials(
-    data?: ComAtprotoTempRevokeAccountCredentials.InputSchema,
-    opts?: ComAtprotoTempRevokeAccountCredentials.CallOptions,
-  ): Promise<ComAtprotoTempRevokeAccountCredentials.Response> {
-    return this._client.call(
-      'com.atproto.temp.revokeAccountCredentials',
-      opts?.qp,
-      data,
-      opts,
-    )
   }
 }
 

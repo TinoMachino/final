@@ -1,5 +1,8 @@
 [Unit]
-Description=PARA backend dev-env stack
+Description=PARA backend dev-env stack (PDS + AppView + PLC)
+Documentation=https://github.com/bluesky-social/atproto
+# Hard-require both infra services before starting.
+Requires=postgresql.service redis-server.service
 After=network-online.target postgresql.service redis-server.service
 Wants=network-online.target
 
@@ -7,17 +10,38 @@ Wants=network-online.target
 Type=simple
 User=para
 Group=para
+
+# Node 22 installed system-wide via NodeSource; use absolute path so systemd
+# does not need to inherit the deploy user's shell profile / NVM.
+# If you installed Node via NVM instead, replace with the full shim path, e.g.:
+#   /home/para/.nvm/versions/node/v22.x.x/bin/node
+ExecStart=/usr/bin/node --enable-source-maps dist/bin.js
 WorkingDirectory=/opt/para/final/WhatZatppa/packages/dev-env
+
 EnvironmentFile=/etc/para/para-backend.env
-ExecStart=/usr/bin/env node --enable-source-maps dist/bin.js
+
+# Restart policy
 Restart=always
 RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Signal & shutdown
 KillSignal=SIGINT
 TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=para-dev-env
+
+# Hardening
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
-ReadWritePaths=/srv/para
+# Use "strict" (not "full") so ReadWritePaths overrides work correctly.
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/para /opt/para/final/WhatZatppa/packages/dev-env
 
 [Install]
 WantedBy=multi-user.target

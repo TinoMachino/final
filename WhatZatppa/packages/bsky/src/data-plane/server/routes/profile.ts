@@ -5,7 +5,12 @@ import { keyBy } from '@atproto/common'
 import { parseJsonBytes } from '../../../hydration/util'
 import { app, chat } from '../../../lexicons/index.js'
 import { Service } from '../../../proto/bsky_connect'
-import { VerificationMeta } from '../../../proto/bsky_pb'
+import {
+  ParaActorStatus,
+  ParaProfileStats,
+  ParaProfileStatsContributions,
+  VerificationMeta,
+} from '../../../proto/bsky_pb'
 import { Database } from '../db'
 import { Verification } from '../db/tables/verification'
 import { getRecords } from './records'
@@ -18,6 +23,45 @@ type VerifiedBy = {
 }
 
 export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
+  async getParaProfileStats(req) {
+    const [stats, status] = await Promise.all([
+      db.db
+        .selectFrom('para_profile_stats')
+        .where('did', '=', req.actorDid)
+        .selectAll()
+        .executeTakeFirst(),
+      db.db
+        .selectFrom('para_status')
+        .where('did', '=', req.actorDid)
+        .selectAll()
+        .executeTakeFirst(),
+    ])
+
+    return {
+      actorDid: req.actorDid,
+      stats: new ParaProfileStats({
+        influence: stats?.influence ?? 0,
+        votesReceivedAllTime: stats?.votesReceivedAllTime ?? 0,
+        votesCastAllTime: stats?.votesCastAllTime ?? 0,
+        contributions: new ParaProfileStatsContributions({
+          policies: stats?.policies ?? 0,
+          matters: stats?.matters ?? 0,
+          comments: stats?.comments ?? 0,
+        }),
+        activeIn: parseActiveIn(stats?.activeIn),
+        computedAt: stats?.computedAt ?? '',
+      }),
+      status: status
+        ? new ParaActorStatus({
+            status: status.status,
+            party: status.party ?? '',
+            community: status.community ?? '',
+            createdAt: status.createdAt,
+          })
+        : undefined,
+    }
+  },
+
   async getActors(req) {
     const { dids, returnAgeAssuranceForDids } = req
     if (dids.length === 0) {
@@ -218,3 +262,22 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .execute()
   },
 })
+
+const parseActiveIn = (
+  value: string[] | string | null | undefined,
+): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((community): community is string => !!community)
+  }
+  if (typeof value !== 'string') {
+    return []
+  }
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed)
+      ? parsed.filter((community): community is string => !!community)
+      : []
+  } catch {
+    return []
+  }
+}

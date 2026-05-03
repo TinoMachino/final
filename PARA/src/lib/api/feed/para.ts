@@ -343,13 +343,26 @@ function readBlobRefString(value: unknown) {
 export function isParaPostView(value: unknown): value is ParaPostView {
   if (!value || typeof value !== 'object') return false
   const item = value as Partial<ParaPostView>
-  return (
+  
+  const isValid = 
     typeof item.uri === 'string' &&
     typeof item.cid === 'string' &&
     typeof item.author === 'string' &&
     typeof item.text === 'string' &&
     typeof item.createdAt === 'string'
-  )
+
+  if (!isValid && __DEV__) {
+    console.warn('[isParaPostView] Invalid post shape:', {
+      uri: typeof item.uri,
+      cid: typeof item.cid,
+      author: typeof item.author,
+      text: typeof item.text,
+      createdAt: typeof item.createdAt,
+      val: value
+    })
+  }
+
+  return isValid
 }
 
 function isParaTimelinePostView(value: unknown): value is ParaPostView {

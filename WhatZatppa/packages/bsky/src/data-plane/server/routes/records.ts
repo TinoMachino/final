@@ -68,7 +68,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         uri: post.uri,
         author: post.creator,
         postType: meta?.postType ?? post.postType ?? undefined,
-        official: meta?.official != null ? String(meta.official) : undefined,
+        official: meta?.official === true || String(meta?.official) === 'true',
         party: meta?.party ?? post.party ?? undefined,
         community: meta?.community ?? post.community ?? undefined,
         category: meta?.category ?? undefined,

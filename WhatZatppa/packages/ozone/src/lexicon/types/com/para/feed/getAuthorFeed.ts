@@ -21,6 +21,8 @@ export type QueryParams = {
   cursor?: string
   party?: string
   community?: string
+  /** Filter by an exact Para flair tag, e.g. |#Sanidad or ||#TransportePublico. */
+  flairTag?: string
 }
 export type InputSchema = undefined
 

@@ -357,8 +357,8 @@ const paraFlairMatches = (flairTag: string) => {
   const candidates = paraFlairCandidates(flairTag)
   return sql<boolean>`exists (
     select 1
-    from unnest(coalesce("para_post"."flairs", array[]::text[])) as flair(tag)
-    where lower(flair.tag) in (${sql.join(candidates)})
+    from jsonb_array_elements_text(coalesce("para_post"."flairs", '[]'::jsonb)) as flair
+    where lower(flair.value) in (${sql.join(candidates)})
   )`
 }
 

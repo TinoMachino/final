@@ -5,6 +5,15 @@ import {type VideoFeedSourceContext} from '#/screens/VideoFeed/types'
 
 export type {NativeStackScreenProps} from '@react-navigation/native-stack'
 
+export type MapRouteParams =
+  | {
+      state?: string
+      layer?: 'states' | 'districts' | 'cities'
+      districtId?: number | string
+      city?: string
+    }
+  | undefined
+
 export type CommonNavigatorParams = {
   NotFound: undefined
   Lists: undefined
@@ -135,7 +144,7 @@ export type CommonNavigatorParams = {
   CommunityRoles: {communityId: string; communityName: string}
   Highlights: undefined
   SeeHighlightDetails: {highlightId: string}
-  Map: undefined
+  Map: MapRouteParams
   Compass:
     | {
         initialZoom?: '9ths' | '25ths' | '69ths'
@@ -272,5 +281,5 @@ export type RouteParams = Record<string, string>
 export type MatchResult = {params: RouteParams}
 export type Route = {
   match: (path: string) => MatchResult | undefined
-  build: (params?: Record<string, string>) => string
+  build: (params?: Record<string, string | number | undefined>) => string
 }

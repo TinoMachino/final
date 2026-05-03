@@ -607,24 +607,6 @@ export const Service = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc bsky.Service.GetPostSubscription
-     */
-    getPostSubscription: {
-      name: "GetPostSubscription",
-      I: GetPostSubscriptionRequest,
-      O: GetPostSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.PutPostSubscription
-     */
-    putPostSubscription: {
-      name: "PutPostSubscription",
-      I: PutPostSubscriptionRequest,
-      O: PutPostSubscriptionResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc bsky.Service.UpdateNotificationSeen
      */
     updateNotificationSeen: {
@@ -709,204 +691,6 @@ export const Service = {
       name: "GetThread",
       I: GetThreadRequest,
       O: GetThreadResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaAuthorFeed
-     */
-    getParaAuthorFeed: {
-      name: "GetParaAuthorFeed",
-      I: GetParaAuthorFeedRequest,
-      O: GetParaAuthorFeedResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaTimeline
-     */
-    getParaTimeline: {
-      name: "GetParaTimeline",
-      I: GetParaTimelineRequest,
-      O: GetParaTimelineResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaPosts
-     */
-    getParaPosts: {
-      name: "GetParaPosts",
-      I: GetParaPostsRequest,
-      O: GetParaPostsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaThread
-     */
-    getParaThread: {
-      name: "GetParaThread",
-      I: GetParaThreadRequest,
-      O: GetParaThreadResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaPostMeta
-     */
-    getParaPostMeta: {
-      name: "GetParaPostMeta",
-      I: GetParaPostMetaRequest,
-      O: GetParaPostMetaResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaPolicyTally
-     */
-    getParaPolicyTally: {
-      name: "GetParaPolicyTally",
-      I: GetParaPolicyTallyRequest,
-      O: GetParaPolicyTallyResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaProfileStats
-     */
-    getParaProfileStats: {
-      name: "GetParaProfileStats",
-      I: GetParaProfileStatsRequest,
-      O: GetParaProfileStatsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCommunityGovernance
-     */
-    getParaCommunityGovernance: {
-      name: "GetParaCommunityGovernance",
-      I: GetParaCommunityGovernanceRequest,
-      O: GetParaCommunityGovernanceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCommunityBoard
-     */
-    getParaCommunityBoard: {
-      name: "GetParaCommunityBoard",
-      I: GetParaCommunityBoardRequest,
-      O: GetParaCommunityBoardResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCommunityBoards
-     */
-    getParaCommunityBoards: {
-      name: "GetParaCommunityBoards",
-      I: GetParaCommunityBoardsRequest,
-      O: GetParaCommunityBoardsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCommunityMembers
-     */
-    getParaCommunityMembers: {
-      name: "GetParaCommunityMembers",
-      I: GetParaCommunityMembersRequest,
-      O: GetParaCommunityMembersResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCommunityPosts
-     */
-    getParaCommunityPosts: {
-      name: "GetParaCommunityPosts",
-      I: GetParaCommunityPostsRequest,
-      O: GetParaCommunityPostsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCabildeos
-     */
-    getParaCabildeos: {
-      name: "GetParaCabildeos",
-      I: GetParaCabildeosRequest,
-      O: GetParaCabildeosResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCabildeo
-     */
-    getParaCabildeo: {
-      name: "GetParaCabildeo",
-      I: GetParaCabildeoRequest,
-      O: GetParaCabildeoResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaCabildeoPositions
-     */
-    getParaCabildeoPositions: {
-      name: "GetParaCabildeoPositions",
-      I: GetParaCabildeoPositionsRequest,
-      O: GetParaCabildeoPositionsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaDelegationCandidates
-     */
-    getParaDelegationCandidates: {
-      name: "GetParaDelegationCandidates",
-      I: GetParaDelegationCandidatesRequest,
-      O: GetParaDelegationCandidatesResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.PutParaCabildeoLivePresence
-     */
-    putParaCabildeoLivePresence: {
-      name: "PutParaCabildeoLivePresence",
-      I: PutParaCabildeoLivePresenceRequest,
-      O: PutParaCabildeoLivePresenceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaHighlights
-     */
-    getParaHighlights: {
-      name: "GetParaHighlights",
-      I: GetParaHighlightsRequest,
-      O: GetParaHighlightsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaHighlight
-     */
-    getParaHighlight: {
-      name: "GetParaHighlight",
-      I: GetParaHighlightRequest,
-      O: GetParaHighlightResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaDiscourseSnapshot
-     */
-    getParaDiscourseSnapshot: {
-      name: "GetParaDiscourseSnapshot",
-      I: GetParaDiscourseSnapshotRequest,
-      O: GetParaDiscourseSnapshotResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaDiscourseTopics
-     */
-    getParaDiscourseTopics: {
-      name: "GetParaDiscourseTopics",
-      I: GetParaDiscourseTopicsRequest,
-      O: GetParaDiscourseTopicsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc bsky.Service.GetParaDiscourseSentiment
-     */
-    getParaDiscourseSentiment: {
-      name: "GetParaDiscourseSentiment",
-      I: GetParaDiscourseSentimentRequest,
-      O: GetParaDiscourseSentimentResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -1124,6 +908,234 @@ export const Service = {
       name: "Ping",
       I: PingRequest,
       O: PingResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Para Feeds
+     *
+     * @generated from rpc bsky.Service.GetParaAuthorFeed
+     */
+    getParaAuthorFeed: {
+      name: "GetParaAuthorFeed",
+      I: GetParaAuthorFeedRequest,
+      O: GetParaAuthorFeedResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaTimeline
+     */
+    getParaTimeline: {
+      name: "GetParaTimeline",
+      I: GetParaTimelineRequest,
+      O: GetParaTimelineResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaPosts
+     */
+    getParaPosts: {
+      name: "GetParaPosts",
+      I: GetParaPostsRequest,
+      O: GetParaPostsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaThread
+     */
+    getParaThread: {
+      name: "GetParaThread",
+      I: GetParaThreadRequest,
+      O: GetParaThreadResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaPostMeta
+     */
+    getParaPostMeta: {
+      name: "GetParaPostMeta",
+      I: GetParaPostMetaRequest,
+      O: GetParaPostMetaResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaPolicyTally
+     */
+    getParaPolicyTally: {
+      name: "GetParaPolicyTally",
+      I: GetParaPolicyTallyRequest,
+      O: GetParaPolicyTallyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaProfileStats
+     */
+    getParaProfileStats: {
+      name: "GetParaProfileStats",
+      I: GetParaProfileStatsRequest,
+      O: GetParaProfileStatsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Para Community
+     *
+     * @generated from rpc bsky.Service.GetParaCommunityGovernance
+     */
+    getParaCommunityGovernance: {
+      name: "GetParaCommunityGovernance",
+      I: GetParaCommunityGovernanceRequest,
+      O: GetParaCommunityGovernanceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCommunityBoard
+     */
+    getParaCommunityBoard: {
+      name: "GetParaCommunityBoard",
+      I: GetParaCommunityBoardRequest,
+      O: GetParaCommunityBoardResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCommunityBoards
+     */
+    getParaCommunityBoards: {
+      name: "GetParaCommunityBoards",
+      I: GetParaCommunityBoardsRequest,
+      O: GetParaCommunityBoardsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCommunityMembers
+     */
+    getParaCommunityMembers: {
+      name: "GetParaCommunityMembers",
+      I: GetParaCommunityMembersRequest,
+      O: GetParaCommunityMembersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCommunityPosts
+     */
+    getParaCommunityPosts: {
+      name: "GetParaCommunityPosts",
+      I: GetParaCommunityPostsRequest,
+      O: GetParaCommunityPostsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Cabildeo
+     *
+     * @generated from rpc bsky.Service.GetParaCabildeos
+     */
+    getParaCabildeos: {
+      name: "GetParaCabildeos",
+      I: GetParaCabildeosRequest,
+      O: GetParaCabildeosResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCabildeo
+     */
+    getParaCabildeo: {
+      name: "GetParaCabildeo",
+      I: GetParaCabildeoRequest,
+      O: GetParaCabildeoResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaCabildeoPositions
+     */
+    getParaCabildeoPositions: {
+      name: "GetParaCabildeoPositions",
+      I: GetParaCabildeoPositionsRequest,
+      O: GetParaCabildeoPositionsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaDelegationCandidates
+     */
+    getParaDelegationCandidates: {
+      name: "GetParaDelegationCandidates",
+      I: GetParaDelegationCandidatesRequest,
+      O: GetParaDelegationCandidatesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.PutParaCabildeoLivePresence
+     */
+    putParaCabildeoLivePresence: {
+      name: "PutParaCabildeoLivePresence",
+      I: PutParaCabildeoLivePresenceRequest,
+      O: PutParaCabildeoLivePresenceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Post Subscription
+     *
+     * @generated from rpc bsky.Service.GetPostSubscription
+     */
+    getPostSubscription: {
+      name: "GetPostSubscription",
+      I: GetPostSubscriptionRequest,
+      O: GetPostSubscriptionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.PutPostSubscription
+     */
+    putPostSubscription: {
+      name: "PutPostSubscription",
+      I: PutPostSubscriptionRequest,
+      O: PutPostSubscriptionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Highlights
+     *
+     * @generated from rpc bsky.Service.GetParaHighlights
+     */
+    getParaHighlights: {
+      name: "GetParaHighlights",
+      I: GetParaHighlightsRequest,
+      O: GetParaHighlightsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaHighlight
+     */
+    getParaHighlight: {
+      name: "GetParaHighlight",
+      I: GetParaHighlightRequest,
+      O: GetParaHighlightResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Discourse
+     *
+     * @generated from rpc bsky.Service.GetParaDiscourseSnapshot
+     */
+    getParaDiscourseSnapshot: {
+      name: "GetParaDiscourseSnapshot",
+      I: GetParaDiscourseSnapshotRequest,
+      O: GetParaDiscourseSnapshotResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaDiscourseTopics
+     */
+    getParaDiscourseTopics: {
+      name: "GetParaDiscourseTopics",
+      I: GetParaDiscourseTopicsRequest,
+      O: GetParaDiscourseTopicsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc bsky.Service.GetParaDiscourseSentiment
+     */
+    getParaDiscourseSentiment: {
+      name: "GetParaDiscourseSentiment",
+      I: GetParaDiscourseSentimentRequest,
+      O: GetParaDiscourseSentimentResponse,
       kind: MethodKind.Unary,
     },
     /**

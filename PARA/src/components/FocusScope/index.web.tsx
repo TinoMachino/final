@@ -1,4 +1,4 @@
-import {FocusScope as RadixFocusScope} from 'radix-ui/internal'
+import {FocusScope as RadixFocusScope} from 'radix-ui/dist/internal'
 
 /*
  * The web version of the FocusScope component is a proper implementation, we

@@ -179,7 +179,11 @@ export function CommunityProfileScreen() {
       data?.pages
         .flatMap(page => page.posts)
         .filter(post => {
-          // Filter out posts from users with unresolved/invalid handles
+          // Filter out posts from users with unresolved/invalid handles in production
+          if (__DEV__ && post.author.handle === 'handle.invalid') {
+            console.warn('[CommunityProfileScreen] Allowing handle.invalid in __DEV__', post.author.did)
+            return true
+          }
           return post.author.handle !== 'handle.invalid'
         }) || []
     )

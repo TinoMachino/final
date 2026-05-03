@@ -38,7 +38,7 @@ const listPosts = async ({
     cursor: params.cursor ?? '',
     postType: params.postType ?? '',
   })
-  if (cache && cacheKey) {
+  if (cache && cacheKey && process.env.NODE_ENV !== 'development') {
     const cached = await cache.get(cacheKey, 'authorFeed')
     if (cached) return cached
   }
@@ -67,7 +67,7 @@ const listPosts = async ({
     cursor: parseString(res.cursor),
   }
 
-  if (cache && cacheKey) {
+  if (cache && cacheKey && process.env.NODE_ENV !== 'development') {
     await cache.set(cacheKey, 'authorFeed', result)
   }
   return result

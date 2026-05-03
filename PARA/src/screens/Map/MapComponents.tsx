@@ -1,8 +1,10 @@
-import {type ReactNode, useEffect, useRef} from 'react'
+import {type ReactNode, useEffect, useMemo, useRef} from 'react'
 import {
   ScrollView,
+  type StyleProp,
   StyleSheet,
   TextInput,
+  type TextStyle,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -55,6 +57,7 @@ type MapSearchControlsProps = {
   searchQuery: string
   setSearchQuery: (query: string) => void
   searchResults: SearchResult[]
+  recentSearchResults: SearchResult[]
   onSelect: (result: SearchResult) => void
 }
 
@@ -87,6 +90,13 @@ const TOTAL_MAJOR_CITIES = Object.values(MEXICO_CITY_DATA).reduce(
   0,
 )
 
+function normalizeSearchLabel(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
 function getCitiesForState(stateName: string) {
   const match = Object.entries(MEXICO_CITY_DATA).find(
     ([candidate]) =>
@@ -118,6 +128,34 @@ function SectionHeader({label}: {label: string}) {
         {label.toUpperCase()}
       </Text>
     </View>
+  )
+}
+
+function HighlightedSearchText({
+  text,
+  query,
+  style,
+}: {
+  text: string
+  query: string
+  style: StyleProp<TextStyle>
+}) {
+  const normalizedText = normalizeSearchLabel(text)
+  const normalizedQuery = normalizeSearchLabel(query.trim())
+  const start = normalizedQuery ? normalizedText.indexOf(normalizedQuery) : -1
+
+  if (start < 0) {
+    return <Text style={style}>{text}</Text>
+  }
+
+  const end = start + normalizedQuery.length
+
+  return (
+    <Text style={style}>
+      {text.slice(0, start)}
+      <Text style={a.font_bold}>{text.slice(start, end)}</Text>
+      {text.slice(end)}
+    </Text>
   )
 }
 
@@ -575,20 +613,23 @@ export function MapSearchControls({
   searchQuery,
   setSearchQuery,
   searchResults,
+  recentSearchResults,
   onSelect,
 }: MapSearchControlsProps) {
   const {gtMobile} = useBreakpoints()
   const t = useTheme()
   const {_} = useLingui()
+  const hasSearchQuery = searchQuery.trim().length > 0
 
   const groupedResults = SEARCH_GROUPS.map(group => ({
     ...group,
     items: searchResults.filter(result => result.type === group.type),
   })).filter(group => group.items.length > 0)
+
+  const hasRecentResults =
+    searchExpanded && !hasSearchQuery && recentSearchResults.length > 0
   const showEmptyState =
-    searchExpanded &&
-    searchQuery.trim().length > 0 &&
-    groupedResults.length === 0
+    searchExpanded && hasSearchQuery && groupedResults.length === 0
 
   return (
     <View
@@ -650,7 +691,7 @@ export function MapSearchControls({
         </Animated.View>
       )}
 
-      {searchExpanded && groupedResults.length > 0 && (
+      {searchExpanded && (groupedResults.length > 0 || hasRecentResults) && (
         <Animated.View
           entering={FadeInDown.springify().damping(15)}
           style={[
@@ -663,65 +704,30 @@ export function MapSearchControls({
             {maxHeight: 300},
           ]}>
           <ScrollView>
+            {hasRecentResults && (
+              <View>
+                <SectionHeader label="Recent" />
+                {recentSearchResults.map((result, index) => (
+                  <SearchResultRow
+                    key={`recent-${result.type}-${result.name}-${index}`}
+                    result={result}
+                    query={searchQuery}
+                    onSelect={onSelect}
+                  />
+                ))}
+              </View>
+            )}
+
             {groupedResults.map(group => (
               <View key={group.type}>
                 <SectionHeader label={group.label} />
                 {group.items.map((result, index) => (
-                  <TouchableOpacity
+                  <SearchResultRow
                     key={`${result.type}-${result.name}-${result.subtitle}-${index}`}
-                    accessibilityRole="button"
-                    style={[
-                      mapStyles.searchResultItem,
-                      {
-                        borderBottomWidth: StyleSheet.hairlineWidth,
-                        borderBottomColor:
-                          t.atoms.border_contrast_low.borderColor,
-                      },
-                    ]}
-                    onPress={() => onSelect(result)}>
-                    <View style={[a.flex_1, a.pr_sm]}>
-                      <Text style={[a.text_md, a.font_bold, t.atoms.text]}>
-                        {result.name}
-                      </Text>
-                      {!!result.subtitle && (
-                        <Text style={[a.text_xs, t.atoms.text_contrast_medium]}>
-                          {result.subtitle}
-                        </Text>
-                      )}
-                    </View>
-                    <View
-                      style={[
-                        mapStyles.typeBadge,
-                        {
-                          backgroundColor:
-                            group.type === 'state'
-                              ? t.palette.primary_500 + '20'
-                              : group.type === 'district'
-                                ? '#D9770620'
-                                : t.palette.contrast_100,
-                        },
-                      ]}>
-                      <Text
-                        style={[
-                          a.text_xs,
-                          a.font_bold,
-                          {
-                            color:
-                              group.type === 'state'
-                                ? t.palette.primary_500
-                                : group.type === 'district'
-                                  ? '#D97706'
-                                  : t.atoms.text_contrast_medium.color,
-                          },
-                        ]}>
-                        {group.type === 'state'
-                          ? 'State'
-                          : group.type === 'district'
-                            ? 'District'
-                            : 'City'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                    result={result}
+                    query={searchQuery}
+                    onSelect={onSelect}
+                  />
                 ))}
               </View>
             ))}
@@ -755,6 +761,74 @@ export function MapSearchControls({
   )
 }
 
+function SearchResultRow({
+  result,
+  query,
+  onSelect,
+}: {
+  result: SearchResult
+  query: string
+  onSelect: (result: SearchResult) => void
+}) {
+  const t = useTheme()
+  const badgeColor =
+    result.type === 'state'
+      ? t.palette.primary_500
+      : result.type === 'district'
+        ? '#D97706'
+        : t.atoms.text_contrast_medium.color
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`${result.name}${
+        result.subtitle ? `, ${result.subtitle}` : ''
+      }`}
+      accessibilityHint="Moves the map to this result."
+      style={[
+        mapStyles.searchResultItem,
+        {
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: t.atoms.border_contrast_low.borderColor,
+        },
+      ]}
+      onPress={() => onSelect(result)}>
+      <View style={[a.flex_1, a.pr_sm]}>
+        <HighlightedSearchText
+          text={result.name}
+          query={query}
+          style={[a.text_md, t.atoms.text]}
+        />
+        {!!result.subtitle && (
+          <HighlightedSearchText
+            text={result.subtitle}
+            query={query}
+            style={[a.text_xs, t.atoms.text_contrast_medium]}
+          />
+        )}
+      </View>
+      <View
+        style={[
+          mapStyles.typeBadge,
+          {
+            backgroundColor:
+              result.type === 'city'
+                ? t.palette.contrast_100
+                : badgeColor + '20',
+          },
+        ]}>
+        <Text style={[a.text_xs, a.font_bold, {color: badgeColor}]}>
+          {result.type === 'state'
+            ? 'State'
+            : result.type === 'district'
+              ? 'District'
+              : 'City'}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
+}
+
 export function DistrictsDataOverlay({
   selectedState,
   showDistricts,
@@ -766,11 +840,15 @@ export function DistrictsDataOverlay({
   const t = useTheme()
   const navRef = useNavigation<NavigationProp>()
   const scrollRef = useRef<ScrollView>(null)
-  const districts = selectedState
-    ? [...getDistrictsByState(selectedState.name)].sort(
-        (a, b) => a.districtNumber - b.districtNumber,
-      )
-    : []
+  const districts = useMemo(
+    () =>
+      selectedState
+        ? [...getDistrictsByState(selectedState.name)].sort(
+            (a, b) => a.districtNumber - b.districtNumber,
+          )
+        : [],
+    [selectedState],
+  )
   const selectedDistrict =
     districts.find(district => district.id === selectedDistrictId) || null
 

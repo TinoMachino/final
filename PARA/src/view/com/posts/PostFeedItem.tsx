@@ -119,7 +119,11 @@ export function PostFeedItem({
       }),
     [record],
   )
-  const {insignia: partyShield} = extractPartyInsignia(record.text)
+  const {insignia: extractedInsignia} = extractPartyInsignia(record.text)
+  const partyShield = showPartyShields
+    ? extractedInsignia || undefined
+    : undefined
+  const authorInsignia = extractedInsignia || undefined
   const displayRichText = useMemo(() => {
     const {richText: rt} = createDisplayRichText(richText)
     return rt
@@ -139,7 +143,8 @@ export function PostFeedItem({
         feedContext={feedContext}
         reqId={reqId}
         richText={displayRichText}
-        partyShield={showPartyShields ? partyShield || undefined : undefined}
+        partyShield={partyShield}
+        authorInsignia={authorInsignia}
         parentAuthor={parentAuthor}
         showReplyTo={showReplyTo}
         moderation={moderation}
@@ -165,6 +170,7 @@ let FeedItemInner = ({
   reqId,
   richText,
   partyShield,
+  authorInsignia,
   moderation,
   parentAuthor,
   showReplyTo,
@@ -179,6 +185,7 @@ let FeedItemInner = ({
 }: FeedItemProps & {
   richText: RichTextAPI
   partyShield?: CivicInsigniaInfo
+  authorInsignia?: CivicInsigniaInfo
   post: Shadow<AppBskyFeedDefs.PostView>
   rootPost: AppBskyFeedDefs.PostView
   onShowLess?: (interaction: AppBskyFeedDefs.Interaction) => void
@@ -385,7 +392,7 @@ let FeedItemInner = ({
             )}
           </View>
 
-          {showAuthorInsignias && partyShield && (
+          {showAuthorInsignias && authorInsignia && (
             <View
               style={[
                 a.mt_auto,
@@ -399,8 +406,8 @@ let FeedItemInner = ({
               ]}>
               <CivicInsignia
                 variant="shield"
-                abbreviation={partyShield.abbreviation}
-                colors={partyShield.colors}
+                abbreviation={authorInsignia.abbreviation}
+                colors={authorInsignia.colors}
                 size="sm"
               />
             </View>

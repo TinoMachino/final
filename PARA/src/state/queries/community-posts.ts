@@ -63,6 +63,7 @@ export function useCommunityPostsQuery({
       })
       const data = res.data as {cursor?: string; feed?: unknown[]}
       const paraPosts = (data.feed ?? []).filter(isParaPostView)
+      
       const posts = await hydrateCommunityPosts({
         agent,
         posts: paraPosts,

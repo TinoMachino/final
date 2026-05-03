@@ -1,5 +1,5 @@
 import {StyleSheet, View} from 'react-native'
-import {DismissableLayer, FocusGuards, FocusScope} from 'radix-ui/internal'
+import {DismissableLayer, FocusGuards, FocusScope} from 'radix-ui/dist/internal'
 import {RemoveScrollBar} from 'react-remove-scroll-bar'
 
 import {useA11y} from '#/state/a11y'

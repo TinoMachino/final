@@ -1,4 +1,5 @@
 import {ELECTORAL_DISTRICTS} from '#/lib/constants/electoralDistrictsData'
+import {normalizeMexicoStateName} from '#/lib/constants/mexico'
 import {MEXICO_CITY_DATA} from '#/lib/constants/mexicoCityData'
 
 // ---------------------------------------------------------------------------
@@ -16,6 +17,7 @@ export interface SearchResult {
   districtKey?: string
   subtitle?: string
   keywords?: string[]
+  matchScore?: number
 }
 
 // ---------------------------------------------------------------------------
@@ -24,8 +26,112 @@ export interface SearchResult {
 
 let _cachedIndex: SearchResult[] | null = null
 
+const STATE_ALIASES: Record<string, string[]> = {
+  cdmx: ['CDMX', 'DF', 'Distrito Federal', 'Mexico City', 'Ciudad de Mexico'],
+  'estado-de-mexico': ['Edomex', 'Edo Mex', 'Estado Mex', 'Mexico state'],
+  'nuevo leon': ['NL'],
+  queretaro: ['Qro'],
+  michoacan: ['Michoacan de Ocampo'],
+  veracruz: ['Veracruz de Ignacio de la Llave'],
+}
+
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+}
+
+function searchTokens(query: string) {
+  return normalizeSearchValue(query).split(/\s+/).filter(Boolean)
+}
+
+function isSubsequence(query: string, value: string) {
+  if (!query) return false
+
+  let queryIndex = 0
+  for (const char of value) {
+    if (char === query[queryIndex]) {
+      queryIndex++
+      if (queryIndex === query.length) return true
+    }
+  }
+
+  return false
+}
+
+function getStateAliases(stateName: string) {
+  const normalized = normalizeMexicoStateName(stateName)
+  return (
+    STATE_ALIASES[normalized] ||
+    STATE_ALIASES[normalizeSearchValue(stateName)] ||
+    []
+  )
+}
+
+function stateDistrictCount(stateName: string) {
+  const normalized = normalizeMexicoStateName(stateName)
+  return ELECTORAL_DISTRICTS.filter(
+    district => normalizeMexicoStateName(district.stateName) === normalized,
+  ).length
+}
+
+function scoreSearchResult(result: SearchResult, query: string) {
+  const normalizedQuery = normalizeSearchValue(query)
+  const tokens = searchTokens(query)
+  if (!normalizedQuery) return 0
+
+  const values = [
+    result.name,
+    result.stateName,
+    result.subtitle,
+    ...(result.keywords || []),
+  ]
+    .filter(Boolean)
+    .map(value => normalizeSearchValue(String(value)))
+
+  let score = 0
+
+  for (const value of values) {
+    const words = value.split(/\s+/).filter(Boolean)
+
+    if (value === normalizedQuery) score = Math.max(score, 120)
+    if (value.startsWith(normalizedQuery)) score = Math.max(score, 95)
+    if (words.some(word => word.startsWith(normalizedQuery))) {
+      score = Math.max(score, 82)
+    }
+    if (value.includes(normalizedQuery)) score = Math.max(score, 68)
+    if (tokens.length > 1 && tokens.every(token => value.includes(token))) {
+      score = Math.max(score, 58)
+    }
+    if (normalizedQuery.length >= 3 && isSubsequence(normalizedQuery, value)) {
+      score = Math.max(score, 26)
+    }
+  }
+
+  if (result.type === 'district' && /\d/.test(normalizedQuery)) {
+    const districtNumber = String(result.districtNumber || '')
+    if (districtNumber === normalizedQuery.replace(/\D/g, '')) {
+      score += 12
+    }
+  }
+
+  return score
+}
+
+export function getSearchResultKey(result: SearchResult) {
+  if (result.type === 'district') {
+    return `district:${result.districtId || result.districtKey || result.name}`
+  }
+
+  return `${result.type}:${normalizeMexicoStateName(result.stateName)}:${normalizeSearchValue(
+    result.name,
+  )}`
+}
+
 /**
- * Build a flat, searchable array of all states and cities.
+ * Build a flat, searchable array of states, federal districts and cities.
  * Cached after first call.
  */
 export function buildSearchIndex(
@@ -41,17 +147,15 @@ export function buildSearchIndex(
     const name = f.properties.state_name || f.properties.name
     if (name && !stateNames.has(name)) {
       stateNames.add(name)
-      const keywords = [name]
-      if (name === 'Ciudad de México') {
-        keywords.push('CDMX', 'Distrito Federal')
-      }
-      if (name === 'Estado de México') {
-        keywords.push('México')
-      }
+      const districtCount = stateDistrictCount(name)
+      const keywords = [name, ...getStateAliases(name)]
       results.push({
         name,
         type: 'state',
         stateName: name,
+        subtitle: `${districtCount} federal district${
+          districtCount === 1 ? '' : 's'
+        }`,
         keywords,
       })
     }
@@ -69,8 +173,15 @@ export function buildSearchIndex(
       subtitle: d.stateName,
       keywords: [
         d.displayName,
+        d.districtKey,
+        d.currentDeputy,
+        d.deputyParty,
+        d.dominantParty,
+        `D${d.districtNumber}`,
+        `DF ${d.districtNumber}`,
         `Distrito ${d.districtNumber} ${d.stateName}`,
         `${d.stateName} distrito ${d.districtNumber}`,
+        ...getStateAliases(d.stateName),
       ],
     })
   }
@@ -82,8 +193,14 @@ export function buildSearchIndex(
         name: city.name,
         type: 'city',
         stateName,
-        subtitle: stateName,
-        keywords: [`${city.name} ${stateName}`],
+        subtitle: `${stateName} · ${city.population} · ${city.dominantParty}`,
+        keywords: [
+          `${city.name} ${stateName}`,
+          city.population,
+          city.dominantParty,
+          city.governing_mayor,
+          ...getStateAliases(stateName),
+        ],
       })
     }
   }
@@ -93,8 +210,8 @@ export function buildSearchIndex(
 }
 
 /**
- * Filter the index by a query string (case-insensitive substring match).
- * Returns at most `limit` results, states first.
+ * Filter the index by query. Handles aliases, accent-insensitive text and
+ * permissive partial matching. Returns the highest-scoring results.
  */
 export function filterSearchIndex(
   index: SearchResult[],
@@ -102,17 +219,15 @@ export function filterSearchIndex(
   limit = 8,
 ): SearchResult[] {
   if (!query.trim()) return []
-  const q = query.toLowerCase()
-  const matches = index.filter(r => {
-    const haystack = [r.name, r.stateName, r.subtitle, ...(r.keywords || [])]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-    return haystack.includes(q)
-  })
-  // States first, then districts, then cities
+  const matches = index
+    .map(result => ({...result, matchScore: scoreSearchResult(result, query)}))
+    .filter(result => (result.matchScore || 0) > 0)
+
   const typeOrder: Record<string, number> = {state: 0, district: 1, city: 2}
   matches.sort((a, b) => {
+    const scoreDiff = (b.matchScore || 0) - (a.matchScore || 0)
+    if (scoreDiff !== 0) return scoreDiff
+
     const orderA = typeOrder[a.type] ?? 9
     const orderB = typeOrder[b.type] ?? 9
     if (orderA !== orderB) return orderA - orderB
@@ -130,6 +245,11 @@ export interface LatLng {
   longitude: number
 }
 
+type GeoGeometry = {
+  type?: string
+  coordinates?: unknown
+}
+
 /**
  * Compute the centroid of a GeoJSON feature (Polygon or MultiPolygon).
  * Falls back to `{latitude:0, longitude:0}` if coords are empty.
@@ -143,14 +263,16 @@ export function computeCentroid(feature: Record<string, unknown>): LatLng {
     }
   }
 
-  const geom = feature.geometry
+  const geom = feature.geometry as GeoGeometry | undefined
   if (!geom) return {latitude: 0, longitude: 0}
 
   if (geom.type === 'Polygon') {
-    extractRing(geom.coordinates[0])
+    const coordinates = geom.coordinates as number[][][] | undefined
+    extractRing(coordinates?.[0] || [])
   } else if (geom.type === 'MultiPolygon') {
-    for (const poly of geom.coordinates) {
-      extractRing(poly[0])
+    const coordinates = geom.coordinates as number[][][][] | undefined
+    for (const poly of coordinates || []) {
+      extractRing(poly[0] || [])
     }
   }
 

@@ -1,7 +1,9 @@
 import {
   type ComponentType,
   type ReactNode,
+  type Ref,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -19,10 +21,13 @@ import {useLingui} from '@lingui/react'
 import {Trans} from '@lingui/react/macro'
 import {type NativeStackScreenProps} from '@react-navigation/native-stack'
 
+import {getDistrictById} from '#/lib/constants/electoralDistrictsData'
 import {
   buildSearchIndex,
   computeCentroid,
   filterSearchIndex,
+  getSearchResultKey,
+  type SearchResult,
 } from '#/lib/constants/mapHelpers'
 import {normalizeMexicoStateName} from '#/lib/constants/mexico'
 import {getCitiesWithCoordinatesForState} from '#/lib/constants/mexicoCityCoordinates'
@@ -33,8 +38,15 @@ import {POST_FLAIRS, type PostFlair} from '#/lib/tags'
 import {atoms as a, useBreakpoints, useTheme, web} from '#/alf'
 import {FlairSelectionList} from '#/components/FlairSelectionList'
 import {Filter_Stroke2_Corner0_Rounded as FilterIcon} from '#/components/icons/Filter'
+import {PinLocation_Stroke2_Corner0_Rounded as PinLocationIcon} from '#/components/icons/PinLocation'
 import {Header, Screen} from '#/components/Layout'
+import {Loader} from '#/components/Loader'
+import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'
+import {
+  useDeviceGeolocationApi,
+  useRequestDeviceGeolocation,
+} from '#/geolocation'
 import {
   BigCitiesDataOverlay,
   DistrictsDataOverlay,
@@ -59,6 +71,7 @@ type Coordinate = {
 }
 
 export type MapViewProps = {
+  ref?: Ref<MapViewRef>
   style?: unknown
   initialRegion?: MapRegion
   provider?: string | null
@@ -154,8 +167,9 @@ function getFeatureCoordinates(feature: GeoFeature): Coordinate[][] {
   if (!geometry?.coordinates) return []
 
   if (geometry.type === 'Polygon') {
+    const coordinates = geometry.coordinates as number[][][]
     return [
-      geometry.coordinates[0].map((c: number[]) => ({
+      (coordinates[0] || []).map((c: number[]) => ({
         longitude: c[0],
         latitude: c[1],
       })),
@@ -163,8 +177,9 @@ function getFeatureCoordinates(feature: GeoFeature): Coordinate[][] {
   }
 
   if (geometry.type === 'MultiPolygon') {
-    return geometry.coordinates.map((polygonCoords: number[][][]) =>
-      polygonCoords[0].map((c: number[]) => ({
+    const coordinates = geometry.coordinates as number[][][][]
+    return coordinates.map((polygonCoords: number[][][]) =>
+      (polygonCoords[0] || []).map((c: number[]) => ({
         longitude: c[0],
         latitude: c[1],
       })),
@@ -202,6 +217,97 @@ function getPartyColor(party: string) {
     default:
       return '#5B6B84'
   }
+}
+
+function isMapLayer(value: unknown): value is MapLayer {
+  return value === 'states' || value === 'districts' || value === 'cities'
+}
+
+function getRouteLayer(value: unknown): MapLayer {
+  return isMapLayer(value) ? value : 'states'
+}
+
+function getRouteDistrictId(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
+function getRouteSelectionKey(
+  params:
+    | {
+        state?: string
+        layer?: MapLayer
+        districtId?: number | string
+        city?: string
+      }
+    | null
+    | undefined,
+) {
+  if (!params?.state && !params?.city && !params?.districtId) return ''
+
+  const requestedDistrictId = getRouteDistrictId(params.districtId)
+  const requestedLayer = params.city
+    ? 'cities'
+    : requestedDistrictId
+      ? 'districts'
+      : getRouteLayer(params.layer)
+
+  return [
+    params.state || '',
+    requestedLayer,
+    requestedDistrictId || '',
+    params.city || '',
+  ].join('|')
+}
+
+const MEXICO_REGION_CODE_TO_STATE: Record<string, string> = {
+  AGU: 'Aguascalientes',
+  BCN: 'Baja California',
+  BCS: 'Baja California Sur',
+  CAM: 'Campeche',
+  CHP: 'Chiapas',
+  CHH: 'Chihuahua',
+  CMX: 'Ciudad de México',
+  COA: 'Coahuila',
+  COL: 'Colima',
+  DUR: 'Durango',
+  GUA: 'Guanajuato',
+  GRO: 'Guerrero',
+  HID: 'Hidalgo',
+  JAL: 'Jalisco',
+  MEX: 'Estado de México',
+  MIC: 'Michoacán',
+  MOR: 'Morelos',
+  NAY: 'Nayarit',
+  NLE: 'Nuevo León',
+  OAX: 'Oaxaca',
+  PUE: 'Puebla',
+  QUE: 'Querétaro',
+  ROO: 'Quintana Roo',
+  SLP: 'San Luis Potosí',
+  SIN: 'Sinaloa',
+  SON: 'Sonora',
+  TAB: 'Tabasco',
+  TAM: 'Tamaulipas',
+  TLA: 'Tlaxcala',
+  VER: 'Veracruz',
+  YUC: 'Yucatán',
+  ZAC: 'Zacatecas',
+}
+
+function normalizeLocatedMexicoState(regionCode: string) {
+  const code = regionCode.trim().toUpperCase().replace(/^MX-/, '')
+  return normalizeMexicoStateName(
+    MEXICO_REGION_CODE_TO_STATE[code] || regionCode,
+  )
 }
 
 function getLayerFillColor({
@@ -282,6 +388,8 @@ function MapUnavailable({message}: {message: string}) {
 }
 
 export function MapScreenImpl({
+  route,
+  navigation,
   MapViewComponent,
   PolygonComponent,
   MarkerComponent,
@@ -293,6 +401,9 @@ export function MapScreenImpl({
   const {gtMobile} = useBreakpoints()
   const insets = useSafeAreaInsets()
   const mapRef = useRef<MapViewRef | null>(null)
+  const lastAppliedRouteSelection = useRef('')
+  const requestDeviceGeolocation = useRequestDeviceGeolocation()
+  const {setDeviceGeolocation} = useDeviceGeolocationApi()
 
   const [selectedState, setSelectedState] = useState<{name: string} | null>(
     null,
@@ -312,9 +423,13 @@ export function MapScreenImpl({
   )
   const [selectedDiscourseItem, setSelectedDiscourseItem] = useState('')
   const [mapRegion, setMapRegion] = useState<MapRegion>(INITIAL_REGION)
+  const [recentSearchResults, setRecentSearchResults] = useState<
+    SearchResult[]
+  >([])
+  const [isLocating, setIsLocating] = useState(false)
 
   const geoFeatures = useMemo(
-    () => ((MexicoGeoJSON as {features: GeoFeature[]}).features || []) as GeoFeature[],
+    () => (MexicoGeoJSON as {features: GeoFeature[]}).features || [],
     [],
   )
 
@@ -371,8 +486,62 @@ export function MapScreenImpl({
     }))
   }, [selectedState])
 
+  const setMapRouteParams = useCallback(
+    (params: {
+      state?: string
+      layer?: MapLayer
+      districtId?: number
+      city?: string
+    }) => {
+      lastAppliedRouteSelection.current = getRouteSelectionKey(params)
+      navigation.setParams({
+        state: params.state,
+        layer: params.layer,
+        districtId: params.districtId,
+        city: params.city,
+      })
+    },
+    [navigation],
+  )
+
+  const clearMapSelection = useCallback(
+    (options: {resetLayer?: boolean; resetSearch?: boolean} = {}) => {
+      setSelectedState(null)
+      setShowCities(false)
+      setShowDistricts(false)
+      setSelectedDistrictId(null)
+      setSelectedCityName(null)
+
+      if (options.resetLayer) {
+        setActiveLayer('states')
+      }
+
+      if (options.resetSearch) {
+        setSearchQuery('')
+        setSearchExpanded(false)
+      }
+
+      setMapRouteParams({})
+    },
+    [setMapRouteParams],
+  )
+
+  const rememberSearchResult = useCallback((result: SearchResult) => {
+    setRecentSearchResults(current => {
+      const key = getSearchResultKey(result)
+      return [
+        result,
+        ...current.filter(item => getSearchResultKey(item) !== key),
+      ].slice(0, 5)
+    })
+  }, [])
+
   const focusCity = useCallback(
-    (stateName: string, cityName: string) => {
+    (
+      stateName: string,
+      cityName: string,
+      options: {syncRoute?: boolean} = {},
+    ) => {
       const cities = getCitiesWithCoordinatesForState(
         stateName,
         getCitiesForState(stateName),
@@ -388,6 +557,14 @@ export function MapScreenImpl({
       setShowDistricts(false)
       setSelectedDistrictId(null)
       setSelectedCityName(cityName)
+
+      if (options.syncRoute !== false) {
+        setMapRouteParams({
+          state: preparedState?.name || stateName,
+          layer: 'cities',
+          city: cityName,
+        })
+      }
 
       if (!city) {
         if (preparedState?.coordinates.length) {
@@ -412,7 +589,7 @@ export function MapScreenImpl({
         zoom: 9.5,
       })
     },
-    [stateFeaturesByName],
+    [setMapRouteParams, stateFeaturesByName],
   )
 
   const focusState = useCallback(
@@ -421,6 +598,7 @@ export function MapScreenImpl({
       options: {
         openLayer?: MapLayer
         districtId?: number | null
+        syncRoute?: boolean
       } = {},
     ) => {
       const feature = stateFeaturesByName.get(
@@ -436,6 +614,17 @@ export function MapScreenImpl({
       )
       setSelectedCityName(null)
 
+      if (options.syncRoute !== false) {
+        setMapRouteParams({
+          state: feature?.name || stateName,
+          layer: nextLayer,
+          districtId:
+            nextLayer === 'districts'
+              ? (options.districtId ?? undefined)
+              : undefined,
+        })
+      }
+
       if (!feature) return
 
       if (feature.coordinates.length) {
@@ -450,8 +639,55 @@ export function MapScreenImpl({
         zoom: nextLayer === 'cities' ? 8 : 6.5,
       })
     },
-    [activeLayer, stateFeaturesByName],
+    [activeLayer, setMapRouteParams, stateFeaturesByName],
   )
+
+  useEffect(() => {
+    const params = route.params
+    const routeSelectionKey = getRouteSelectionKey(params)
+
+    if (!routeSelectionKey) {
+      if (lastAppliedRouteSelection.current) {
+        lastAppliedRouteSelection.current = ''
+        setSelectedState(null)
+        setShowCities(false)
+        setShowDistricts(false)
+        setSelectedDistrictId(null)
+        setSelectedCityName(null)
+        setActiveLayer('states')
+      }
+      return
+    }
+    if (!params) return
+
+    const requestedDistrictId = getRouteDistrictId(params.districtId)
+    const requestedLayer = params.city
+      ? 'cities'
+      : requestedDistrictId
+        ? 'districts'
+        : getRouteLayer(params.layer)
+
+    if (lastAppliedRouteSelection.current === routeSelectionKey) return
+    lastAppliedRouteSelection.current = routeSelectionKey
+
+    const district = requestedDistrictId
+      ? getDistrictById(requestedDistrictId)
+      : undefined
+    const requestedState = params.state || district?.stateName
+
+    if (params.city && requestedState) {
+      focusCity(requestedState, params.city, {syncRoute: false})
+      return
+    }
+
+    if (requestedState) {
+      focusState(requestedState, {
+        openLayer: requestedLayer,
+        districtId: requestedDistrictId,
+        syncRoute: false,
+      })
+    }
+  }, [focusCity, focusState, route.params])
 
   const handleZoom = useCallback((direction: 'in' | 'out') => {
     if (!mapRef.current?.getCamera) return
@@ -480,16 +716,118 @@ export function MapScreenImpl({
 
   const handleRecenter = useCallback(() => {
     mapRef.current?.animateToRegion?.(INITIAL_REGION, 800)
-    setActiveLayer('states')
-    setSelectedState(null)
-    setShowCities(false)
-    setShowDistricts(false)
-    setSelectedDistrictId(null)
-    setSelectedCityName(null)
-    setSearchQuery('')
-    setSearchExpanded(false)
+    clearMapSelection({resetLayer: true, resetSearch: true})
     setMapRegion(INITIAL_REGION)
-  }, [])
+  }, [clearMapSelection])
+
+  const handleSearchSelect = useCallback(
+    (result: SearchResult) => {
+      rememberSearchResult(result)
+
+      if (result.type === 'district') {
+        setActiveLayer('districts')
+        focusState(result.stateName, {
+          openLayer: 'districts',
+          districtId: result.districtId || null,
+        })
+      } else if (result.type === 'city') {
+        focusCity(result.stateName, result.name)
+      } else {
+        focusState(result.stateName, {openLayer: activeLayer})
+      }
+
+      setSearchExpanded(false)
+      setSearchQuery('')
+    },
+    [activeLayer, focusCity, focusState, rememberSearchResult],
+  )
+
+  const handleLocateMe = useCallback(async () => {
+    if (isLocating) return
+
+    setIsLocating(true)
+
+    try {
+      const result = await requestDeviceGeolocation()
+
+      if (!result.granted) {
+        Toast.show(
+          translate(
+            msg`Unable to access location. Enable location services in system settings to use Near me.`,
+          ),
+          {type: 'error'},
+        )
+        return
+      }
+
+      const location = result.location
+      if (location) {
+        setDeviceGeolocation(location)
+      }
+
+      if (
+        location?.countryCode &&
+        location.countryCode.toUpperCase() !== 'MX'
+      ) {
+        Toast.show(
+          translate(msg`Near me is currently available for Mexico only.`),
+          {type: 'error'},
+        )
+        return
+      }
+
+      if (!location?.regionCode) {
+        Toast.show(
+          translate(msg`We could not resolve your state from this location.`),
+          {type: 'error'},
+        )
+        return
+      }
+
+      const state = stateFeaturesByName.get(
+        normalizeLocatedMexicoState(location.regionCode),
+      )
+
+      if (!state) {
+        Toast.show(
+          translate(msg`We could not match your location to a mapped state.`),
+          {type: 'error'},
+        )
+        return
+      }
+
+      focusState(state.name, {openLayer: 'states'})
+      Toast.show(translate(msg`Centered on ${state.name}`))
+    } catch {
+      Toast.show(translate(msg`Unable to resolve your location right now.`), {
+        type: 'error',
+      })
+    } finally {
+      setIsLocating(false)
+    }
+  }, [
+    focusState,
+    isLocating,
+    requestDeviceGeolocation,
+    setDeviceGeolocation,
+    stateFeaturesByName,
+    translate,
+  ])
+
+  const handleSelectDistrict = useCallback(
+    (districtId: number) => {
+      setSelectedDistrictId(districtId)
+
+      if (selectedState) {
+        setMapRouteParams({
+          state: selectedState.name,
+          layer: 'districts',
+          districtId,
+        })
+      }
+    },
+    [selectedState, setMapRouteParams],
+  )
 
   const renderedPolygons = useMemo(() => {
     if (!PolygonComponent) return null
@@ -640,11 +978,7 @@ export function MapScreenImpl({
                 }
               }}
               onPress={() => {
-                setSelectedState(null)
-                setShowCities(false)
-                setShowDistricts(false)
-                setSelectedDistrictId(null)
-                setSelectedCityName(null)
+                clearMapSelection()
               }}>
               {renderedPolygons}
               {renderedCityMarkers}
@@ -664,22 +998,8 @@ export function MapScreenImpl({
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             searchResults={searchResults}
-            onSelect={result => {
-              if (result.type === 'district') {
-                setActiveLayer('districts')
-                focusState(result.stateName, {
-                  openLayer: 'districts',
-                  districtId: result.districtId || null,
-                })
-              } else if (result.type === 'city') {
-                focusCity(result.stateName, result.name)
-              } else {
-                focusState(result.stateName, {openLayer: activeLayer})
-              }
-
-              setSearchExpanded(false)
-              setSearchQuery('')
-            }}
+            recentSearchResults={recentSearchResults}
+            onSelect={handleSearchSelect}
           />
 
           <MapLayersPanel
@@ -689,9 +1009,22 @@ export function MapScreenImpl({
               if (selectedState) {
                 setShowDistricts(layer === 'districts')
                 setShowCities(layer === 'cities')
+                setMapRouteParams({
+                  state: selectedState.name,
+                  layer,
+                  districtId:
+                    layer === 'districts'
+                      ? (selectedDistrictId ?? undefined)
+                      : undefined,
+                  city:
+                    layer === 'cities'
+                      ? (selectedCityName ?? undefined)
+                      : undefined,
+                })
               } else {
                 setShowDistricts(false)
                 setShowCities(false)
+                setMapRouteParams({})
               }
               if (layer !== 'districts') {
                 setSelectedDistrictId(null)
@@ -729,6 +1062,35 @@ export function MapScreenImpl({
             style={[a.absolute, {right: 20, top: 20}, a.gap_sm, {zIndex: 20}]}>
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityLabel={translate(msg`Find places near me`)}
+              accessibilityHint={translate(
+                msg`Requests your device location and centers the map on your state.`,
+              )}
+              disabled={isLocating}
+              onPress={() => {
+                void handleLocateMe()
+              }}
+              style={[
+                styles.floatingButton(t),
+                isLocating ? {opacity: 0.72} : null,
+              ]}>
+              {isLocating ? (
+                <Loader size="sm" />
+              ) : (
+                <PinLocationIcon
+                  width={20}
+                  height={20}
+                  fill={t.atoms.text.color}
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={translate(msg`Reset map view`)}
+              accessibilityHint={translate(
+                msg`Clears the selected place and returns to the full Mexico map.`,
+              )}
               onPress={handleRecenter}
               style={styles.floatingButton(t)}>
               <Text style={[a.text_md, a.font_bold, t.atoms.text]}>⌖</Text>
@@ -736,6 +1098,10 @@ export function MapScreenImpl({
 
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityLabel={translate(msg`Filter map discourse`)}
+              accessibilityHint={translate(
+                msg`Opens filters for the map heat layer.`,
+              )}
               onPress={() => setShowDiscourseModal(true)}
               style={[
                 styles.floatingButton(t),
@@ -803,11 +1169,7 @@ export function MapScreenImpl({
             }
             insets={insets}
             onClose={() => {
-              setSelectedState(null)
-              setShowCities(false)
-              setShowDistricts(false)
-              setSelectedDistrictId(null)
-              setSelectedCityName(null)
+              clearMapSelection()
             }}
             onShowCities={() => {
               setActiveLayer('cities')
@@ -815,6 +1177,9 @@ export function MapScreenImpl({
               setShowDistricts(false)
               setSelectedDistrictId(null)
               setSelectedCityName(null)
+              if (selectedState) {
+                setMapRouteParams({state: selectedState.name, layer: 'cities'})
+              }
             }}
             onShowDistricts={() => {
               setActiveLayer('districts')
@@ -822,6 +1187,12 @@ export function MapScreenImpl({
               setShowCities(false)
               setSelectedDistrictId(null)
               setSelectedCityName(null)
+              if (selectedState) {
+                setMapRouteParams({
+                  state: selectedState.name,
+                  layer: 'districts',
+                })
+              }
             }}
           />
 
@@ -832,6 +1203,9 @@ export function MapScreenImpl({
               setActiveLayer('states')
               setShowCities(false)
               setSelectedCityName(null)
+              if (selectedState) {
+                setMapRouteParams({state: selectedState.name, layer: 'states'})
+              }
             }}
           />
 
@@ -839,16 +1213,22 @@ export function MapScreenImpl({
             selectedState={selectedState}
             showDistricts={showDistricts}
             selectedDistrictId={selectedDistrictId}
-            onSelectDistrict={setSelectedDistrictId}
+            onSelectDistrict={handleSelectDistrict}
             onClose={() => {
               setActiveLayer('states')
               setShowDistricts(false)
               setSelectedDistrictId(null)
+              if (selectedState) {
+                setMapRouteParams({state: selectedState.name, layer: 'states'})
+              }
             }}
             onBackToState={() => {
               setActiveLayer('states')
               setShowDistricts(false)
               setSelectedDistrictId(null)
+              if (selectedState) {
+                setMapRouteParams({state: selectedState.name, layer: 'states'})
+              }
             }}
           />
         </View>
@@ -957,7 +1337,7 @@ export function MapScreenImpl({
                       )
                     : []
                 }
-                setSelectedFlairs={(flairs: PostFlair[]) => {
+                setSelectedFlairs={flairs => {
                   if (flairs.length > 0) {
                     const flair = flairs[0]
                     setDiscourseType(

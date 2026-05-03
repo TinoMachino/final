@@ -1442,7 +1442,7 @@ message ParaPostMeta {
   string uri = 1;
   string author = 2;
   string post_type = 3;
-  string official = 4;
+  bool official = 4;
   string party = 5;
   string community = 6;
   string category = 7;
@@ -1496,7 +1496,28 @@ message GetParaProfileStatsRequest {
   string actor_did = 1;
 }
 message GetParaProfileStatsResponse {
-  // just a placeholder, real fields TBD
+  string actor_did = 1;
+  ParaProfileStats stats = 2;
+  ParaActorStatus status = 3;
+}
+message ParaProfileStats {
+  int32 influence = 1;
+  int32 votes_received_all_time = 2;
+  int32 votes_cast_all_time = 3;
+  ParaProfileStatsContributions contributions = 4;
+  repeated string active_in = 5;
+  string computed_at = 6;
+}
+message ParaProfileStatsContributions {
+  int32 policies = 1;
+  int32 matters = 2;
+  int32 comments = 3;
+}
+message ParaActorStatus {
+  string status = 1;
+  string party = 2;
+  string community = 3;
+  string created_at = 4;
 }
 
 // PostSubscription

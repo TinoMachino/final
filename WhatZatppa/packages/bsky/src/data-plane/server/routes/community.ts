@@ -84,7 +84,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
           getMemberCounts(db, [board.uri]).then((counts) => counts.get(board.uri) ?? 0),
           getGovernanceSummary(db, board.name, board.slug).catch(err => {
             console.error('[Dataplane: getParaCommunityBoard] getGovernanceSummary failed:', err)
-            throw err
+            return null
           }),
         ])
 
@@ -194,7 +194,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         record?.deputies.map(
           (deputy) =>
             new ParaCommunityDeputyRole({
-              tier: deputy.tier,
+              tier: Number(deputy.tier) || 0,
               role: deputy.role,
               activeHolder: deputy.activeHolder
                 ? toGovernanceMember(deputy.activeHolder)
@@ -240,6 +240,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
   async getParaCommunityPosts(req) {
     const { ref } = db.db.dynamic
     const board = await selectBoardPostIdentity(db, req.community)
+
+    const candidates = paraCommunityMetaCandidates(req.community, board)
+
     let builder = db.db
       .selectFrom('para_post')
       .selectAll('para_post')
@@ -272,6 +275,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     })
 
     const posts = await builder.execute()
+    console.log('[getParaCommunityPosts] Results count:', posts.length)
 
     return new GetParaCommunityPostsResponse({
       items: posts.map((row) =>

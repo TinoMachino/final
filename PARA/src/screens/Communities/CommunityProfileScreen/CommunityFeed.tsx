@@ -7,6 +7,7 @@ import {cleanError} from '#/lib/strings/errors'
 import {Post} from '#/view/com/post/Post'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
+import {PostFeedLoadingPlaceholder} from '#/view/com/util/LoadingPlaceholder'
 import {ListFooter} from '#/components/Lists'
 import {styles} from './styles'
 
@@ -41,16 +42,7 @@ export function CommunityFeed({
   return (
     <View style={styles.feedScroll}>
       {isLoading || !isFetched ? (
-        <View style={styles.feedLoadingWrap}>
-          <ActivityIndicator size="large" color={t.palette.primary_500} />
-          <Text
-            style={[
-              styles.feedLoadingText,
-              {color: t.palette.primary_400},
-            ]}>
-            Loading community posts…
-          </Text>
-        </View>
+        <PostFeedLoadingPlaceholder />
       ) : isError ? (
         <View
           style={[

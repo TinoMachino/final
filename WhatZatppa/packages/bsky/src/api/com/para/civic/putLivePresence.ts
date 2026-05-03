@@ -4,6 +4,7 @@ import { InvalidRequestError } from '@atproto/xrpc-server'
 import { AppContext } from '../../../../context'
 import { Server } from '../../../../lexicon'
 import { isExternalEmbedType } from '../../../../views/types'
+import { parseDataplaneJson } from './util'
 
 const LIVE_ELIGIBLE_PHASES = new Set(['open', 'deliberating', 'voting'])
 
@@ -18,8 +19,11 @@ export default function (server: Server, ctx: AppContext) {
         cabildeoUri: cabildeo,
         viewerDid: actorDid,
       })
-      const phase = cabildeoRes.cabildeo?.phase
-      if (!cabildeoRes.cabildeo) {
+      const cabildeoView = parseDataplaneJson<
+        { phase?: string } | undefined
+      >(cabildeoRes.cabildeoJson, undefined)
+      const phase = cabildeoView?.phase
+      if (!cabildeoView) {
         throw new InvalidRequestError('Cabildeo not found', 'NotFound')
       }
       if (!phase || !LIVE_ELIGIBLE_PHASES.has(phase)) {

@@ -347,7 +347,7 @@ export class Views {
         record: actor.profile,
       }),
     ]
-    return {
+    const view: Un$Typed<ProfileViewBasic> & { cabildeoLive?: unknown } = {
       did,
       handle: actor.handle ?? INVALID_HANDLE,
       displayName: actor.profile?.displayName,
@@ -380,6 +380,32 @@ export class Views {
       verification: this.verification(did, state),
       status: this.status(did, state),
       debug: state.ctx?.includeDebugField ? actor.debug : undefined,
+    }
+    const cabildeoLive = this.cabildeoLive(actor)
+    if (cabildeoLive) {
+      view.cabildeoLive = cabildeoLive
+    }
+    return view
+  }
+
+  cabildeoLive(actor: Actor) {
+    const live = actor.cabildeoLive
+    if (!live) return undefined
+
+    const status = actor.status?.record
+    const external =
+      status?.embed && isExternalEmbedType(status.embed)
+        ? status.embed.external
+        : undefined
+    if (external?.uri && external.uri !== live.liveUri) {
+      return undefined
+    }
+
+    return {
+      cabildeoUri: live.cabildeoUri,
+      community: live.community,
+      phase: live.phase,
+      expiresAt: live.expiresAt,
     }
   }
 

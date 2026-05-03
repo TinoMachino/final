@@ -32,23 +32,25 @@ run-dev-env-logged: ## Run a "development environment" shell (with logging)
 
 .PHONY: run-dev-env-persistent
 run-dev-env-persistent: ## Run a persistent development environment shell
-	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore}
+	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} $${DEV_ENV_PLC_DIRECTORY:-$${HOME}/.paramx-demo/plc}
 	cd packages/dev-env; \
 	ENV=shared-demo \
 	NODE_ENV=development \
 	DEV_ENV_PDS_DATA_DIRECTORY=$${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} \
 	DEV_ENV_PDS_BLOBSTORE_DIRECTORY=$${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} \
+	DEV_ENV_PLC_DIRECTORY=$${DEV_ENV_PLC_DIRECTORY:-$${HOME}/.paramx-demo/plc} \
 	../dev-infra/with-redis-and-db.sh node --enable-source-maps dist/bin.js
 
 .PHONY: run-dev-env-persistent-logged
 run-dev-env-persistent-logged: ## Run a persistent development environment shell (with logging)
-	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore}
+	mkdir -p $${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} $${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} $${DEV_ENV_PLC_DIRECTORY:-$${HOME}/.paramx-demo/plc}
 	cd packages/dev-env; \
 	ENV=shared-demo \
 	LOG_ENABLED=true \
 	NODE_ENV=development \
 	DEV_ENV_PDS_DATA_DIRECTORY=$${DEV_ENV_PDS_DATA_DIRECTORY:-$${HOME}/.paramx-demo/pds} \
 	DEV_ENV_PDS_BLOBSTORE_DIRECTORY=$${DEV_ENV_PDS_BLOBSTORE_DIRECTORY:-$${HOME}/.paramx-demo/blobstore} \
+	DEV_ENV_PLC_DIRECTORY=$${DEV_ENV_PLC_DIRECTORY:-$${HOME}/.paramx-demo/plc} \
 	../dev-infra/with-redis-and-db.sh node --enable-source-maps dist/bin.js | pnpm exec pino-pretty
 
 .PHONY: codegen

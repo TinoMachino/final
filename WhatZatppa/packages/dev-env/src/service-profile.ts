@@ -46,17 +46,36 @@ export class ServiceProfile {
           .then((res) => res.data.code)
       : undefined
 
-    await newAgent.createAccount(
-      {
-        ...this.userDetails,
-        inviteCode,
-        did: this.did,
-      },
-      {
-        encoding: 'application/json',
-        headers: { authorization: `Bearer ${serviceAuth.data.token}` },
-      },
-    )
+    let alreadyPresent = false
+    try {
+      await newAgent.createAccount(
+        {
+          ...this.userDetails,
+          inviteCode,
+          did: this.did,
+        },
+        {
+          encoding: 'application/json',
+          headers: { authorization: `Bearer ${serviceAuth.data.token}` },
+        },
+      )
+    } catch (e: any) {
+      if (
+        e.status === 400 &&
+        e.error === 'InvalidRequest' &&
+        (e.message?.includes('Handle already taken') ||
+          e.message?.includes('DID already exists'))
+      ) {
+        // Account already exists on the new PDS (likely a persistent run), just login
+        await newAgent.login({
+          identifier: this.userDetails.handle,
+          password: this.userDetails.password,
+        })
+        alreadyPresent = true
+      } else {
+        throw e
+      }
+    }
 
     // The session manager will use the "didDoc" in the result of
     // "createAccount" in order to setup the pdsUrl. However, since are in the
@@ -64,6 +83,12 @@ export class ServiceProfile {
     // avoid calling the old PDS, let's clear the pdsUrl, which will result in
     // the (new) serviceUrl being used.
     newAgent.sessionManager.pdsUrl = undefined
+
+    if (alreadyPresent) {
+      this.pds = newPds
+      this.agent = newAgent
+      return
+    }
 
     const newDidCredentialsRes =
       await newAgent.com.atproto.identity.getRecommendedDidCredentials()

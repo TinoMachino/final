@@ -3,7 +3,7 @@ import { AppContext } from '../../../../context'
 import { parseCid, parseString } from '../../../../hydration/util'
 import { Server } from '../../../../lexicon'
 import { QueryParams } from '../../../../lexicon/types/com/para/civic/listCabildeos'
-import { getVisibleParticipantDids } from './util'
+import { getVisibleParticipantDids, parseDataplaneJson } from './util'
 import { clearlyBadCursor, resHeaders } from '../../../util'
 
 export default function (server: Server, ctx: AppContext) {
@@ -49,7 +49,10 @@ const listCabildeos = async (inputs: {
     viewerDid: viewer ?? '',
   })
 
-  const cabildeos = res.items.map(mapCabildeoView)
+  const cabildeos = parseDataplaneJson<Parameters<typeof mapCabildeoView>[0][]>(
+    res.itemsJson,
+    [],
+  ).map(mapCabildeoView)
   const previewDids = [...new Set(
     cabildeos.flatMap((item) => item.liveSession?.participantPreviewDids ?? []),
   )]

@@ -149,7 +149,7 @@ const getCabildeoVoteEligibility = async (
     .select(['uri', 'community', 'options', 'phase', 'phaseDeadline'])
     .executeTakeFirst()
 
-  if (!cabildeo || cabildeo.phase !== 'voting') {
+  if (!cabildeo || !['voting', 'resolved'].includes(cabildeo.phase)) {
     return null
   }
   if (

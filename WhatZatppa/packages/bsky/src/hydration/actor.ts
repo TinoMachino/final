@@ -52,6 +52,13 @@ export type Actor = {
   trustedVerifier?: boolean
   verifications: VerificationHydrationState[]
   status?: RecordInfo<StatusRecord>
+  cabildeoLive?: {
+    cabildeoUri: string
+    community: string
+    phase: string
+    expiresAt: string
+    liveUri: string
+  }
   germ?: RecordInfo<GermDeclarationRecord>
   allowActivitySubscriptionsFrom: AllowActivitySubscriptions
   /**
@@ -306,6 +313,7 @@ export class ActorHydrator {
         trustedVerifier: actor.trustedVerifier,
         verifications,
         status: status,
+        cabildeoLive: parseCabildeoLive(actor.cabildeoLiveJson),
         germ: germ,
         allowActivitySubscriptionsFrom: allowActivitySubscriptionsFrom(
           actor.allowActivitySubscriptionsFrom,
@@ -574,5 +582,17 @@ export class ActorHydrator {
     }
 
     return map
+  }
+}
+
+const parseCabildeoLive = (value: string) => {
+  if (!value) return undefined
+  try {
+    const parsed = JSON.parse(value)
+    if (!parsed || typeof parsed !== 'object') return undefined
+    if (typeof parsed.cabildeoUri !== 'string') return undefined
+    return parsed
+  } catch {
+    return undefined
   }
 }

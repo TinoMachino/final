@@ -499,6 +499,7 @@ message ActorInfo {
   reserved 20; // DO NOT REMOVE - see dataplane repo
   Record germ_record = 21;
   string allow_group_chat_invites_from = 22;
+  string cabildeo_live_json = 23;
 }
 
 message AgeAssuranceStatus {
@@ -1709,8 +1710,8 @@ message GetParaCabildeosRequest {
   string viewer_did = 5;
 }
 message GetParaCabildeosResponse {
-  // items are complex objects returned as plain JSON
   string cursor = 1;
+  string items_json = 2;
 }
 
 message GetParaCabildeoRequest {
@@ -1718,7 +1719,7 @@ message GetParaCabildeoRequest {
   string viewer_did = 2;
 }
 message GetParaCabildeoResponse {
-  // cabildeo is a complex object returned as plain JSON
+  string cabildeo_json = 1;
 }
 
 message GetParaCabildeoPositionsRequest {
@@ -1728,8 +1729,8 @@ message GetParaCabildeoPositionsRequest {
   string cursor = 4;
 }
 message GetParaCabildeoPositionsResponse {
-  // positions are complex objects returned as plain JSON
   string cursor = 1;
+  string positions_json = 2;
 }
 
 message GetParaDelegationCandidatesRequest {
@@ -1742,6 +1743,7 @@ message GetParaDelegationCandidatesRequest {
 }
 message GetParaDelegationCandidatesResponse {
   string cursor = 1;
+  string candidates_json = 2;
 }
 
 message PutParaCabildeoLivePresenceRequest {

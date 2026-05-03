@@ -836,7 +836,7 @@ const getCommunityCounters = async (
   matterPosts: number
   badgeHolders: number
 }> => {
-  const [members, posters, posts, badges] = await Promise.all([
+  const [members, posters, posts, postMeta, badges] = await Promise.all([
     db.db
       .selectFrom('para_status')
       .where(
@@ -874,6 +874,24 @@ const getCommunityCounters = async (
       )
       .executeTakeFirst(),
     db.db
+      .selectFrom('para_post_meta')
+      .where(
+        sql`regexp_replace(lower(coalesce("community", '')), '[^a-z0-9]+', '-', 'g')`,
+        '=',
+        community,
+      )
+      .select(
+        sql<number>`coalesce(sum(case when "postType" = 'policy' then 1 else 0 end), 0)`.as(
+          'policyPosts',
+        ),
+      )
+      .select(
+        sql<number>`coalesce(sum(case when "postType" = 'matter' then 1 else 0 end), 0)`.as(
+          'matterPosts',
+        ),
+      )
+      .executeTakeFirst(),
+    db.db
       .selectFrom('para_status')
       .where(
         sql`regexp_replace(lower(coalesce("party", '')), '[^a-z0-9]+', '', 'g')`,
@@ -892,8 +910,10 @@ const getCommunityCounters = async (
   return {
     members: Number(members?.count ?? 0),
     visiblePosters: Number(posters?.count ?? 0),
-    policyPosts: Number(posts?.policyPosts ?? 0),
-    matterPosts: Number(posts?.matterPosts ?? 0),
+    policyPosts:
+      Number(posts?.policyPosts ?? 0) + Number(postMeta?.policyPosts ?? 0),
+    matterPosts:
+      Number(posts?.matterPosts ?? 0) + Number(postMeta?.matterPosts ?? 0),
     badgeHolders: Number(badges?.count ?? 0),
   }
 }

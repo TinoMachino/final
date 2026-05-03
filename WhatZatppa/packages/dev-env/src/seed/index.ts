@@ -1,4 +1,6 @@
 export * from './client'
+export * from './para-checkpoints'
+export * from './para-factory'
 
 export { default as authorFeedSeed } from './author-feed'
 export { default as basicSeed } from './basic'

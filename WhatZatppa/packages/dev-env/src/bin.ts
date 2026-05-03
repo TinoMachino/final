@@ -4,6 +4,7 @@ import { generateMinimalMockSetup } from './mock/minimal'
 import { TestNetwork } from './network'
 import { mockMailer } from './util'
 import { paraDemoSeed } from './seed'
+import { createDevEnvManifest } from './manifest'
 
 const run = async () => {
   console.log(`
@@ -18,6 +19,7 @@ const run = async () => {
 
   const runtimeConfig = buildDevEnvRuntimeConfig()
   const network = await TestNetwork.create(runtimeConfig.networkParams)
+  network.manifest = createDevEnvManifest(network, runtimeConfig)
   mockMailer(network.pds)
 
   if (network.introspect) {
@@ -51,6 +53,9 @@ const run = async () => {
   }
 
   console.log('✅ Dev environment is ready')
+  console.log(
+    `📋 DevEnv manifest ${JSON.stringify(network.manifest, null, 2)}`,
+  )
 }
 
 run()

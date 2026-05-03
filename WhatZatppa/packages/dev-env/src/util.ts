@@ -2,6 +2,7 @@ import * as plc from '@did-plc/lib'
 import { request } from 'undici'
 import { Secp256k1Keypair } from '@atproto/crypto'
 import { IdResolver } from '@atproto/identity'
+import axios from 'axios'
 import { TestBsky } from './bsky'
 import { TestPds } from './pds'
 import { DidAndKey } from './types'
@@ -76,20 +77,58 @@ export const uniqueLockId = () => {
   return lockId
 }
 
+import * as ui8 from 'uint8arrays'
+
+export const resolveHandleInPlc = async (
+  plcUrl: string,
+  handle: string,
+): Promise<string | undefined> => {
+  try {
+    const res = await axios.get(`${plcUrl}/handle/${handle}`)
+    return res.data.did
+  } catch (e) {
+    return undefined
+  }
+}
+
 export const createDidAndKey = async (opts: {
   plcUrl: string
   handle: string
   pds: string
+  keyHex?: string
 }): Promise<DidAndKey> => {
-  const { plcUrl, handle, pds } = opts
-  const key = await Secp256k1Keypair.create({ exportable: true })
-  const did = await new plc.Client(plcUrl).createDid({
-    signingKey: key.did(),
-    rotationKeys: [key.did()],
-    handle,
-    pds,
-    signer: key,
-  })
+  const { plcUrl, handle, pds, keyHex } = opts
+  const key = keyHex
+    ? await Secp256k1Keypair.import(ui8.fromString(keyHex, 'hex'))
+    : await Secp256k1Keypair.create({ exportable: true })
+
+  const plcClient = new plc.Client(plcUrl)
+  const plcOp = await plc.signOperation(
+    {
+      type: 'plc_operation',
+      verificationMethods: {
+        atproto: key.did(),
+      },
+      rotationKeys: [key.did()],
+      alsoKnownAs: [`at://${handle}`],
+      services: {
+        atproto_pds: {
+          type: 'AtprotoPersonalDataServer',
+          endpoint: pds,
+        },
+      },
+      prev: null,
+    },
+    key,
+  )
+  const did = await plc.didForCreateOp(plcOp)
+
+  try {
+    await plcClient.getDocument(did)
+  } catch (e) {
+    await plcClient.sendOperation(did, plcOp)
+  }
+
   return {
     key,
     did,

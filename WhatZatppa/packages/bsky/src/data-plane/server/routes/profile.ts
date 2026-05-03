@@ -13,6 +13,7 @@ import {
 } from '../../../proto/bsky_pb'
 import { Database } from '../db'
 import { Verification } from '../db/tables/verification'
+import { mapActorCabildeoLive } from '../cabildeo-live'
 import { getRecords } from './records'
 
 type VerifiedBy = {
@@ -91,6 +92,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       chatDeclarations,
       notifDeclarations,
       germDeclarations,
+      cabildeoLiveRows,
     ] = await Promise.all([
       db.db
         .selectFrom('actor')
@@ -119,6 +121,31 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       getRecords(db)({ uris: chatDeclarationUris }),
       getRecords(db)({ uris: notifDeclarationUris }),
       getRecords(db)({ uris: germDeclarationUris }),
+      db.db
+        .selectFrom('cabildeo_live_presence as presence')
+        .innerJoin(
+          'cabildeo_cabildeo as cabildeo',
+          'cabildeo.uri',
+          'presence.cabildeo',
+        )
+        .innerJoin(
+          'cabildeo_live_session as session',
+          'session.cabildeo',
+          'presence.cabildeo',
+        )
+        .where('presence.actorDid', 'in', dids)
+        .where('presence.expiresAt', '>', new Date().toISOString())
+        .where('session.endedAt', 'is', null)
+        .select([
+          'presence.actorDid',
+          'presence.cabildeo',
+          'presence.expiresAt',
+          'cabildeo.community',
+          'cabildeo.phase',
+          'session.liveUri',
+        ])
+        .orderBy('presence.expiresAt', 'desc')
+        .execute(),
     ])
 
     const verificationsBySubjectDid = verificationsReceived.reduce(
@@ -132,6 +159,12 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     )
 
     const byDid = keyBy(handlesRes, 'did')
+    const cabildeoLiveByDid = new Map(
+      cabildeoLiveRows.map((row) => [
+        row.actorDid,
+        mapActorCabildeoLive(row),
+      ]),
+    )
     const actors = dids.map((did, i) => {
       const row = byDid.get(did)
 
@@ -232,6 +265,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
         profileTags: [],
         allowActivitySubscriptionsFrom: activitySubscription(),
         ageAssuranceStatus: ageAssuranceStatus(),
+        cabildeoLiveJson: JSON.stringify(cabildeoLiveByDid.get(did) ?? null),
       }
     })
     return { actors }

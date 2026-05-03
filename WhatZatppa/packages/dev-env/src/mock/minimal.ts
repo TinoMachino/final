@@ -62,16 +62,28 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
   const userAgents = await Promise.all(
     users.map(async (user) => {
       const agent: AtpAgent = env.pds.getAgent()
-      await agent.createAccount(user)
+      try {
+        await agent.createAccount(user)
+      } catch (e: any) {
+        if (
+          e.status === 400 &&
+          e.error === 'InvalidRequest' &&
+          e.message?.includes('Handle already taken')
+        ) {
+          await agent.login({ identifier: user.handle, password: user.password })
+        } else {
+          throw e
+        }
+      }
       agent.assertAuthenticated()
       if (user.displayName || user.description) {
-        await agent.app.bsky.actor.profile.create(
-          { repo: agent.did },
-          {
+        await agent.upsertProfile((prev) => {
+          return {
+            ...prev,
             displayName: user.displayName,
             description: user.description,
-          },
-        )
+          }
+        })
       }
       return agent
     }),
@@ -81,10 +93,12 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
 
   // Create chat declarations for all users
   for (const user of userAgents) {
-    await user.chat.bsky.actor.declaration.create(
-      { repo: user.did },
-      { allowIncoming: 'all' },
-    )
+    await user.com.atproto.repo.putRecord({
+      repo: user.did,
+      collection: 'chat.bsky.actor.declaration',
+      rkey: 'self',
+      record: { allowIncoming: 'all' },
+    })
   }
 
   // Add moderator roles
@@ -94,6 +108,15 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
 
   // everybody follows everybody
   const follow = async (author: AtpAgent, subject: AtpAgent) => {
+    // Check if already following
+    const followers = await author.app.bsky.graph.getFollows({
+      actor: author.assertDid,
+      limit: 100,
+    })
+    if (followers.data.follows.some((f) => f.did === subject.did)) {
+      return
+    }
+
     await author.app.bsky.graph.follow.create(
       { repo: author.assertDid },
       {
@@ -110,11 +133,22 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
   await follow(carla, bob)
 
   // Create labeler service
-  await labeler.app.bsky.labeler.service.create(
-    { repo: labeler.did, rkey: 'self' },
-    {
+  await labeler.com.atproto.repo.putRecord({
+    repo: labeler.did,
+    collection: 'app.bsky.labeler.service',
+    rkey: 'self',
+    record: {
       policies: {
-        labelValues: ['!hide', 'porn', 'rude', 'spam', 'spider', 'misinfo', 'cool', 'curate'],
+        labelValues: [
+          '!hide',
+          'porn',
+          'rude',
+          'spam',
+          'spider',
+          'misinfo',
+          'cool',
+          'curate',
+        ],
         labelValueDefinitions: [
           {
             identifier: 'rude',
@@ -122,20 +156,33 @@ export async function generateMinimalMockSetup(env: TestNetwork) {
             severity: 'alert',
             defaultSetting: 'warn',
             adultOnly: true,
-            locales: [{ lang: 'en', name: 'Rude', description: 'Just such a jerk, you wouldnt believe it.' }],
+            locales: [
+              {
+                lang: 'en',
+                name: 'Rude',
+                description: 'Just such a jerk, you wouldnt believe it.',
+              },
+            ],
           },
           {
             identifier: 'spam',
             blurs: 'content',
             severity: 'inform',
             defaultSetting: 'hide',
-            locales: [{ lang: 'en', name: 'Spam', description: 'Low quality posts that dont add to the conversation.' }],
+            locales: [
+              {
+                lang: 'en',
+                name: 'Spam',
+                description:
+                  'Low quality posts that dont add to the conversation.',
+              },
+            ],
           },
         ],
       },
       createdAt: new Date().toISOString(),
     },
-  )
+  })
 
   // Ensure AppView indexes actors before seeding posts
   await env.processAll()

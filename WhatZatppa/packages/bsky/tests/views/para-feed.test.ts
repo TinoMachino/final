@@ -1,12 +1,24 @@
 import { request } from 'undici'
-import { AppBskyEmbedExternal, AtpAgent } from '@atproto/api'
-import { SeedClient, TestNetwork, usersSeed } from '@atproto/dev-env'
+import { AtpAgent } from '@atproto/api'
+import {
+  SeedClient,
+  TestNetwork,
+  createCabildeoDelegationRecord,
+  createCabildeoPositionRecord,
+  createCabildeoRecord,
+  createCabildeoVoteRecord,
+  createCommunityBoardRecord,
+  createCommunityGovernanceRecord,
+  createCommunityMembershipRecord,
+  createLiveStatusRecord,
+  createParaPost,
+  createParaPostMeta,
+  createParaStatus,
+  likeParaRecord,
+  usersSeed,
+  writeParaFixture,
+} from '@atproto/dev-env'
 import { ids } from '../../src/lexicon/lexicons'
-
-type ParaStrongRef = {
-  uri: string
-  cid: string
-}
 
 type ParaPostView = {
   uri: string
@@ -221,8 +233,11 @@ describe('para feed views', () => {
   let dan: string
 
   beforeAll(async () => {
+    const schemaSuffix = Array.from({ length: 8 }, () =>
+      String.fromCharCode(97 + Math.floor(Math.random() * 26)),
+    ).join('')
     network = await TestNetwork.create({
-      dbPostgresSchema: 'bsky_views_para_feed',
+      dbPostgresSchema: `bsky_views_para_feed_${schemaSuffix}`,
     })
     agent = network.bsky.getAgent()
     sc = network.getSeedClient()
@@ -231,18 +246,19 @@ describe('para feed views', () => {
     bob = sc.dids.bob
     carol = sc.dids.carol
     dan = sc.dids.dan
-    const mxFederal = await createCommunityBoardRecord(sc, alice, {
-      name: 'MX Federal',
-      quadrant: 'federal',
+    await writeParaFixture(network, async () => {
+      const mxFederal = await createCommunityBoardRecord(sc, alice, {
+        name: 'MX Federal',
+        quadrant: 'federal',
+      })
+      for (const did of [alice, bob, carol, dan]) {
+        await createCommunityMembershipRecord(sc, did, mxFederal.uri, 'active')
+      }
     })
-    for (const did of [alice, bob, carol, dan]) {
-      await createCommunityMembershipRecord(sc, did, mxFederal.uri, 'active')
-    }
-    await network.processAll()
   })
 
   afterAll(async () => {
-    await network.close()
+    await network?.close()
   })
 
   it('returns self+follow timeline and excludes muted authors', async () => {
@@ -683,6 +699,7 @@ describe('para feed views', () => {
       phase: 'resolved',
       options: [{ label: 'Invertir' }, { label: 'Mantener' }],
     })
+    await network.processAll()
     await createCabildeoPositionRecord(sc, bob, {
       cabildeo: cabildeo.uri,
       stance: 'for',
@@ -716,7 +733,7 @@ describe('para feed views', () => {
       delegateTo: bob,
     })
     await network.processAll()
-
+    await network.processAll()
     const list = await callPara<ParaListCabildeosOutput>(
       network,
       'com.para.civic.listCabildeos',
@@ -776,6 +793,7 @@ describe('para feed views', () => {
       phase: 'voting',
       options: [{ label: 'A' }, { label: 'B' }],
     })
+    await network.processAll()
     await createCabildeoVoteRecord(sc, bob, {
       cabildeo: cabildeo.uri,
       selectedOption: 0,
@@ -797,6 +815,7 @@ describe('para feed views', () => {
       isDirect: true,
     })
     await network.processAll()
+    await network.processAll()
 
     const detail = await callPara<ParaGetCabildeoOutput>(
       network,
@@ -817,11 +836,13 @@ describe('para feed views', () => {
       phase: 'draft',
       options: [{ label: 'A' }, { label: 'B' }],
     })
+    await network.processAll()
     await createCabildeoVoteRecord(sc, bob, {
       cabildeo: draft.uri,
       selectedOption: 0,
       isDirect: true,
     })
+    await network.processAll()
     await network.processAll()
 
     const draftDetail = await callPara<ParaGetCabildeoOutput>(
@@ -845,15 +866,17 @@ describe('para feed views', () => {
     const noAuthMembers = await callParaRaw(
       network,
       'com.para.community.listMembers',
-      { community: 'privacy-board' },
+      { communityId: 'privacy-board' },
     )
     expect(noAuthMembers.status).toBe(401)
-    expect((noAuthMembers.body as { error?: string }).error).toBe('AuthMissing')
+    expect((noAuthMembers.body as { error?: string }).error).toBe(
+      'AuthenticationRequired',
+    )
 
     const nonMemberMembers = await callParaRaw(
       network,
       'com.para.community.listMembers',
-      { community: 'privacy-board' },
+      { communityId: 'privacy-board' },
       bob,
     )
     expect(nonMemberMembers.status).toBe(400)
@@ -866,7 +889,7 @@ describe('para feed views', () => {
     }>(
       network,
       'com.para.community.listMembers',
-      { community: 'privacy-board' },
+      { communityId: 'privacy-board' },
       alice,
     )
     expect(memberMembers.members).toEqual(
@@ -891,7 +914,7 @@ describe('para feed views', () => {
     )
     expect(noAuthDelegates.status).toBe(401)
     expect((noAuthDelegates.body as { error?: string }).error).toBe(
-      'AuthMissing',
+      'AuthenticationRequired',
     )
 
     const nonMemberDelegates = await callParaRaw(
@@ -1275,452 +1298,6 @@ describe('para feed views', () => {
   })
 })
 
-const createParaPost = async (
-  sc: SeedClient,
-  by: string,
-  text: string,
-  opts?: {
-    reply?: {
-      root: ParaStrongRef
-      parent: ParaStrongRef
-    }
-    postType?: 'policy' | 'matter' | 'meme'
-    tags?: string[]
-    flairs?: string[]
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.post',
-      record: {
-        $type: 'com.para.post',
-        text,
-        createdAt: new Date().toISOString(),
-        reply: opts?.reply,
-        postType: opts?.postType,
-        tags: opts?.tags,
-        flairs: opts?.flairs,
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const createParaPostMeta = async (
-  sc: SeedClient,
-  by: string,
-  post: string,
-  opts: {
-    postType: 'policy' | 'matter' | 'meme'
-    voteScore: number
-    official?: boolean
-    party?: string
-    community?: string
-    category?: string
-    tags?: string[]
-    flairs?: string[]
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.social.postMeta',
-      record: {
-        $type: 'com.para.social.postMeta',
-        post,
-        postType: opts.postType,
-        voteScore: opts.voteScore,
-        official: opts.official,
-        party: opts.party,
-        community: opts.community,
-        category: opts.category,
-        tags: opts.tags,
-        flairs: opts.flairs,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const likeParaRecord = async (
-  sc: SeedClient,
-  by: string,
-  subject: ParaStrongRef,
-) => {
-  await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'app.bsky.feed.like',
-      record: {
-        $type: 'app.bsky.feed.like',
-        subject,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-}
-
-const createParaStatus = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    status: string
-    party?: string
-    community?: string
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.putRecord(
-    {
-      repo: by,
-      collection: 'com.para.status',
-      rkey: 'self',
-      record: {
-        $type: 'com.para.status',
-        status: opts.status,
-        party: opts.party,
-        community: opts.community,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const createCommunityBoardRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    name: string
-    quadrant: string
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.community.board',
-      record: {
-        $type: 'com.para.community.board',
-        name: opts.name,
-        quadrant: opts.quadrant,
-        delegatesChatId: `${opts.quadrant}-delegates`,
-        subdelegatesChatId: `${opts.quadrant}-subdelegates`,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createCommunityMembershipRecord = async (
-  sc: SeedClient,
-  by: string,
-  community: string,
-  membershipState: 'pending' | 'active' | 'left' | 'removed' | 'blocked',
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.community.membership',
-      record: {
-        $type: 'com.para.community.membership',
-        community,
-        membershipState,
-        joinedAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createCommunityGovernanceRecord = async (
-  sc: SeedClient,
-  by: string,
-  community: string,
-  record: {
-    moderators: Array<{
-      did?: string
-      handle?: string
-      displayName?: string
-      role: string
-      badge: string
-      capabilities: string[]
-    }>
-    officials: Array<{
-      did?: string
-      handle?: string
-      displayName?: string
-      office: string
-      mandate: string
-    }>
-    deputies: Array<{
-      key: string
-      tier: string
-      role: string
-      description: string
-      capabilities: string[]
-      activeHolder?: {
-        did?: string
-        handle?: string
-        displayName?: string
-      }
-      votes: number
-      applicants: Array<{
-        did?: string
-        handle?: string
-        displayName?: string
-        appliedAt: string
-        status: 'applied' | 'approved' | 'rejected'
-      }>
-    }>
-    metadata?: {
-      reviewCadence?: string
-      state?: string
-      matterFlairIds?: string[]
-      policyFlairIds?: string[]
-    }
-    editHistory?: Array<{
-      id: string
-      action: string
-      createdAt: string
-      summary: string
-    }>
-  },
-): Promise<ParaStrongRef> => {
-  const now = new Date().toISOString()
-  const slug = community.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-  const { data } = await sc.agent.com.atproto.repo.putRecord(
-    {
-      repo: by,
-      collection: 'com.para.community.governance',
-      rkey: slug,
-      record: {
-        $type: 'com.para.community.governance',
-        community,
-        slug,
-        createdAt: now,
-        updatedAt: now,
-        moderators: record.moderators,
-        officials: record.officials,
-        deputies: record.deputies,
-        metadata: record.metadata,
-        editHistory: record.editHistory,
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const createCabildeoRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    title: string
-    description: string
-    community: string
-    phase: 'draft' | 'open' | 'deliberating' | 'voting' | 'resolved'
-    options: Array<{ label: string; description?: string }>
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.civic.cabildeo',
-      record: {
-        $type: 'com.para.civic.cabildeo',
-        title: opts.title,
-        description: opts.description,
-        community: opts.community,
-        phase: opts.phase,
-        options: opts.options,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createCabildeoPositionRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    cabildeo: string
-    stance: 'for' | 'against' | 'amendment'
-    optionIndex?: number
-    text: string
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.civic.position',
-      record: {
-        $type: 'com.para.civic.position',
-        cabildeo: opts.cabildeo,
-        stance: opts.stance,
-        optionIndex: opts.optionIndex,
-        text: opts.text,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createCabildeoVoteRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    cabildeo: string
-    selectedOption: number
-    isDirect: boolean
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.civic.vote',
-      record: {
-        $type: 'com.para.civic.vote',
-        subject: opts.cabildeo,
-        subjectType: 'cabildeo',
-        cabildeo: opts.cabildeo,
-        selectedOption: opts.selectedOption,
-        isDirect: opts.isDirect,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createCabildeoDelegationRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    cabildeo?: string
-    delegateTo: string
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: 'com.para.civic.delegation',
-      record: {
-        $type: 'com.para.civic.delegation',
-        cabildeo: opts.cabildeo,
-        delegateTo: opts.delegateTo,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
-const createLiveStatusRecord = async (
-  sc: SeedClient,
-  by: string,
-  opts: { uri: string; durationMinutes?: number },
-) => {
-  const embed: AppBskyEmbedExternal.Main = {
-    $type: 'app.bsky.embed.external',
-    external: {
-      uri: opts.uri,
-      title: 'Live room',
-      description: 'Live cabildeo room',
-    },
-  }
-
-  const { data } = await sc.agent.com.atproto.repo.putRecord(
-    {
-      repo: by,
-      collection: ids.AppBskyActorStatus,
-      rkey: 'self',
-      record: {
-        $type: ids.AppBskyActorStatus,
-        status: 'app.bsky.actor.status#live',
-        embed,
-        durationMinutes: opts.durationMinutes ?? 10,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return { uri: data.uri, cid: data.cid }
-}
-
 const callPara = async <T>(
   network: TestNetwork,
   nsid: string,
@@ -1728,7 +1305,13 @@ const callPara = async <T>(
   did?: string,
 ): Promise<T> => {
   const res = await callParaRaw(network, nsid, params, did)
-  expect(res.status).toBe(200)
+  if (res.status !== 200) {
+    throw new Error(
+      `Expected ${nsid} to return 200, got ${res.status}: ${JSON.stringify(
+        res.body,
+      )}`,
+    )
+  }
   return res.body as T
 }
 
@@ -1774,6 +1357,13 @@ const callParaProcedure = async <T>(
     },
     body: JSON.stringify(body),
   })
-  expect(res.statusCode).toBe(200)
-  return (await res.body.json()) as T
+  const responseBody = await res.body.json()
+  if (res.statusCode !== 200) {
+    throw new Error(
+      `Expected ${nsid} to return 200, got ${
+        res.statusCode
+      }: ${JSON.stringify(responseBody)}`,
+    )
+  }
+  return responseBody as T
 }

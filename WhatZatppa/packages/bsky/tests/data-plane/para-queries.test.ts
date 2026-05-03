@@ -1,10 +1,14 @@
-import { SeedClient, TestNetwork, usersSeed } from '@atproto/dev-env'
+import {
+  SeedClient,
+  TestNetwork,
+  createParaCommunityBoard,
+  createParaPost,
+  createParaPostMeta,
+  createParaStatus,
+  usersSeed,
+  writeParaFixture,
+} from '@atproto/dev-env'
 import { ids } from '../../src/lexicon/lexicons'
-
-type ParaStrongRef = {
-  uri: string
-  cid: string
-}
 
 describe('para dataplane queries', () => {
   let network: TestNetwork
@@ -30,15 +34,29 @@ describe('para dataplane queries', () => {
   })
 
   it('queries para timeline and author feed', async () => {
-    await sc.follow(alice, bob)
-    const alicePost = await createParaPost(sc, alice, 'alice timeline para post', {
-      flairs: ['|#Sanidad'],
-    })
-    const bobPost = await createParaPost(sc, bob, 'bob timeline para post', {
-      flairs: ['|#TransportePublico'],
-    })
-    const carolPost = await createParaPost(sc, carol, 'carol timeline para post')
-    await network.processAll()
+    const { alicePost, bobPost, carolPost } = await writeParaFixture(
+      network,
+      async () => {
+        await sc.follow(alice, bob)
+        const alicePost = await createParaPost(
+          sc,
+          alice,
+          'alice timeline para post',
+          {
+            flairs: ['|#Sanidad'],
+          },
+        )
+        const bobPost = await createParaPost(sc, bob, 'bob timeline para post', {
+          flairs: ['|#TransportePublico'],
+        })
+        const carolPost = await createParaPost(
+          sc,
+          carol,
+          'carol timeline para post',
+        )
+        return { alicePost, bobPost, carolPost }
+      },
+    )
 
     const timeline = await network.bsky.ctx.dataplane.getParaTimeline({
       actorDid: alice,
@@ -74,9 +92,11 @@ describe('para dataplane queries', () => {
   })
 
   it('queries para posts by uri list order', async () => {
-    const first = await createParaPost(sc, alice, 'first ordered para post')
-    const second = await createParaPost(sc, bob, 'second ordered para post')
-    await network.processAll()
+    const { first, second } = await writeParaFixture(network, async () => {
+      const first = await createParaPost(sc, alice, 'first ordered para post')
+      const second = await createParaPost(sc, bob, 'second ordered para post')
+      return { first, second }
+    })
 
     const missing = `at://did:example:missing/${ids.ComParaPost}/self`
     const got = await network.bsky.ctx.dataplane.getParaPosts({
@@ -86,17 +106,19 @@ describe('para dataplane queries', () => {
   })
 
   it('queries community posts by board name, normalized name, and slug', async () => {
-    const board = await createParaCommunityBoard(sc, alice, 'Morena')
-    const post = await createParaPost(sc, alice, 'morena community slug post', {
-      postType: 'policy',
+    const { board, post } = await writeParaFixture(network, async () => {
+      const board = await createParaCommunityBoard(sc, alice, 'Morena')
+      const post = await createParaPost(sc, alice, 'morena community slug post', {
+        postType: 'policy',
+      })
+      await createParaPostMeta(sc, alice, post.uri, {
+        postType: 'policy',
+        voteScore: 1,
+        party: 'p/Morena',
+        community: board.slug,
+      })
+      return { board, post }
     })
-    await createParaPostMeta(sc, alice, post.uri, {
-      postType: 'policy',
-      voteScore: 1,
-      party: 'p/Morena',
-      community: board.slug,
-    })
-    await network.processAll()
     await network.bsky.db.db
       .updateTable('para_post')
       .set({ party: 'p/Morena' })
@@ -135,16 +157,26 @@ describe('para dataplane queries', () => {
   })
 
   it('queries para thread with parents and replies', async () => {
-    const root = await createParaPost(sc, alice, 'root para thread post')
-    const reply = await createParaPost(sc, bob, 'reply para thread post', {
-      root,
-      parent: root,
-    })
-    const grandReply = await createParaPost(sc, carol, 'grand reply para post', {
-      root,
-      parent: reply,
-    })
-    await network.processAll()
+    const { root, reply, grandReply } = await writeParaFixture(
+      network,
+      async () => {
+        const root = await createParaPost(sc, alice, 'root para thread post')
+        const reply = await createParaPost(sc, bob, 'reply para thread post', {
+          root,
+          parent: root,
+        })
+        const grandReply = await createParaPost(
+          sc,
+          carol,
+          'grand reply para post',
+          {
+            root,
+            parent: reply,
+          },
+        )
+        return { root, reply, grandReply }
+      },
+    )
 
     const onRoot = await network.bsky.ctx.dataplane.getParaThread({
       postUri: root.uri,
@@ -170,12 +202,13 @@ describe('para dataplane queries', () => {
   })
 
   it('queries para post meta fallback and explicit metadata', async () => {
-    const post = await createParaPost(sc, alice, 'meta fallback para post', {
-      postType: 'policy',
-      tags: ['post-tag'],
-      flairs: ['post-flair'],
-    })
-    await network.processAll()
+    const post = await writeParaFixture(network, async () =>
+      createParaPost(sc, alice, 'meta fallback para post', {
+        postType: 'policy',
+        tags: ['post-tag'],
+        flairs: ['post-flair'],
+      }),
+    )
 
     const fallback = await network.bsky.ctx.dataplane.getParaPostMeta({
       postUri: post.uri,
@@ -187,17 +220,18 @@ describe('para dataplane queries', () => {
     expect(fallback.post?.flairs).toEqual(['post-flair'])
     expect(fallback.post?.interactionMode).toEqual('policy_ballot')
 
-    await createParaPostMeta(sc, alice, post.uri, {
-      postType: 'policy',
-      voteScore: 9,
-      official: true,
-      party: 'Independent',
-      community: 'mx-federal',
-      category: 'governance',
-      tags: ['meta-tag'],
-      flairs: ['meta-flair'],
-    })
-    await network.processAll()
+    await writeParaFixture(network, async () =>
+      createParaPostMeta(sc, alice, post.uri, {
+        postType: 'policy',
+        voteScore: 9,
+        official: true,
+        party: 'Independent',
+        community: 'mx-federal',
+        category: 'governance',
+        tags: ['meta-tag'],
+        flairs: ['meta-flair'],
+      }),
+    )
 
     const explicit = await network.bsky.ctx.dataplane.getParaPostMeta({
       postUri: post.uri,
@@ -214,20 +248,21 @@ describe('para dataplane queries', () => {
   })
 
   it('queries para profile stats and status', async () => {
-    await createParaStatus(sc, alice, {
-      status: 'Building cross-party policy drafts',
-      party: 'Independent',
-      community: 'mx-federal',
+    await writeParaFixture(network, async () => {
+      await createParaStatus(sc, alice, {
+        status: 'Building cross-party policy drafts',
+        party: 'Independent',
+        community: 'mx-federal',
+      })
+      const post = await createParaPost(sc, alice, 'stats para post', {
+        postType: 'policy',
+      })
+      await createParaPostMeta(sc, alice, post.uri, {
+        postType: 'policy',
+        voteScore: 11,
+        community: 'mx-federal',
+      })
     })
-    const post = await createParaPost(sc, alice, 'stats para post', {
-      postType: 'policy',
-    })
-    await createParaPostMeta(sc, alice, post.uri, {
-      postType: 'policy',
-      voteScore: 11,
-      community: 'mx-federal',
-    })
-    await network.processAll()
 
     const res = await network.bsky.ctx.dataplane.getParaProfileStats({
       actorDid: alice,
@@ -242,170 +277,3 @@ describe('para dataplane queries', () => {
     expect(res.status?.community).toEqual('mx-federal')
   })
 })
-
-const createParaPost = async (
-  sc: SeedClient,
-  by: string,
-  text: string,
-  opts: {
-    root?: ParaStrongRef
-    parent?: ParaStrongRef
-    postType?: 'policy' | 'matter' | 'meme'
-    tags?: string[]
-    flairs?: string[]
-  } = {},
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.api.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: ids.ComParaPost,
-      record: {
-        $type: ids.ComParaPost,
-        text,
-        createdAt: new Date().toISOString(),
-        ...(opts.root && opts.parent
-          ? {
-              reply: {
-                root: opts.root,
-                parent: opts.parent,
-              },
-            }
-          : {}),
-        ...(opts.postType ? { postType: opts.postType } : {}),
-        ...(opts.tags?.length ? { tags: opts.tags } : {}),
-        ...(opts.flairs?.length ? { flairs: opts.flairs } : {}),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const createParaCommunityBoard = async (
-  sc: SeedClient,
-  by: string,
-  name: string,
-): Promise<ParaStrongRef & { slug: string }> => {
-  const { data } = await sc.agent.api.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: ids.ComParaCommunityBoard,
-      record: {
-        $type: ids.ComParaCommunityBoard,
-        name,
-        description: `${name} community`,
-        quadrant: 'political',
-        status: 'active',
-        delegatesChatId: '',
-        subdelegatesChatId: '',
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  const rkey = data.uri.split('/').pop()!
-  return {
-    uri: data.uri,
-    cid: data.cid,
-    slug: `${normalizeBoardSlug(name)}-${rkey}`,
-  }
-}
-
-const normalizeBoardSlug = (value: string) =>
-  value
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
-const createParaPostMeta = async (
-  sc: SeedClient,
-  by: string,
-  postUri: string,
-  opts: {
-    postType: 'policy' | 'matter' | 'meme'
-    voteScore: number
-    official?: boolean
-    party?: string
-    community?: string
-    category?: string
-    tags?: string[]
-    flairs?: string[]
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.api.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: ids.ComParaSocialPostMeta,
-      record: {
-        $type: ids.ComParaSocialPostMeta,
-        post: postUri,
-        postType: opts.postType,
-        voteScore: opts.voteScore,
-        official: opts.official,
-        party: opts.party,
-        community: opts.community,
-        category: opts.category,
-        tags: opts.tags,
-        flairs: opts.flairs,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}
-
-const createParaStatus = async (
-  sc: SeedClient,
-  by: string,
-  opts: {
-    status: string
-    party?: string
-    community?: string
-  },
-): Promise<ParaStrongRef> => {
-  const { data } = await sc.agent.api.com.atproto.repo.createRecord(
-    {
-      repo: by,
-      collection: ids.ComParaStatus,
-      rkey: 'self',
-      record: {
-        $type: ids.ComParaStatus,
-        status: opts.status,
-        party: opts.party,
-        community: opts.community,
-        createdAt: new Date().toISOString(),
-      },
-    },
-    {
-      encoding: 'application/json',
-      headers: sc.getHeaders(by),
-    },
-  )
-
-  return {
-    uri: data.uri,
-    cid: data.cid,
-  }
-}

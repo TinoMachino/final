@@ -1,3 +1,4 @@
+import * as plc from '@did-plc/lib'
 import { Client as PlcClient } from '@did-plc/lib'
 import getPort from 'get-port'
 import * as ui8 from 'uint8arrays'
@@ -6,6 +7,7 @@ import * as bsky from '@atproto/bsky'
 import { Secp256k1Keypair } from '@atproto/crypto'
 import { Client } from '@atproto/lex'
 import { ADMIN_PASSWORD, EXAMPLE_LABELER } from './const'
+import { defaultDevIdentityProvider } from './identity'
 import { BskyConfig } from './types'
 export * from '@atproto/bsky'
 
@@ -24,32 +26,57 @@ export class TestBsky {
   static async create(cfg: BskyConfig): Promise<TestBsky> {
     const serviceKeypair = cfg.privateKey
       ? await Secp256k1Keypair.import(cfg.privateKey)
-      : await Secp256k1Keypair.create()
+      : await defaultDevIdentityProvider.keypair('bsky')
     const plcClient = new PlcClient(cfg.plcUrl)
 
     const port = cfg.port || (await getPort())
     const url = `http://localhost:${port}`
-    const serverDid = await plcClient.createDid({
-      signingKey: serviceKeypair.did(),
-      rotationKeys: [serviceKeypair.did()],
-      handle: 'bsky.test',
-      pds: `http://localhost:${port}`,
-      signer: serviceKeypair,
-    })
+    const handle = 'bsky.test'
+    const plcOp = await plc.signOperation(
+      {
+        type: 'plc_operation',
+        verificationMethods: {
+          atproto: serviceKeypair.did(),
+        },
+        rotationKeys: [serviceKeypair.did()],
+        alsoKnownAs: [`at://${handle}`],
+        services: {
+          atproto_pds: {
+            type: 'AtprotoPersonalDataServer',
+            endpoint: `http://localhost:${port}`,
+          },
+        },
+        prev: null,
+      },
+      serviceKeypair,
+    )
+    const serverDid = await plc.didForCreateOp(plcOp)
+    try {
+      await plcClient.getDocument(serverDid)
+    } catch (e) {
+      await plcClient.sendOperation(serverDid, plcOp)
+    }
 
     const endpoint = `http://localhost:${port}`
 
-    await plcClient.updateData(serverDid, serviceKeypair, (x) => {
-      x.services['bsky_notif'] = {
-        type: 'BskyNotificationService',
-        endpoint,
-      }
-      x.services['bsky_appview'] = {
-        type: 'BskyAppView',
-        endpoint,
-      }
-      return x
-    })
+    const doc = await plcClient.getDocument(serverDid)
+    const hasServices = doc.service?.some((s) =>
+      ['#bsky_notif', '#bsky_appview'].includes(s.id),
+    )
+
+    if (!hasServices) {
+      await plcClient.updateData(serverDid, serviceKeypair, (x) => {
+        x.services['bsky_notif'] = {
+          type: 'BskyNotificationService',
+          endpoint,
+        }
+        x.services['bsky_appview'] = {
+          type: 'BskyAppView',
+          endpoint,
+        }
+        return x
+      })
+    }
 
     // shared across server, ingester, and indexer in order to share pool, avoid too many pg connections.
     const db = new bsky.Database({

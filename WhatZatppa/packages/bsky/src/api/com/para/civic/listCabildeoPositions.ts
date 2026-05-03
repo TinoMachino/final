@@ -5,6 +5,7 @@ import { parseCid, parseString } from '../../../../hydration/util'
 import { Server } from '../../../../lexicon'
 import { QueryParams } from '../../../../lexicon/types/com/para/civic/listCabildeoPositions'
 import { clearlyBadCursor, resHeaders } from '../../../util'
+import { parseDataplaneJson } from './util'
 
 export default function (server: Server, ctx: AppContext) {
   server.com.para.civic.listCabildeoPositions({
@@ -44,7 +45,20 @@ const listCabildeoPositions = async (inputs: {
   })
 
   return {
-    positions: res.positions.map((position) => ({
+    positions: parseDataplaneJson<
+      Array<{
+        uri: string
+        cid: string
+        creator: string
+        indexedAt: string
+        cabildeo: string
+        stance: string
+        optionIndex?: number
+        text: string
+        compassQuadrant?: string
+        createdAt: string
+      }>
+    >(res.positionsJson, []).map((position) => ({
       uri: position.uri,
       cid: parseCidOrThrow(position.cid),
       creator: position.creator,

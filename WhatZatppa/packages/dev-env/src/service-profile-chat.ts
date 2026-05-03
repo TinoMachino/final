@@ -1,11 +1,6 @@
 import * as plc from '@did-plc/lib'
 import { Secp256k1Keypair } from '@atproto/crypto'
-
-// Static dev-only key so the local chat service publishes a stable DID.
-// This is a hex-encoded secp256k1 private key because Secp256k1Keypair.import()
-// expects hex strings in this workspace.
-const DEV_CHAT_PRIVATE_KEY =
-  '4f1de6ce4c3e8b25d4b91b7e7a0f0ad83e6f1e4cb51f2fe4d7d1c8f85d36f2ae'
+import { defaultDevIdentityProvider } from './identity'
 
 export class ChatServiceProfile {
   constructor(
@@ -22,7 +17,8 @@ export class ChatServiceProfile {
   }) {
     const plcClient = new plc.Client(opts.plcUrl)
     const key = await Secp256k1Keypair.import(
-      opts.privateKey ?? DEV_CHAT_PRIVATE_KEY,
+      opts.privateKey ??
+        (await defaultDevIdentityProvider.privateKeyHex('chat')),
     )
     const handle = opts.handle ?? 'chat.test'
 

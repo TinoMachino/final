@@ -1,6 +1,8 @@
 import { RecordRef, SeedClient } from './client'
+import { ParaSeedCheckpointRunner } from './para-checkpoints'
 
 export default async (sc: SeedClient) => {
+  const checkpoints = new ParaSeedCheckpointRunner(sc.network)
   const createdAt = () => new Date().toISOString()
   const login = async (identifier: string, password: string) => {
     const agent = sc.network.pds.getAgent()
@@ -181,7 +183,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('users')
 
   // Login all new users
   const userAgents: Record<string, any> = {}
@@ -390,7 +392,7 @@ export default async (sc: SeedClient) => {
     )
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('profiles')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  SOCIAL GRAPH  (realistic follows — clustered, not complete)
@@ -467,7 +469,7 @@ export default async (sc: SeedClient) => {
     if (from && to) await follow(from, to)
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('graph')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  VERIFICATIONS
@@ -498,7 +500,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('verifications')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  PARTY BOARDS  (8 major parties + independientes)
@@ -711,7 +713,7 @@ export default async (sc: SeedClient) => {
     })
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('partyCommunities')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  CIVIC COMMUNITIES  (12 topic-based)
@@ -833,7 +835,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('civicCommunities')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  CABILDEOS  (20 — rich variety across all phases)
@@ -1381,7 +1383,7 @@ export default async (sc: SeedClient) => {
     })
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('cabildeos')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  POSITIONS  (60+ rich stances across cabildeos)
@@ -1947,7 +1949,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('positions')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  VOTES  (200+ — realistic weighted distributions)
@@ -2033,7 +2035,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('votes')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  DELEGATIONS  (25 — complex graph)
@@ -2255,7 +2257,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('delegations')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  POSTS  (80+ — all types with cross-party interactions)
@@ -2757,7 +2759,7 @@ export default async (sc: SeedClient) => {
     )
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('posts')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  ENGAGEMENT  (likes, reposts, replies, bookmarks)
@@ -2956,7 +2958,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('engagement')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  HIGHLIGHTS / ANNOTATIONS
@@ -3100,7 +3102,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('highlights')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  LIVE SESSIONS  (3 active cabildeo live sessions)
@@ -3191,7 +3193,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('liveSessions')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  LISTS  (5 curated lists)
@@ -3274,7 +3276,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('lists')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  POST META (scores and engagement tracking)
@@ -3313,7 +3315,7 @@ export default async (sc: SeedClient) => {
     }
   }
 
-  await sc.network.processAll()
+  await checkpoints.flush('postMeta')
 
   // ═══════════════════════════════════════════════════════════════════════
   //  SUMMARY
@@ -3372,7 +3374,13 @@ export default async (sc: SeedClient) => {
     `║  Verifications:      8   (politicians, journalists, academics)       ║`,
   )
   console.log(
+    `║  Checkpoints:        ${checkpoints.summary().checkpointCount.toString().padEnd(2)}  (named write/process phases completed)              ║`,
+  )
+  console.log(
     '╚══════════════════════════════════════════════════════════════════════╝',
   )
   console.log('')
+  console.log(
+    `Para demo checkpoints: ${JSON.stringify(checkpoints.summary(), null, 2)}`,
+  )
 }

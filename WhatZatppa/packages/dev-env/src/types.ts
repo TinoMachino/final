@@ -12,6 +12,7 @@ export type IntrospectConfig = {
 export type PlcConfig = {
   port?: number
   version?: string
+  dataDirectory?: string
 }
 
 export type PdsConfig = Partial<pds.ServerEnvironment> & {

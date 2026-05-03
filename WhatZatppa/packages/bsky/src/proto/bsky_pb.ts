@@ -3901,6 +3901,11 @@ export class ActorInfo extends Message<ActorInfo> {
    */
   allowGroupChatInvitesFrom = "";
 
+  /**
+   * @generated from field: string cabildeo_live_json = 23;
+   */
+  cabildeoLiveJson = "";
+
   constructor(data?: PartialMessage<ActorInfo>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3930,6 +3935,7 @@ export class ActorInfo extends Message<ActorInfo> {
     { no: 19, name: "age_assurance_status", kind: "message", T: AgeAssuranceStatus, opt: true },
     { no: 21, name: "germ_record", kind: "message", T: Record },
     { no: 22, name: "allow_group_chat_invites_from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 23, name: "cabildeo_live_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ActorInfo {
@@ -12646,11 +12652,14 @@ export class GetParaCabildeosRequest extends Message<GetParaCabildeosRequest> {
  */
 export class GetParaCabildeosResponse extends Message<GetParaCabildeosResponse> {
   /**
-   * items are complex objects returned as plain JSON
-   *
    * @generated from field: string cursor = 1;
    */
   cursor = "";
+
+  /**
+   * @generated from field: string items_json = 2;
+   */
+  itemsJson = "";
 
   constructor(data?: PartialMessage<GetParaCabildeosResponse>) {
     super();
@@ -12661,6 +12670,7 @@ export class GetParaCabildeosResponse extends Message<GetParaCabildeosResponse> 
   static readonly typeName = "bsky.GetParaCabildeosResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "items_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaCabildeosResponse {
@@ -12724,11 +12734,14 @@ export class GetParaCabildeoRequest extends Message<GetParaCabildeoRequest> {
 }
 
 /**
- * cabildeo is a complex object returned as plain JSON
- *
  * @generated from message bsky.GetParaCabildeoResponse
  */
 export class GetParaCabildeoResponse extends Message<GetParaCabildeoResponse> {
+  /**
+   * @generated from field: string cabildeo_json = 1;
+   */
+  cabildeoJson = "";
+
   constructor(data?: PartialMessage<GetParaCabildeoResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -12737,6 +12750,7 @@ export class GetParaCabildeoResponse extends Message<GetParaCabildeoResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "bsky.GetParaCabildeoResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cabildeo_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaCabildeoResponse {
@@ -12816,11 +12830,14 @@ export class GetParaCabildeoPositionsRequest extends Message<GetParaCabildeoPosi
  */
 export class GetParaCabildeoPositionsResponse extends Message<GetParaCabildeoPositionsResponse> {
   /**
-   * positions are complex objects returned as plain JSON
-   *
    * @generated from field: string cursor = 1;
    */
   cursor = "";
+
+  /**
+   * @generated from field: string positions_json = 2;
+   */
+  positionsJson = "";
 
   constructor(data?: PartialMessage<GetParaCabildeoPositionsResponse>) {
     super();
@@ -12831,6 +12848,7 @@ export class GetParaCabildeoPositionsResponse extends Message<GetParaCabildeoPos
   static readonly typeName = "bsky.GetParaCabildeoPositionsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "positions_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaCabildeoPositionsResponse {
@@ -12926,6 +12944,11 @@ export class GetParaDelegationCandidatesResponse extends Message<GetParaDelegati
    */
   cursor = "";
 
+  /**
+   * @generated from field: string candidates_json = 2;
+   */
+  candidatesJson = "";
+
   constructor(data?: PartialMessage<GetParaDelegationCandidatesResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -12935,6 +12958,7 @@ export class GetParaDelegationCandidatesResponse extends Message<GetParaDelegati
   static readonly typeName = "bsky.GetParaDelegationCandidatesResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "cursor", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "candidates_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetParaDelegationCandidatesResponse {

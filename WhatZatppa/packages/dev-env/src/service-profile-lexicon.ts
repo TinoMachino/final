@@ -78,22 +78,37 @@ export class LexiconAuthorityProfile extends ServiceProfile {
     },
   ) {
     const agent = pds.getAgent()
-    await agent.createAccount(userDetails)
+    try {
+      await agent.createAccount(userDetails)
+    } catch (e: any) {
+      if (
+        e.status === 400 &&
+        e.error === 'InvalidRequest' &&
+        e.message?.includes('Handle already taken')
+      ) {
+        await agent.login({
+          identifier: userDetails.handle,
+          password: userDetails.password,
+        })
+      } else {
+        throw e
+      }
+    }
 
     return new LexiconAuthorityProfile(pds, agent, userDetails)
   }
 
   async createRecords() {
-    await this.agent.app.bsky.actor.profile.create(
-      { repo: this.did },
-      {
+    await this.agent.upsertProfile((prev) => {
+      return {
+        ...prev,
         displayName: 'Lexicon Authority',
         description: `the repo containing all the lexicons that can be resolved in dev`,
-      },
-    )
+      }
+    })
 
     for (const doc of LEXICONS) {
-      await this.agent.com.atproto.repo.createRecord({
+      await this.agent.com.atproto.repo.putRecord({
         repo: this.did,
         collection: 'com.atproto.lexicon.schema',
         rkey: doc.id,

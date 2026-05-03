@@ -83,7 +83,10 @@ export const buildDevEnvRuntimeConfig = (
         port: bskyPort,
         publicUrl: bskyPublicUrl,
       },
-      plc: { port: plcPort },
+      plc: {
+        port: plcPort,
+        dataDirectory: envStr(env, 'DEV_ENV_PLC_DIRECTORY'),
+      },
       chat: { port: chatPort },
       ozone: {
         port: ozonePort,

@@ -1,6 +1,7 @@
 import { AtpAgent } from '@atproto/api'
 import { Secp256k1Keypair } from '@atproto/crypto'
 import { TestPds } from './pds'
+import { defaultDevIdentityProvider } from './identity'
 import {
   ServiceMigrationOptions,
   ServiceProfile,
@@ -18,9 +19,24 @@ export class OzoneServiceProfile extends ServiceProfile {
     },
   ) {
     const agent = pds.getAgent()
-    await agent.createAccount(userDetails)
+    try {
+      await agent.createAccount(userDetails)
+    } catch (e: any) {
+      if (
+        e.status === 400 &&
+        e.error === 'InvalidRequest' &&
+        e.message?.includes('Handle already taken')
+      ) {
+        await agent.login({
+          identifier: userDetails.handle,
+          password: userDetails.password,
+        })
+      } else {
+        throw e
+      }
+    }
 
-    const key = await Secp256k1Keypair.create({ exportable: true })
+    const key = await defaultDevIdentityProvider.keypair('ozone')
 
     return new OzoneServiceProfile(pds, agent, userDetails, ozoneUrl, key)
   }
@@ -36,6 +52,13 @@ export class OzoneServiceProfile extends ServiceProfile {
   }
 
   async createAppPasswordForVerification() {
+    try {
+      await this.agent.com.atproto.server.revokeAppPassword({
+        name: 'ozone-verifier',
+      })
+    } catch (e) {
+      // Ignore errors if it doesn't exist
+    }
     const { data } = await this.agent.com.atproto.server.createAppPassword({
       name: 'ozone-verifier',
     })
@@ -60,17 +83,19 @@ export class OzoneServiceProfile extends ServiceProfile {
   }
 
   async createRecords() {
-    await this.agent.app.bsky.actor.profile.create(
-      { repo: this.did },
-      {
+    await this.agent.upsertProfile((prev) => {
+      return {
+        ...prev,
         displayName: 'Dev-env Moderation',
         description: `The pretend version of mod.bsky.app`,
-      },
-    )
+      }
+    })
 
-    await this.agent.app.bsky.labeler.service.create(
-      { repo: this.did, rkey: 'self' },
-      {
+    await this.agent.com.atproto.repo.putRecord({
+      repo: this.did,
+      collection: 'app.bsky.labeler.service',
+      rkey: 'self',
+      record: {
         policies: {
           labelValues: [
             '!hide',
@@ -370,6 +395,6 @@ export class OzoneServiceProfile extends ServiceProfile {
         },
         createdAt: new Date().toISOString(),
       },
-    )
+    })
   }
 }

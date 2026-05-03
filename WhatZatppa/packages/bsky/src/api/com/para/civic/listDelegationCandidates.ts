@@ -6,6 +6,7 @@ import { parseString } from '../../../../hydration/util'
 import { Server } from '../../../../lexicon'
 import { QueryParams } from '../../../../lexicon/types/com/para/civic/listDelegationCandidates'
 import { resHeaders } from '../../../util'
+import { parseDataplaneJson } from './util'
 
 export default function (server: Server, ctx: AppContext) {
   server.com.para.civic.listDelegationCandidates({
@@ -61,7 +62,20 @@ const listDelegationCandidates = async ({
     })
 
   return {
-    candidates: res.candidates.map((candidate) => {
+    candidates: parseDataplaneJson<
+      Array<{
+        did: string
+        handle?: string
+        displayName?: string
+        avatar?: string
+        description?: string
+        roles: string[]
+        activeDelegationCount: number
+        hasVoted: boolean
+        votedAt?: string
+        selectedOption?: number
+      }>
+    >(res.candidatesJson, []).map((candidate) => {
       const handle = parseString(candidate.handle)
       const displayName = parseString(candidate.displayName)
       const avatar = parseString(candidate.avatar)

@@ -153,8 +153,25 @@ export class SeedClient<
       inviteCode?: string
     },
   ) {
-    const { data: account } =
-      await this.agent.com.atproto.server.createAccount(params)
+    let account
+    try {
+      const res = await this.agent.com.atproto.server.createAccount(params)
+      account = res.data
+    } catch (e: any) {
+      if (
+        e.status === 400 &&
+        e.error === 'InvalidRequest' &&
+        e.message?.includes('Handle already taken')
+      ) {
+        const res = await this.agent.login({
+          identifier: params.handle,
+          password: params.password,
+        })
+        account = res.data
+      } else {
+        throw e
+      }
+    }
     const did = account.did as DidString
     this.dids[shortName] = did
     this.accounts[account.did] = {

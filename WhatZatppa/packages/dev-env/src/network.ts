@@ -17,11 +17,14 @@ import { OzoneServiceProfile } from './service-profile-ozone'
 import { TestServerParams } from './types'
 import { mockNetworkUtilities } from './util'
 import { withoutPersistentPdsStorage } from './config'
+import { createDevEnvManifest, type DevEnvManifest } from './manifest'
 
 const ADMIN_USERNAME = 'admin'
 const ADMIN_PASSWORD = 'admin-pass'
 
 export class TestNetwork extends TestNetworkNoAppView {
+  manifest?: DevEnvManifest
+
   constructor(
     public plc: TestPlc,
     public pds: TestPds,
@@ -86,9 +89,6 @@ export class TestNetwork extends TestNetworkNoAppView {
       redisHost,
       modServiceDid: ozoneServiceProfile.did,
       labelsFromIssuerDids: [ozoneServiceProfile.did, EXAMPLE_LABELER],
-      // Using a static private key results in a static DID, which is useful for e2e tests with the social-app repo.
-      privateKey:
-        '3f916c70dc69e4c5e83877f013325b11ecac31742e6a42f5c4fb240d0703d9d5=',
       ...params.bsky,
     })
 
@@ -165,7 +165,13 @@ export class TestNetwork extends TestNetworkNoAppView {
       )
     }
 
-    return new TestNetwork(plc, pds, chat, bsky, ozone, introspect)
+    const network = new TestNetwork(plc, pds, chat, bsky, ozone, introspect)
+    network.manifest = createDevEnvManifest(network, {
+      networkParams: params,
+      skipMockSetup: false,
+      skipParaDemoSeed: false,
+    })
+    return network
   }
 
   async processFullSubscription(timeout = 60000) {

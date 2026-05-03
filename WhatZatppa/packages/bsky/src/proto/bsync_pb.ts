@@ -92,7 +92,6 @@ export class MuteOperation extends Message<MuteOperation> {
     return proto3.util.equals(MuteOperation, a, b);
   }
 }
-
 /**
  * @generated from enum bsync.MuteOperation.Type
  */

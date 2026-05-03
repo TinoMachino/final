@@ -4,7 +4,7 @@ import { AppContext } from '../../../../context'
 import { parseCid, parseString } from '../../../../hydration/util'
 import { Server } from '../../../../lexicon'
 import { QueryParams } from '../../../../lexicon/types/com/para/civic/getCabildeo'
-import { getVisibleParticipantDids } from './util'
+import { getVisibleParticipantDids, parseDataplaneJson } from './util'
 import { resHeaders } from '../../../util'
 
 export default function (server: Server, ctx: AppContext) {
@@ -42,11 +42,15 @@ const getCabildeo = async (inputs: {
     viewerDid: viewer ?? '',
   })
 
-  if (!res.cabildeo) {
+  const cabildeoView = parseDataplaneJson<
+    Parameters<typeof mapCabildeoView>[0] | undefined
+  >(res.cabildeoJson, undefined)
+
+  if (!cabildeoView) {
     throw new InvalidRequestError('Cabildeo not found', 'NotFound')
   }
 
-  const cabildeo = mapCabildeoView(res.cabildeo)
+  const cabildeo = mapCabildeoView(cabildeoView)
   const visiblePreviewDids = await getVisibleParticipantDids({
     ctx,
     dids: cabildeo.liveSession?.participantPreviewDids ?? [],

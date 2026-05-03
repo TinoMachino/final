@@ -77,7 +77,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     )
 
     return {
-      items: views,
+      itemsJson: JSON.stringify(views),
       cursor: keyset.packFromResult(rows),
     }
   },
@@ -95,7 +95,9 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     }
 
     return {
-      cabildeo: await mapCabildeoRow(db, row, req.viewerDid || undefined, now),
+      cabildeoJson: JSON.stringify(
+        await mapCabildeoRow(db, row, req.viewerDid || undefined, now),
+      ),
     }
   },
 
@@ -124,21 +126,23 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
 
     const positions = await builder.execute()
     return {
-      positions: positions.map((position) => ({
-        uri: position.uri,
-        cid: position.cid,
-        creator: position.creator,
-        indexedAt: position.indexedAt,
-        cabildeo: position.cabildeo,
-        stance: position.stance,
-        optionIndex:
-          typeof position.optionIndex === 'number'
-            ? position.optionIndex
-            : undefined,
-        text: position.text,
-        compassQuadrant: position.compassQuadrant ?? '',
-        createdAt: position.createdAt,
-      })),
+      positionsJson: JSON.stringify(
+        positions.map((position) => ({
+          uri: position.uri,
+          cid: position.cid,
+          creator: position.creator,
+          indexedAt: position.indexedAt,
+          cabildeo: position.cabildeo,
+          stance: position.stance,
+          optionIndex:
+            typeof position.optionIndex === 'number'
+              ? position.optionIndex
+              : undefined,
+          text: position.text,
+          compassQuadrant: position.compassQuadrant ?? '',
+          createdAt: position.createdAt,
+        })),
+      ),
       cursor: keyset.packFromResult(positions),
     }
   },
@@ -151,7 +155,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
       .executeTakeFirst()
 
     if (!cabildeo) {
-      return { candidates: [], cursor: '' }
+      return { candidatesJson: '[]', cursor: '' }
     }
 
     const board = await selectCandidateCommunityBoard(
@@ -183,7 +187,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
 
     let dids = [...rolesByDid.keys()]
     if (dids.length === 0) {
-      return { candidates: [], cursor: '' }
+      return { candidatesJson: '[]', cursor: '' }
     }
 
     // Hard cap to prevent unbounded memory usage during in-memory sort/hydration
@@ -234,7 +238,7 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
     const nextOffset = offset + page.length
 
     return {
-      candidates: page,
+      candidatesJson: JSON.stringify(page),
       cursor:
         nextOffset < candidates.length && offset < MAX_DELEGATION_CANDIDATES
           ? encodeOffsetCursor(nextOffset)

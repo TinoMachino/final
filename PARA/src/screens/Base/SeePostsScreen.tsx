@@ -10,22 +10,22 @@ import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
 import * as Layout from '#/components/Layout'
+import {RedditVoteButton} from '#/components/PostControls/VoteButton'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'SeePosts'>
 
 type PostEntry = {
   id: string
-  category: 'post' | 'para' | 'highlight' | 'reply'
+  category: 'post' | 'highlight' | 'reply'
   text: string
   upvotes: number
   downvotes: number
   quotes: number
   replies: number
-  influence: number
   date: string
+  viewerVote: 'upvote' | 'downvote' | 'none'
 }
 
-// Mock data sorted by influence descending
 const POST_ENTRIES: PostEntry[] = [
   {
     id: '1',
@@ -35,19 +35,19 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 17,
     quotes: 23,
     replies: 34,
-    influence: 142,
     date: '2025-01-15',
+    viewerVote: 'upvote',
   },
   {
     id: '2',
-    category: 'para',
+    category: 'post',
     text: 'Education Reform Bill analysis — what the proposal gets right and where it falls short for rural communities.',
     upvotes: 48,
     downvotes: 8,
     quotes: 14,
     replies: 22,
-    influence: 98,
     date: '2025-01-14',
+    viewerVote: 'none',
   },
   {
     id: '3',
@@ -57,8 +57,8 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 6,
     quotes: 12,
     replies: 18,
-    influence: 67,
     date: '2025-01-08',
+    viewerVote: 'upvote',
   },
   {
     id: '4',
@@ -68,8 +68,8 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 4,
     quotes: 8,
     replies: 8,
-    influence: 54,
     date: '2025-01-12',
+    viewerVote: 'none',
   },
   {
     id: '5',
@@ -79,19 +79,19 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 5,
     quotes: 5,
     replies: 15,
-    influence: 48,
     date: '2025-01-12',
+    viewerVote: 'downvote',
   },
   {
     id: '6',
-    category: 'para',
+    category: 'highlight',
     text: 'Water industry privatization threatens access for low-income communities — breaking down the numbers.',
     upvotes: 18,
     downvotes: 2,
     quotes: 7,
     replies: 11,
-    influence: 31,
     date: '2025-01-05',
+    viewerVote: 'none',
   },
   {
     id: '7',
@@ -101,8 +101,8 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 3,
     quotes: 4,
     replies: 9,
-    influence: 25,
     date: '2024-12-22',
+    viewerVote: 'none',
   },
   {
     id: '8',
@@ -112,19 +112,19 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 2,
     quotes: 2,
     replies: 6,
-    influence: 22,
     date: '2025-01-03',
+    viewerVote: 'upvote',
   },
   {
     id: '9',
-    category: 'para',
+    category: 'post',
     text: 'Plastic ban initiative — comparing implementation strategies from other regions and what works best.',
     upvotes: 10,
     downvotes: 2,
     quotes: 5,
     replies: 4,
-    influence: 18,
     date: '2024-12-18',
+    viewerVote: 'none',
   },
   {
     id: '10',
@@ -134,52 +134,89 @@ const POST_ENTRIES: PostEntry[] = [
     downvotes: 1,
     quotes: 3,
     replies: 3,
-    influence: 15,
     date: '2024-12-28',
+    viewerVote: 'none',
   },
 ]
 
 const CATEGORY_CONFIG = {
-  post: {label: 'Post', color: '#3B82F6'},
-  para: {label: 'Para', color: '#8B5CF6'},
-  highlight: {label: 'Highlight', color: '#F59E0B'},
+  post: {label: 'Post', color: '#4B5563'},
+  highlight: {label: 'Highlight', color: '#B45309'},
   reply: {label: 'Reply', color: '#6B7280'},
+}
+
+type PostFilter = 'all' | PostEntry['category']
+type VoteState = PostEntry['viewerVote']
+
+function TypePill({category}: {category: PostEntry['category']}) {
+  const config = CATEGORY_CONFIG[category]
+
+  return (
+    <View
+      style={[
+        styles.typePill,
+        {
+          backgroundColor: config.color,
+          borderColor: config.color,
+        },
+      ]}>
+      <Text style={styles.typePillText}>{config.label}</Text>
+    </View>
+  )
 }
 
 export function SeePostsScreen({}: Props) {
   const t = useTheme()
   const pal = usePalette('default')
   const {_} = useLingui()
-  const [filter, setFilter] = useState<
-    'all' | 'post' | 'para' | 'highlight' | 'reply'
-  >('all')
+  const [filter, setFilter] = useState<PostFilter>('all')
+  const [localVotes, setLocalVotes] = useState<Record<string, VoteState>>({})
+
+  const entries = POST_ENTRIES.map(entry => {
+    const viewerVote = localVotes[entry.id] ?? entry.viewerVote
+    const baseScore = entry.upvotes - entry.downvotes
+    const initialVoteImpact =
+      entry.viewerVote === 'upvote'
+        ? 1
+        : entry.viewerVote === 'downvote'
+          ? -1
+          : 0
+    const localVoteImpact =
+      viewerVote === 'upvote' ? 1 : viewerVote === 'downvote' ? -1 : 0
+
+    return {
+      ...entry,
+      viewerVote,
+      score: baseScore - initialVoteImpact + localVoteImpact,
+    }
+  })
 
   const filtered =
     filter === 'all'
-      ? POST_ENTRIES
-      : POST_ENTRIES.filter(e => e.category === filter)
+      ? entries
+      : entries.filter(e => e.category === filter)
 
-  // Always sorted by influence descending
-  const sorted = [...filtered].sort((a, b) => b.influence - a.influence)
+  const sorted = [...filtered].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  )
 
-  const totalUpvotes = POST_ENTRIES.reduce((s, e) => s + e.upvotes, 0)
-  const totalDownvotes = POST_ENTRIES.reduce((s, e) => s + e.downvotes, 0)
-  const totalQuotes = POST_ENTRIES.reduce((s, e) => s + e.quotes, 0)
-  const totalReplies = POST_ENTRIES.reduce((s, e) => s + e.replies, 0)
+  const totalQuotes = entries.reduce((s, e) => s + e.quotes, 0)
+  const totalReplies = entries.reduce((s, e) => s + e.replies, 0)
+  const conversationTotal = totalQuotes + totalReplies
+  const postCount = entries.filter(e => e.category === 'post').length
+  const highlightCount = entries.filter(e => e.category === 'highlight').length
+  const replyCount = entries.filter(e => e.category === 'reply').length
 
-  const filters: Array<'all' | 'post' | 'para' | 'highlight' | 'reply'> = [
-    'all',
-    'post',
-    'para',
-    'highlight',
-    'reply',
-  ]
+  const filters: PostFilter[] = ['all', 'post', 'highlight', 'reply']
   const filterLabels = {
     all: 'All',
     post: 'Posts',
-    para: 'Para',
     highlight: 'Highlights',
     reply: 'Replies',
+  }
+
+  const handleVote = (id: string, nextVote: VoteState) => {
+    setLocalVotes(prev => ({...prev, [id]: nextVote}))
   }
 
   return (
@@ -198,97 +235,52 @@ export function SeePostsScreen({}: Props) {
         <ScrollView
           style={styles.container}
           contentContainerStyle={styles.content}>
-          {/* Hero Card */}
-          <View
-            style={[styles.heroCard, {backgroundColor: t.palette.primary_500}]}>
-            <Text style={styles.heroLabel}>Total Posts</Text>
-            <Text style={styles.heroValue}>{POST_ENTRIES.length}</Text>
-            <View style={styles.heroStats}>
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>
-                  {POST_ENTRIES.filter(e => e.category === 'post').length}
-                </Text>
-                <Text style={styles.heroStatLabel}>Posts</Text>
-              </View>
-              <View style={styles.heroDivider} />
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>
-                  {POST_ENTRIES.filter(e => e.category === 'para').length}
-                </Text>
-                <Text style={styles.heroStatLabel}>Para</Text>
-              </View>
-              <View style={styles.heroDivider} />
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>
-                  {POST_ENTRIES.filter(e => e.category === 'highlight').length}
-                </Text>
-                <Text style={styles.heroStatLabel}>Highlights</Text>
-              </View>
-              <View style={styles.heroDivider} />
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>
-                  {POST_ENTRIES.filter(e => e.category === 'reply').length}
-                </Text>
-                <Text style={styles.heroStatLabel}>Replies</Text>
-              </View>
-            </View>
+          <View style={styles.screenIntro}>
+            <Text style={[styles.screenTitle, pal.text]}>
+              Your post ledger
+            </Text>
+            <Text style={[styles.screenSubtitle, t.atoms.text_contrast_medium]}>
+              Ranked posts, highlights, and replies with the same voting
+              controls used across the app.
+            </Text>
           </View>
 
-          {/* Engagement Breakdown */}
-          <View style={[styles.engagementCard, pal.border]}>
-            <Text style={[styles.engagementLabel, pal.text]}>
-              <Trans>Engagement</Trans>
-            </Text>
-            <View style={styles.engagementRow}>
-              <View style={styles.engagementItem}>
-                <Text style={[styles.engagementValue, {color: '#10B981'}]}>
-                  {totalUpvotes}
+          <View
+            style={[
+              styles.overviewCard,
+              pal.border,
+              {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+            ]}>
+            <View style={styles.overviewTop}>
+              <View>
+                <Text style={[styles.overviewKicker, t.atoms.text_contrast_medium]}>
+                  Library
                 </Text>
-                <Text style={[styles.engagementItemLabel, pal.textLight]}>
-                  Upvotes
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.engagementDivider,
-                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
-                ]}
-              />
-              <View style={styles.engagementItem}>
-                <Text style={[styles.engagementValue, {color: '#EF4444'}]}>
-                  {totalDownvotes}
-                </Text>
-                <Text style={[styles.engagementItemLabel, pal.textLight]}>
-                  Downvotes
+                <Text style={[styles.overviewValue, pal.text]}>
+                  {entries.length} items
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.engagementDivider,
-                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
-                ]}
-              />
-              <View style={styles.engagementItem}>
-                <Text style={[styles.engagementValue, {color: '#8B5CF6'}]}>
-                  {totalQuotes}
+              <View style={styles.overviewRight}>
+                <Text style={[styles.overviewKicker, t.atoms.text_contrast_medium]}>
+                  Conversation
                 </Text>
-                <Text style={[styles.engagementItemLabel, pal.textLight]}>
-                  Quotes
+                <Text style={[styles.overviewValue, {color: '#474652'}]}>
+                  {conversationTotal}
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.engagementDivider,
-                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
-                ]}
-              />
-              <View style={styles.engagementItem}>
-                <Text style={[styles.engagementValue, {color: '#3B82F6'}]}>
-                  {totalReplies}
-                </Text>
-                <Text style={[styles.engagementItemLabel, pal.textLight]}>
-                  Replies
-                </Text>
+            </View>
+            <View style={styles.mixRow}>
+              <View style={styles.mixItem}>
+                <TypePill category="post" />
+                <Text style={[styles.mixCount, pal.text]}>{postCount}</Text>
+              </View>
+              <View style={styles.mixItem}>
+                <TypePill category="highlight" />
+                <Text style={[styles.mixCount, pal.text]}>{highlightCount}</Text>
+              </View>
+              <View style={styles.mixItem}>
+                <TypePill category="reply" />
+                <Text style={[styles.mixCount, pal.text]}>{replyCount}</Text>
               </View>
             </View>
           </View>
@@ -308,9 +300,16 @@ export function SeePostsScreen({}: Props) {
                 style={[
                   styles.filterChip,
                   pal.border,
+                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
                   filter === f && {
-                    backgroundColor: t.palette.primary_500,
-                    borderColor: t.palette.primary_500,
+                    backgroundColor:
+                      f === 'all'
+                        ? t.palette.primary_500
+                        : CATEGORY_CONFIG[f].color,
+                    borderColor:
+                      f === 'all'
+                        ? t.palette.primary_500
+                        : CATEGORY_CONFIG[f].color,
                   },
                 ]}
                 onPress={() => setFilter(f)}>
@@ -326,71 +325,57 @@ export function SeePostsScreen({}: Props) {
             ))}
           </ScrollView>
 
-          {/* Post Entries — sorted by influence */}
-          {sorted.map((entry, index) => (
-            <View key={entry.id} style={[styles.entryCard, pal.border]}>
+          {sorted.map(entry => (
+            <View
+              key={entry.id}
+              style={[
+                styles.entryCard,
+                pal.border,
+                {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+              ]}>
               <View style={styles.entryHeader}>
                 <View style={styles.entryMeta}>
-                  <View
+                  <TypePill category={entry.category} />
+                  <Text
                     style={[
-                      styles.typeBadge,
-                      {backgroundColor: CATEGORY_CONFIG[entry.category].color},
+                      styles.entryDate,
+                      t.atoms.text_contrast_medium,
                     ]}>
-                    <Text style={styles.typeBadgeText}>
-                      {CATEGORY_CONFIG[entry.category].label}
-                    </Text>
-                  </View>
-                  <Text style={[styles.entryDate, pal.textLight]}>
                     {entry.date}
-                  </Text>
-                </View>
-                <View style={styles.influenceBadge}>
-                  <Text
-                    style={[styles.rankNumber, {color: t.palette.primary_500}]}>
-                    #{index + 1}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.influenceValue,
-                      {color: t.palette.primary_500},
-                    ]}>
-                    +{entry.influence}
                   </Text>
                 </View>
               </View>
               <Text style={[styles.entryText, pal.text]} numberOfLines={3}>
                 {entry.text}
               </Text>
-              <View style={styles.entryFooter}>
-                <Text style={[styles.footerStat, {color: '#10B981'}]}>
-                  ▲ {entry.upvotes}
-                </Text>
-                <Text style={[styles.footerStat, {color: '#EF4444'}]}>
-                  ▼ {entry.downvotes}
-                </Text>
-                <Text style={[styles.footerStat, pal.textLight]}>
-                  {entry.quotes} quotes
-                </Text>
-                <Text style={[styles.footerStat, pal.textLight]}>
-                  {entry.replies} replies
-                </Text>
-              </View>
-              {/* Influence Bar */}
-              <View
-                style={[
-                  styles.influenceBarBg,
-                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
-                ]}>
-                <View
-                  style={[
-                    styles.influenceBarFill,
-                    {
-                      backgroundColor: CATEGORY_CONFIG[entry.category].color,
-                      width: `${Math.min((entry.influence / (sorted[0]?.influence || 1)) * 100, 100)}%`,
-                      opacity: 0.7,
-                    },
-                  ]}
+              <View style={styles.entryActions}>
+                <RedditVoteButton
+                  score={entry.score}
+                  currentVote={entry.viewerVote}
+                  hasBeenToggled={localVotes[entry.id] !== undefined}
+                  onUpvote={() =>
+                    handleVote(
+                      entry.id,
+                      entry.viewerVote === 'upvote' ? 'none' : 'upvote',
+                    )
+                  }
+                  onDownvote={() =>
+                    handleVote(
+                      entry.id,
+                      entry.viewerVote === 'downvote' ? 'none' : 'downvote',
+                    )
+                  }
                 />
+                <View style={styles.entryFooter}>
+                  <Text
+                    style={[styles.footerStat, t.atoms.text_contrast_medium]}>
+                    {entry.quotes} quotes
+                  </Text>
+                  <Text
+                    style={[styles.footerStat, t.atoms.text_contrast_medium]}>
+                    {entry.replies} replies
+                  </Text>
+                </View>
               </View>
             </View>
           ))}
@@ -408,79 +393,59 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-  heroCard: {
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
+  screenIntro: {
     marginBottom: 16,
+    gap: 4,
   },
-  heroLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  heroValue: {
-    color: '#fff',
-    fontSize: 56,
+  screenTitle: {
+    fontSize: 24,
     fontWeight: '800',
-    letterSpacing: -2,
-    marginVertical: 4,
   },
-  heroStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    gap: 16,
+  screenSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
   },
-  heroStatItem: {
-    alignItems: 'center',
-  },
-  heroStatValue: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  heroStatLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  heroDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  engagementCard: {
+  overviewCard: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     marginBottom: 16,
   },
-  engagementLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  engagementRow: {
+  overviewTop: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginBottom: 16,
   },
-  engagementItem: {
-    alignItems: 'center',
+  overviewRight: {
+    alignItems: 'flex-end',
   },
-  engagementValue: {
-    fontSize: 20,
+  overviewKicker: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    marginBottom: 3,
+  },
+  overviewValue: {
+    fontSize: 24,
     fontWeight: '800',
   },
-  engagementItemLabel: {
-    fontSize: 11,
-    marginTop: 2,
+  mixRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  engagementDivider: {
-    width: 1,
-    height: 30,
+  mixItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginRight: 6,
+  },
+  mixCount: {
+    fontSize: 14,
+    fontWeight: '800',
   },
   filtersScroll: {
     marginBottom: 16,
@@ -500,7 +465,7 @@ const styles = StyleSheet.create({
   },
   entryCard: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 14,
     marginBottom: 10,
   },
@@ -513,56 +478,44 @@ const styles = StyleSheet.create({
   entryMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    flexWrap: 'wrap',
     gap: 8,
   },
-  typeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  typePill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
   },
-  typeBadgeText: {
+  typePillText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   entryDate: {
     fontSize: 12,
   },
-  influenceBadge: {
+  entryText: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginBottom: 10,
+  },
+  entryActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  rankNumber: {
-    fontSize: 13,
-    fontWeight: '600',
-    opacity: 0.6,
-  },
-  influenceValue: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  entryText: {
-    fontSize: 14,
-    lineHeight: 20,
+    justifyContent: 'space-between',
+    gap: 12,
     marginBottom: 8,
   },
   entryFooter: {
     flexDirection: 'row',
-    gap: 14,
+    flexWrap: 'wrap',
+    gap: 12,
     marginBottom: 8,
   },
   footerStat: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  influenceBarBg: {
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  influenceBarFill: {
-    height: '100%',
-    borderRadius: 2,
   },
 })

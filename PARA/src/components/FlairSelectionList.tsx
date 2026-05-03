@@ -23,6 +23,13 @@ import {Text} from '#/components/Typography'
 
 type PostFlair = (typeof POST_FLAIRS)[keyof typeof POST_FLAIRS]
 
+const POLICY_COLOR = '#474652'
+const MATTER_COLOR = '#6B7280'
+
+function normalizeNewFlairName(value: string, mode: 'matter' | 'policy') {
+  return mode === 'policy' ? value.replace(/\./g, '') : value
+}
+
 interface FlairSelectionListProps {
   selectedFlairs: ComposerFlair[]
   setSelectedFlairs: (flairs: ComposerFlair[]) => void
@@ -135,9 +142,11 @@ export function FlairSelectionList({
 
   // --- Creation Logic (Only if allowCreation is true) ---
   const handleCreateConfirm = () => {
-    if (!newFlairText.trim()) return
+    const safeLabel = normalizeNewFlairName(newFlairText, mode).trim()
+    if (!safeLabel) return
 
     if (!showCategoryPicker) {
+      setNewFlairText(safeLabel)
       setShowCategoryPicker(true)
       return
     }
@@ -150,7 +159,6 @@ export function FlairSelectionList({
       finalCategory = 'Uncategorized'
     }
 
-    const safeLabel = newFlairText.trim()
     const idPrefix = mode === 'policy' ? 'policy_custom_' : 'matter_custom_'
     const tagPrefix = mode === 'policy' ? '||#' : '|#'
     const snakeLabel = safeLabel.toLowerCase().replace(/\s+/g, '_')
@@ -163,7 +171,7 @@ export function FlairSelectionList({
       id: `${idPrefix}${snakeLabel}_${customFlairCounter.current}`,
       label: safeLabel,
       tag: `${tagPrefix}${pascalLabel}`,
-      color: mode === 'policy' ? '#474652' : '#6B7280',
+      color: mode === 'policy' ? POLICY_COLOR : MATTER_COLOR,
       category: finalCategory,
     }
 
@@ -181,8 +189,7 @@ export function FlairSelectionList({
   }
 
   // Styling Helpers
-  const POLICY_COLOR = '#474652'
-  const HEADER_COLOR = mode === 'policy' ? POLICY_COLOR : '#6B7280'
+  const HEADER_COLOR = mode === 'policy' ? POLICY_COLOR : MATTER_COLOR
 
   const toggleCategory = (key: string, isUnofficial = false) => {
     if (isUnofficial) {
@@ -306,7 +313,9 @@ export function FlairSelectionList({
                       }
                       placeholderTextColor={t.atoms.text_contrast_medium.color}
                       value={newFlairText}
-                      onChangeText={setNewFlairText}
+                      onChangeText={value =>
+                        setNewFlairText(normalizeNewFlairName(value, mode))
+                      }
                       autoFocus
                       onSubmitEditing={handleCreateConfirm}
                     />

@@ -1,7 +1,7 @@
 import { ServiceImpl } from '@connectrpc/connect'
 import { Service } from '../../../proto/bsky_connect'
 import { Database } from '../db'
-import { TimeCidKeyset, paginate } from '../db/pagination'
+import { CreatedAtCidKeyset, TimeCidKeyset, paginate } from '../db/pagination'
 
 export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
   async getActorFeeds(req) {
@@ -31,13 +31,39 @@ export default (db: Database): Partial<ServiceImpl<typeof Service>> => ({
   },
 
   async getSuggestedFeeds(req) {
+    const hasSuggestedFeedCursor = /^\d+$/.test(req.cursor ?? '')
     const feeds = await db.db
       .selectFrom('suggested_feed')
       .orderBy('suggested_feed.order', 'asc')
-      .if(!!req.cursor, (q) => q.where('order', '>', parseInt(req.cursor, 10)))
+      .if(hasSuggestedFeedCursor, (q) =>
+        q.where('order', '>', parseInt(req.cursor, 10)),
+      )
       .limit(req.limit || 50)
       .selectAll()
       .execute()
+
+    if (feeds.length === 0 && (!req.cursor || !hasSuggestedFeedCursor)) {
+      const { ref } = db.db.dynamic
+      let builder = db.db
+        .selectFrom('feed_generator')
+        .select(['uri', 'createdAt', 'cid'])
+      const keyset = new CreatedAtCidKeyset(
+        ref('feed_generator.createdAt'),
+        ref('feed_generator.cid'),
+      )
+      builder = paginate(builder, {
+        limit: req.limit || 50,
+        cursor: hasSuggestedFeedCursor ? undefined : req.cursor,
+        keyset,
+      })
+      const feedGenerators = await builder.execute()
+
+      return {
+        uris: feedGenerators.map((f) => f.uri),
+        cursor: keyset.packFromResult(feedGenerators),
+      }
+    }
+
     return {
       uris: feeds.map((f) => f.uri),
       cursor: feeds.at(-1)?.order.toString(),

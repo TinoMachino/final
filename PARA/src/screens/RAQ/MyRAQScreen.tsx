@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native'
+import {ScrollView, StyleSheet, View} from 'react-native'
 import {Trans} from '@lingui/react/macro'
 import {useNavigation} from '@react-navigation/native'
 
@@ -20,9 +20,6 @@ export function MyRAQScreen() {
           <Layout.Header.TitleText>
             <Trans>My RAQ</Trans>
           </Layout.Header.TitleText>
-          <Layout.Header.SubtitleText>
-            <Trans>Your ideological alignment & results</Trans>
-          </Layout.Header.SubtitleText>
         </Layout.Header.Content>
       </Layout.Header.Outer>
 
@@ -71,11 +68,7 @@ export function MyRAQScreen() {
             <Text style={[styles.sectionTitle, t.atoms.text]}>
               Latest Results
             </Text>
-            <TouchableOpacity
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('RAQResults', {results: []})}
-              activeOpacity={0.8}
-              style={[styles.resultCard, t.atoms.bg_contrast_25]}>
+            <View style={[styles.resultCard, t.atoms.bg_contrast_25]}>
               <View style={styles.resultHeader}>
                 <Text
                   style={[styles.resultType, {color: t.palette.primary_500}]}>
@@ -92,17 +85,16 @@ export function MyRAQScreen() {
                 Based on your current progress, you lean towards decentralized
                 policy solutions.
               </Text>
-              <View
-                style={[
-                  styles.resultFooter,
-                  {borderTopColor: t.palette.contrast_100},
-                ]}>
-                <Text
-                  style={[styles.viewResults, {color: t.palette.primary_500}]}>
-                  View Full Breakdown →
-                </Text>
-              </View>
-            </TouchableOpacity>
+              <Button
+                label="View full breakdown"
+                onPress={() => navigation.navigate('RAQResults', {results: []})}
+                size="large"
+                variant="outline"
+                color="primary"
+                style={styles.resultButton}>
+                <ButtonText>View full breakdown</ButtonText>
+              </Button>
+            </View>
           </View>
 
           {/* Participation Section */}
@@ -126,12 +118,13 @@ export function MyRAQScreen() {
             </View>
 
             <Button
-              label="Explore Questions"
-              onPress={() => navigation.navigate('OpenQuestionsList')}
-              variant="ghost"
+              label="Manage proposed questions"
+              onPress={() => navigation.navigate('ProposedRAQList')}
+              size="large"
+              variant="solid"
               color="secondary"
-              style={styles.outlineButton}>
-              <ButtonText>Manage Proposed Questions</ButtonText>
+              style={styles.manageButton}>
+              <ButtonText>Manage proposed questions</ButtonText>
             </Button>
           </View>
         </Layout.Center>
@@ -199,8 +192,7 @@ const styles = StyleSheet.create({
   resultDate: {fontSize: 11, fontWeight: '600'},
   resultTitle: {fontSize: 17, fontWeight: '800', marginBottom: 4},
   resultDesc: {fontSize: 13, lineHeight: 18, marginBottom: 16},
-  resultFooter: {paddingTop: 12, borderTopWidth: 1},
-  viewResults: {fontSize: 13, fontWeight: '800'},
+  resultButton: {width: '100%', borderRadius: 14},
   participationRow: {flexDirection: 'row', gap: 12, marginBottom: 12},
   participationItem: {
     flex: 1,
@@ -217,5 +209,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: 2,
   },
-  outlineButton: {borderRadius: 14},
+  manageButton: {width: '100%', borderRadius: 14},
 })

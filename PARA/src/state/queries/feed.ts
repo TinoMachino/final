@@ -252,7 +252,6 @@ export function useGetPopularFeedsQuery(options?: GetPopularFeedsOptions) {
 
   const query = useInfiniteQuery({
     enabled:
-      !IS_LOCAL_DEV_MODE &&
       Boolean(moderationOpts) &&
       options?.enabled !== false,
     queryKey: createGetPopularFeedsQueryKey(options),
@@ -385,9 +384,6 @@ export function useSearchPopularFeedsMutation() {
 
   return useMutation({
     mutationFn: async (query: string) => {
-      if (IS_LOCAL_DEV_MODE) {
-        return []
-      }
       const res = await agent.app.bsky.unspecced.getPopularFeedGenerators({
         limit: 10,
         query: query,
@@ -420,8 +416,7 @@ export function usePopularFeedsSearch({
 }) {
   const agent = useAgent()
   const moderationOpts = useModerationOpts()
-  const enabledInner =
-    !IS_LOCAL_DEV_MODE && (enabled ?? Boolean(moderationOpts))
+  const enabledInner = enabled ?? Boolean(moderationOpts)
 
   return useQuery({
     enabled: enabledInner,

@@ -9,6 +9,7 @@ import {usePalette} from '#/lib/hooks/usePalette'
 import {type CommonNavigatorParams} from '#/lib/routes/types'
 import {Text} from '#/view/com/util/text/Text'
 import {useTheme} from '#/alf'
+import {CircleInfo_Stroke2_Corner0_Rounded as CircleInfo} from '#/components/icons/CircleInfo'
 import * as Layout from '#/components/Layout'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'SeeVotes'>
@@ -117,10 +118,15 @@ const VOTE_ENTRIES: VoteEntry[] = [
   },
 ]
 
+const POLICY_FLAIR_COLOR = '#474652'
+const MATTER_FLAIR_BORDER_LIGHT = '#000000'
+const MATTER_FLAIR_BORDER_DARK = '#FFFFFF'
+const POST_FLAIR_COLOR = '#4B5563'
+
 const CATEGORY_CONFIG = {
-  policy: {label: 'Policy', color: '#3B82F6'},
-  matter: {label: 'Matter', color: '#8B5CF6'},
-  post: {label: 'Post', color: '#F59E0B'},
+  policy: {label: 'Policy', marker: '||'},
+  matter: {label: 'Matter', marker: '|'},
+  post: {label: 'Post', marker: undefined},
 }
 
 const STATUS_CONFIG = {
@@ -140,6 +146,58 @@ function formatVote(vote: number): string {
   return `${vote}`
 }
 
+function VoteFlairBadge({category}: {category: VoteEntry['category']}) {
+  const t = useTheme()
+  const config = CATEGORY_CONFIG[category]
+  const isPolicy = category === 'policy'
+  const isMatter = category === 'matter'
+  const matterBorderColor =
+    t.scheme === 'light' ? MATTER_FLAIR_BORDER_LIGHT : MATTER_FLAIR_BORDER_DARK
+  const flairColor = isPolicy ? POLICY_FLAIR_COLOR : POST_FLAIR_COLOR
+
+  return (
+    <View style={styles.flairRow}>
+      {config.marker ? (
+        <View
+          style={[
+            styles.flairMarker,
+            isMatter
+              ? {
+                  backgroundColor: '#FFFFFF',
+                  borderColor: matterBorderColor,
+                }
+              : {
+                  backgroundColor: POLICY_FLAIR_COLOR,
+                  borderColor: POLICY_FLAIR_COLOR,
+                },
+          ]}>
+          <Text
+            style={[
+              styles.flairMarkerText,
+              {color: isMatter ? '#000000' : '#FFFFFF'},
+            ]}>
+            {config.marker}
+          </Text>
+        </View>
+      ) : null}
+      <View
+        style={[
+          styles.flairPill,
+          {
+            backgroundColor: isMatter ? '#FFFFFF' : flairColor,
+            borderColor: isMatter ? matterBorderColor : flairColor,
+            borderWidth: isMatter && t.scheme === 'light' ? 1 : 0,
+          },
+        ]}>
+        <Text
+          style={[styles.flairPillText, {color: isMatter ? '#000000' : '#fff'}]}>
+          {config.label}
+        </Text>
+      </View>
+    </View>
+  )
+}
+
 /** Renders a -3 to +3 scale bar for policy votes */
 function VoteScaleBar({
   vote,
@@ -148,7 +206,6 @@ function VoteScaleBar({
   vote: number
   communityAvg: number
 }) {
-  const pal = usePalette('default')
   const t = useTheme()
   // Scale: -3 to +3, center at 3 (index), total 7 positions
   const userPos = ((vote + 3) / 6) * 100
@@ -157,9 +214,15 @@ function VoteScaleBar({
   return (
     <View style={scaleStyles.container}>
       <View style={scaleStyles.labels}>
-        <Text style={[scaleStyles.labelText, pal.textLight]}>-3</Text>
-        <Text style={[scaleStyles.labelText, pal.textLight]}>0</Text>
-        <Text style={[scaleStyles.labelText, pal.textLight]}>+3</Text>
+        <Text style={[scaleStyles.labelText, t.atoms.text_contrast_medium]}>
+          -3
+        </Text>
+        <Text style={[scaleStyles.labelText, t.atoms.text_contrast_medium]}>
+          0
+        </Text>
+        <Text style={[scaleStyles.labelText, t.atoms.text_contrast_medium]}>
+          +3
+        </Text>
       </View>
       <View
         style={[
@@ -201,7 +264,7 @@ function VoteScaleBar({
               {backgroundColor: getVoteColor(vote)},
             ]}
           />
-          <Text style={[scaleStyles.legendText, pal.textLight]}>
+          <Text style={[scaleStyles.legendText, t.atoms.text_contrast_medium]}>
             You: {formatVote(vote)}
           </Text>
         </View>
@@ -209,7 +272,7 @@ function VoteScaleBar({
           <View
             style={[scaleStyles.legendDotOutline, {borderColor: '#F59E0B'}]}
           />
-          <Text style={[scaleStyles.legendText, pal.textLight]}>
+          <Text style={[scaleStyles.legendText, t.atoms.text_contrast_medium]}>
             Community: {communityAvg > 0 ? '+' : ''}
             {communityAvg.toFixed(1)}
           </Text>
@@ -227,7 +290,7 @@ function SimpleVoteIndicator({
   vote: number
   communityAvg: number
 }) {
-  const pal = usePalette('default')
+  const t = useTheme()
   const sameDirection =
     (vote > 0 && communityAvg > 0) || (vote < 0 && communityAvg < 0)
 
@@ -243,7 +306,7 @@ function SimpleVoteIndicator({
             {vote > 0 ? '▲ Upvote' : '▼ Downvote'}
           </Text>
         </View>
-        <Text style={[simpleStyles.communityText, pal.textLight]}>
+        <Text style={[simpleStyles.communityText, t.atoms.text_contrast_medium]}>
           Community: {communityAvg > 0 ? '+' : ''}
           {communityAvg.toFixed(1)}
         </Text>
@@ -260,6 +323,7 @@ export function SeeVotesScreen({}: Props) {
   const [filter, setFilter] = useState<'all' | 'policy' | 'matter' | 'post'>(
     'all',
   )
+  const [showInfo, setShowInfo] = useState(false)
 
   const filtered =
     filter === 'all'
@@ -308,31 +372,100 @@ export function SeeVotesScreen({}: Props) {
         <ScrollView
           style={styles.container}
           contentContainerStyle={styles.content}>
+          <View style={styles.screenIntro}>
+            <Text style={[styles.screenTitle, pal.text]}>Your vote ledger</Text>
+            <Text style={[styles.screenSubtitle, t.atoms.text_contrast_medium]}>
+              Recent policy stances, matter signals, and post votes in one
+              place.
+            </Text>
+          </View>
+
           {/* Summary Cards */}
           <View style={styles.summaryRow}>
-            <View style={[styles.summaryCard, {backgroundColor: '#10B981'}]}>
-              <Text style={styles.summaryCardValue}>{totalPositive}</Text>
-              <Text style={styles.summaryCardLabel}>Positive</Text>
-            </View>
-            <View style={[styles.summaryCard, {backgroundColor: '#EF4444'}]}>
-              <Text style={styles.summaryCardValue}>{totalNegative}</Text>
-              <Text style={styles.summaryCardLabel}>Negative</Text>
+            <View
+              style={[
+                styles.summaryCard,
+                pal.border,
+                {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+              ]}>
+              <Text style={[styles.summaryCardValue, {color: '#047857'}]}>
+                {totalPositive}
+              </Text>
+              <Text
+                style={[styles.summaryCardLabel, t.atoms.text_contrast_medium]}>
+                Positive
+              </Text>
             </View>
             <View
               style={[
                 styles.summaryCard,
-                {backgroundColor: t.palette.primary_500},
+                pal.border,
+                {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
               ]}>
-              <Text style={styles.summaryCardValue}>{alignmentRate}%</Text>
-              <Text style={styles.summaryCardLabel}>Aligned</Text>
+              <Text style={[styles.summaryCardValue, {color: '#B91C1C'}]}>
+                {totalNegative}
+              </Text>
+              <Text
+                style={[styles.summaryCardLabel, t.atoms.text_contrast_medium]}>
+                Negative
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.summaryCard,
+                pal.border,
+                {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+              ]}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={_(msg`Show aligned vote information`)}
+                accessibilityHint={_(
+                  msg`Explains how aligned votes are calculated`,
+                )}
+                onPress={() => setShowInfo(value => !value)}
+                style={[
+                  styles.alignedInfoButton,
+                  {
+                    borderColor: t.atoms.text_contrast_medium.color,
+                    backgroundColor: showInfo
+                      ? POLICY_FLAIR_COLOR
+                      : 'transparent',
+                  },
+                ]}>
+                <CircleInfo
+                  size="xs"
+                  fill={showInfo ? '#FFFFFF' : t.atoms.text.color}
+                />
+              </TouchableOpacity>
+              <Text
+                style={[styles.summaryCardValue, {color: POLICY_FLAIR_COLOR}]}>
+                {alignmentRate}%
+              </Text>
+              <Text
+                style={[styles.summaryCardLabel, t.atoms.text_contrast_medium]}>
+                Aligned
+              </Text>
+              {showInfo ? (
+                <Text style={[styles.alignedInfoCopy, t.atoms.text]}>
+                  Votes where your direction matches the community average.
+                </Text>
+              ) : null}
             </View>
           </View>
 
           {/* Policy Avg Stance */}
-          <View style={[styles.avgStanceCard, pal.border]}>
-            <Text style={[styles.avgStanceLabel, pal.text]}>
-              <Trans>Avg. Policy Stance</Trans>
-            </Text>
+          <View
+            style={[
+              styles.avgStanceCard,
+              pal.border,
+              {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+            ]}>
+            <View style={styles.avgStanceHeader}>
+              <VoteFlairBadge category="policy" />
+              <Text style={[styles.avgStanceLabel, pal.text]}>
+                <Trans>Avg. Policy Stance</Trans>
+              </Text>
+            </View>
             <View style={styles.avgStanceRow}>
               <Text
                 style={[
@@ -392,9 +525,22 @@ export function SeeVotesScreen({}: Props) {
                 style={[
                   styles.filterChip,
                   pal.border,
+                  {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
                   filter === f && {
-                    backgroundColor: t.palette.primary_500,
-                    borderColor: t.palette.primary_500,
+                    backgroundColor:
+                      f === 'policy'
+                        ? POLICY_FLAIR_COLOR
+                        : f === 'matter'
+                          ? '#FFFFFF'
+                          : t.palette.primary_500,
+                    borderColor:
+                      f === 'matter'
+                        ? t.scheme === 'light'
+                          ? '#000000'
+                          : '#FFFFFF'
+                        : f === 'policy'
+                          ? POLICY_FLAIR_COLOR
+                          : t.palette.primary_500,
                   },
                 ]}
                 onPress={() => setFilter(f)}>
@@ -402,7 +548,7 @@ export function SeeVotesScreen({}: Props) {
                   style={[
                     styles.filterChipText,
                     pal.text,
-                    filter === f && {color: '#fff'},
+                    filter === f && {color: f === 'matter' ? '#000' : '#fff'},
                   ]}>
                   {filterLabels[f]}
                 </Text>
@@ -412,18 +558,16 @@ export function SeeVotesScreen({}: Props) {
 
           {/* Vote Entries */}
           {filtered.map(entry => (
-            <View key={entry.id} style={[styles.voteCard, pal.border]}>
+            <View
+              key={entry.id}
+              style={[
+                styles.voteCard,
+                pal.border,
+                {backgroundColor: t.atoms.bg_contrast_25.backgroundColor},
+              ]}>
               <View style={styles.voteCardHeader}>
                 <View style={styles.voteCardMeta}>
-                  <View
-                    style={[
-                      styles.categoryBadge,
-                      {backgroundColor: CATEGORY_CONFIG[entry.category].color},
-                    ]}>
-                    <Text style={styles.categoryBadgeText}>
-                      {CATEGORY_CONFIG[entry.category].label}
-                    </Text>
-                  </View>
+                  <VoteFlairBadge category={entry.category} />
                   <View
                     style={[
                       styles.statusBadge,
@@ -568,6 +712,18 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
+  screenIntro: {
+    marginBottom: 16,
+    gap: 4,
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  screenSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
   summaryRow: {
     flexDirection: 'row',
     gap: 10,
@@ -575,31 +731,55 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   summaryCardValue: {
-    color: '#fff',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
   },
   summaryCardLabel: {
-    color: 'rgba(255,255,255,0.8)',
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
   },
+  alignedInfoButton: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alignedInfoCopy: {
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 8,
+    textAlign: 'center',
+  },
   avgStanceCard: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 16,
     marginBottom: 16,
+  },
+  avgStanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   avgStanceLabel: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
   },
   avgStanceRow: {
     flexDirection: 'row',
@@ -659,7 +839,7 @@ const styles = StyleSheet.create({
   },
   voteCard: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 8,
     padding: 14,
     marginBottom: 10,
   },
@@ -671,17 +851,10 @@ const styles = StyleSheet.create({
   },
   voteCardMeta: {
     flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    flexWrap: 'wrap',
     gap: 6,
-  },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  categoryBadgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -699,5 +872,30 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 10,
+  },
+  flairRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  flairMarker: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+  },
+  flairMarkerText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  flairPill: {
+    borderRadius: 999,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+  },
+  flairPillText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 })

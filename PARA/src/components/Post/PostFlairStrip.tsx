@@ -13,6 +13,8 @@ type PostFlairStripProps = {
   showHeader?: boolean
 }
 
+const POLICY_FLAIR_COLOR = '#474652'
+
 function getBadgeDescriptor(badge: PostBadge) {
   if (badge.kind === 'postType') {
     return null
@@ -78,6 +80,11 @@ export function PostFlairStrip({
         {badges.map(badge => {
           const descriptor = getBadgeDescriptor(badge)
           const isNavigable = isBadgeNavigable(badge)
+          const isMatter = badge.kind === 'matter'
+          const isPolicy = badge.kind === 'policy'
+          const matterBorderColor =
+            t.scheme === 'light' ? '#000000' : '#FFFFFF'
+          const badgeColor = isPolicy ? POLICY_FLAIR_COLOR : badge.color
 
           return (
             <Pressable
@@ -89,6 +96,11 @@ export function PostFlairStrip({
               accessibilityLabel={
                 isNavigable ? `Ver posts sobre ${badge.label}` : badge.label
               }
+              accessibilityHint={
+                isNavigable
+                  ? `Abre el feed de posts sobre ${badge.label}`
+                  : undefined
+              }
               style={({pressed}) => [
                 styles.badgeRow,
                 compact ? styles.badgeRowCompact : styles.badgeRowRegular,
@@ -99,14 +111,27 @@ export function PostFlairStrip({
                   style={[
                     styles.sigRail,
                     compact ? styles.sigRailCompact : styles.sigRailRegular,
-                    t.atoms.border_contrast_low,
-                    t.atoms.bg_contrast_25,
+                    isMatter
+                      ? {
+                          backgroundColor: '#FFFFFF',
+                          borderColor: matterBorderColor,
+                        }
+                      : isPolicy
+                        ? {
+                            backgroundColor: POLICY_FLAIR_COLOR,
+                            borderColor: POLICY_FLAIR_COLOR,
+                          }
+                      : [t.atoms.border_contrast_low, t.atoms.bg_contrast_25],
                   ]}>
                   <Text
                     style={[
                       styles.sigMarker,
                       compact && styles.sigMarkerCompact,
-                      t.atoms.text_contrast_medium,
+                      isMatter
+                        ? {color: '#000000'}
+                        : isPolicy
+                          ? {color: '#FFFFFF'}
+                          : t.atoms.text_contrast_medium,
                     ]}>
                     {descriptor.marker}
                   </Text>
@@ -117,14 +142,16 @@ export function PostFlairStrip({
                   styles.pill,
                   compact ? styles.pillCompact : styles.pillRegular,
                   {
-                    backgroundColor: badge.color,
+                    backgroundColor: isMatter ? '#FFFFFF' : badgeColor,
+                    borderColor: isMatter ? matterBorderColor : badgeColor,
+                    borderWidth: isMatter && t.scheme === 'light' ? 1 : 0,
                   },
                 ]}>
                 <Text
                   style={[
                     compact ? styles.labelCompact : styles.labelRegular,
                     {
-                      color: '#FFFFFF',
+                      color: isMatter ? '#000000' : '#FFFFFF',
                     },
                   ]}>
                   {badge.label}

@@ -50,7 +50,6 @@ import {atoms as a} from '#/alf'
 import {Heart2_Stroke1_Corner0_Rounded as HeartIcon} from '#/components/icons/Heart2'
 import {Image_Stroke1_Corner0_Rounded as ImageIcon} from '#/components/icons/Image'
 import {Message_Stroke1_Corner0_Rounded_Filled as MessageIcon} from '#/components/icons/Message'
-import {Shield_Stroke2_Corner0_Rounded as ShieldIcon} from '#/components/icons/Shield'
 import {VideoClip_Stroke1_Corner0_Rounded as VideoIcon} from '#/components/icons/VideoClip'
 import * as Layout from '#/components/Layout'
 import {ScreenHider} from '#/components/moderation/ScreenHider'
@@ -195,7 +194,6 @@ function ProfileScreenLoaded({
   const [scrollViewTag, setScrollViewTag] = useState<number | null>(null)
 
   const postsSectionRef = useRef<SectionRef>(null)
-  const paraSectionRef = useRef<SectionRef>(null)
   const votesSectionRef = useRef<SectionRef>(null)
   const raqSectionRef = useRef<SectionRef>(null)
   const highlightsSectionRef = useRef<SectionRef>(null)
@@ -242,7 +240,6 @@ function ProfileScreenLoaded({
   const hasLabeler = !!profile.associated?.labeler
   const showFiltersTab = hasLabeler
   const showPostsTab = true
-  const showParaTab = hasSession // Available to logged-in users
   const showRepliesTab = hasSession
   const showMediaTab = !hasLabeler
   const showVideosTab = !hasLabeler
@@ -261,7 +258,6 @@ function ProfileScreenLoaded({
     showFiltersTab ? _(msg`Labels`) : undefined,
     showListsTab && hasLabeler ? _(msg`Lists`) : undefined,
     showPostsTab ? _(msg`Posts`) : undefined,
-    showParaTab ? _(msg`Para`) : undefined,
     showHighlightsTab ? _(msg`Highlights`) : undefined, // Highlights higher prio
     showVotesTab ? _(msg`Votes`) : undefined,
     showRaqTab ? _(msg`RAQ`) : undefined,
@@ -276,7 +272,6 @@ function ProfileScreenLoaded({
   let nextIndex = 0
   let filtersIndex: number | null = null
   let postsIndex: number | null = null
-  let paraIndex: number | null = null
   let highlightsIndex: number | null = null
   let votesIndex: number | null = null
   let raqIndex: number | null = null
@@ -292,9 +287,6 @@ function ProfileScreenLoaded({
   }
   if (showPostsTab) {
     postsIndex = nextIndex++
-  }
-  if (showParaTab) {
-    paraIndex = nextIndex++
   }
   if (showHighlightsTab) {
     highlightsIndex = nextIndex++
@@ -330,8 +322,6 @@ function ProfileScreenLoaded({
         labelsSectionRef.current?.scrollToTop()
       } else if (index === postsIndex) {
         postsSectionRef.current?.scrollToTop()
-      } else if (index === paraIndex) {
-        paraSectionRef.current?.scrollToTop()
       } else if (index === highlightsIndex) {
         highlightsSectionRef.current?.scrollToTop()
       } else if (index === votesIndex) {
@@ -355,7 +345,6 @@ function ProfileScreenLoaded({
     [
       filtersIndex,
       postsIndex,
-      paraIndex,
       highlightsIndex,
       votesIndex,
       raqIndex,
@@ -472,32 +461,6 @@ function ProfileScreenLoaded({
                         label: _(msg`Write a post`),
                         text: _(msg`Write a post`),
                         onPress: () => openComposer({}),
-                        size: 'small',
-                        color: 'primary',
-                      }
-                    : undefined
-                }
-              />
-            )
-          : null}
-        {showParaTab
-          ? ({headerHeight, isFocused, scrollElRef}) => (
-              <ProfileFeedSection
-                ref={paraSectionRef}
-                feed={`para|${profile.did}`}
-                headerHeight={headerHeight}
-                isFocused={isFocused}
-                scrollElRef={scrollElRef as ListRef}
-                ignoreFilterFor={profile.did}
-                setScrollViewTag={setScrollViewTag}
-                emptyStateMessage={_(msg`No private posts yet`)}
-                emptyStateIcon={ShieldIcon}
-                emptyStateButton={
-                  isMe
-                    ? {
-                        label: _(msg`Write a private post`),
-                        text: _(msg`Write a private post`),
-                        onPress: () => openComposer({}), // Defaults to private anyway
                         size: 'small',
                         color: 'primary',
                       }

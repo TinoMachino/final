@@ -35,7 +35,6 @@ import {NoFollowingFeed} from '#/screens/Feeds/NoFollowingFeed'
 import {NoSavedFeedsOfAnyType} from '#/screens/Feeds/NoSavedFeedsOfAnyType'
 import {atoms as a, useTheme} from '#/alf'
 import {ButtonIcon} from '#/components/Button'
-import {Divider} from '#/components/Divider'
 import * as FeedCard from '#/components/FeedCard'
 import {SearchInput} from '#/components/forms/SearchInput'
 import {IconCircle} from '#/components/IconCircle'
@@ -111,6 +110,7 @@ type FlatlistSlice =
 
 export function FeedsScreen(_props: Props) {
   const pal = usePalette('default')
+  const t = useTheme()
   const {openComposer} = useOpenComposer()
   const {isMobile} = useWebMediaQueries()
   const [query, setQuery] = useState('')
@@ -472,9 +472,15 @@ export function FeedsScreen(_props: Props) {
         return <FeedFeedLoadingPlaceholder />
       } else if (item.type === 'popularFeed') {
         return (
-          <View style={[a.px_lg, a.pt_lg, a.gap_lg]}>
-            <FeedCard.Default view={item.feed} />
-            <Divider />
+          <View style={styles.feedCardShell}>
+            <View
+              style={[
+                styles.discoverFeedCard,
+                t.atoms.bg,
+                t.atoms.border_contrast_low,
+              ]}>
+              <FeedCard.Default view={item.feed} />
+            </View>
           </View>
         )
       } else if (item.type === 'popularFeedsNoResults') {
@@ -510,6 +516,8 @@ export function FeedsScreen(_props: Props) {
       pal.border,
       pal.textLight,
       query,
+      t.atoms.bg,
+      t.atoms.border_contrast_low,
       onChangeQuery,
       onPressCancelSearch,
       onSubmitQuery,
@@ -697,15 +705,27 @@ function PartyFeedsSection() {
   return (
     <View
       style={[partyStyles.section, a.border_b, t.atoms.border_contrast_low]}>
-      {/* Section header */}
       <View style={partyStyles.sectionHeader}>
-        <Text style={[partyStyles.eyebrow, {color: t.palette.primary_500}]}>
-          Live Feeds
-        </Text>
-        <Text style={[partyStyles.heading, t.atoms.text]}>
-          <Trans>Party Feeds</Trans>
-        </Text>
-        <Text style={[partyStyles.lead, t.atoms.text_contrast_medium]}>
+        <View style={partyStyles.headerTopline}>
+          <Text style={[partyStyles.eyebrow, {color: t.palette.primary_500}]}>
+            Live Feeds
+          </Text>
+          <View
+            style={[
+              partyStyles.headerRule,
+              {backgroundColor: t.palette.primary_500},
+            ]}
+          />
+        </View>
+        <View style={partyStyles.titleRow}>
+          <Text style={[partyStyles.heading, t.atoms.text]}>
+            <Trans>Party Feeds</Trans>
+          </Text>
+          <Text style={[partyStyles.countPill, t.atoms.text_contrast_medium]}>
+            {PARTY_FEED_PROFILES.length}
+          </Text>
+        </View>
+        <Text style={[partyStyles.lead, t.atoms.text_contrast_high]}>
           <Trans>
             Follow each political current as its own timeline, from party
             machines to the new Migala mycelium.
@@ -713,7 +733,6 @@ function PartyFeedsSection() {
         </Text>
       </View>
 
-      {/* 2-column card grid */}
       <View style={partyStyles.grid}>
         {PARTY_FEED_PROFILES.map(party => (
           <PartyCard key={party.id} party={party} />
@@ -725,6 +744,8 @@ function PartyFeedsSection() {
 
 function PartyCard({party}: {party: PartyFeedProfile}) {
   const t = useTheme()
+  const canonicalTint = `${party.color}14`
+  const canonicalSoft = `${party.color}24`
 
   return (
     <Link
@@ -737,31 +758,46 @@ function PartyCard({party}: {party: PartyFeedProfile}) {
           style={[
             partyStyles.card,
             t.atoms.bg,
-            {borderColor: t.palette.contrast_100},
-            (hovered || pressed) && {opacity: 0.82},
+            {
+              borderColor: hovered || pressed ? party.color : canonicalSoft,
+              backgroundColor: hovered || pressed ? canonicalTint : undefined,
+            },
           ]}>
-          {/* Colored banner */}
-          <View
-            style={[partyStyles.cardBanner, {backgroundColor: party.color}]}>
-            {/* Accent strip at the bottom of the banner */}
+          <View style={partyStyles.cardChrome}>
             <View
               style={[
-                partyStyles.cardBannerAccent,
-                {backgroundColor: party.accentColor},
+                partyStyles.cardRail,
+                {
+                  backgroundColor: party.color,
+                },
               ]}
             />
-            {/* Logo circle */}
-            <View style={partyStyles.logoRing}>
-              <Text style={partyStyles.logoText}>{party.logo}</Text>
+            <View
+              style={[partyStyles.logoRing, {backgroundColor: party.color}]}>
+              <Text style={partyStyles.logoText} numberOfLines={1}>
+                {party.logo}
+              </Text>
             </View>
           </View>
 
-          {/* Card body */}
           <View style={partyStyles.cardBody}>
-            <Text
-              style={[partyStyles.cardName, t.atoms.text]}
-              numberOfLines={1}>
-              {party.name}
+            <View style={partyStyles.cardTitleRow}>
+              <Text
+                style={[partyStyles.cardName, t.atoms.text]}
+                numberOfLines={1}>
+                {party.name}
+              </Text>
+              <ChevronRight
+                size="sm"
+                fill={
+                  hovered || pressed
+                    ? party.color
+                    : t.atoms.text_contrast_low.color
+                }
+              />
+            </View>
+            <Text style={[partyStyles.cardFilter, {color: party.color}]}>
+              {party.filter}
             </Text>
             <Text
               style={[partyStyles.cardDesc, t.atoms.text_contrast_medium]}
@@ -844,6 +880,16 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 100,
   },
+  feedCardShell: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
+  discoverFeedCard: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 14,
+  },
 
   header: {
     flexDirection: 'row',
@@ -881,24 +927,52 @@ const styles = StyleSheet.create({
 const partyStyles = StyleSheet.create({
   section: {
     paddingHorizontal: 16,
-    paddingTop: 28,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 22,
   },
   sectionHeader: {
-    gap: 6,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 18,
+  },
+  headerTopline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  headerRule: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.5,
   },
   eyebrow: {
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 0,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   heading: {
-    fontSize: 28,
+    flex: 1,
+    fontSize: 26,
     fontWeight: '800',
-    letterSpacing: -0.6,
-    lineHeight: 34,
+    letterSpacing: 0,
+    lineHeight: 31,
+  },
+  countPill: {
+    minWidth: 34,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: 'hidden',
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '800',
+    backgroundColor: 'rgba(127,127,127,0.12)',
   },
   lead: {
     fontSize: 14,
@@ -908,55 +982,67 @@ const partyStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
   },
   cardLink: {
-    width: '47%',
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 148,
   },
   card: {
-    borderRadius: 18,
+    minHeight: 174,
+    borderRadius: 8,
     borderWidth: 1,
     overflow: 'hidden',
+    padding: 12,
   },
-  cardBanner: {
-    height: 96,
+  cardChrome: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
-  cardBannerAccent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 4,
+  cardRail: {
+    width: 34,
+    height: 6,
+    borderRadius: 999,
   },
   logoRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    width: 42,
+    height: 42,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoText: {
     color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  cardBody: {
-    padding: 12,
-    paddingTop: 10,
-    gap: 5,
-  },
-  cardName: {
     fontSize: 15,
     fontWeight: '800',
-    letterSpacing: -0.2,
+    letterSpacing: 0,
+  },
+  cardBody: {
+    gap: 7,
+  },
+  cardTitleRow: {
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardName: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0,
     lineHeight: 20,
+  },
+  cardFilter: {
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 16,
   },
   cardDesc: {
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 18,
   },
 })
